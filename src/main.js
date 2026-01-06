@@ -1,15 +1,11 @@
 import "./style.css";
 import { Delaunay } from "d3-delaunay";
-import { drawPoint, getCentroid, lerp, randomUnitVector2D } from "./utils.js";
-import { MAX_POINT_RADIUS, MIN_POINT_RADIUS, NUM_POINTS } from "./constants.js";
 
-let seedPoints = [];
+let currentPoints = [];
 let delaunay;
 let voronoi;
 let animationFrameId = null;
 let imgCanvas = document.createElement("canvas");
-const video = document.getElementById("video");
-let isVideoMode = false;
 const canvas = document.getElementById("canvas");
 const colorToggle = document.getElementById("colorToggle");
 const polyToggle = document.getElementById("polyToggle");
@@ -42,7 +38,7 @@ function addStipplePoints() {
   if (isNaN(numPoints) || numPoints <= 0) {
     numPoints = 1000;
   }
-  seedPoints = [];
+  currentPoints = [];
 
   for (let i = 0; i < numPoints; i++) {
     let x = Math.random() * canvas.width;
@@ -58,7 +54,7 @@ function addStipplePoints() {
     const threshold = Math.random() * 255;
 
     if (brightness < threshold) {
-      seedPoints.push([x, y]);
+      currentPoints.push([x, y]);
     } else {
       i--;
     }
@@ -116,12 +112,25 @@ function getColor(imageData, width, height, x, y) {
 }
 
 function getVoronoi() {
-  delaunay = Delaunay.from(seedPoints);
-  console.log(delaunay);
-
+  delaunay = Delaunay.from(currentPoints);
   voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]);
-  console.log(voronoi);
 }
+
+function lerp(start, end, inc) {
+  // linear interpolation
+  return [
+    start[0] + (end[0] - start[0]) * inc,
+    start[1] + (end[1] - start[1]) * inc,
+  ];
+}
+
+function drawPoint(ctx, x, y, color = "black", radius = 1) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -133,12 +142,18 @@ function draw() {
   const MIN_POINT_RADIUS = parseFloat(minRadiusSlider.value);
   const MAX_POINT_RADIUS = parseFloat(maxRadiusSlider.value);
 
-  // draw seed points
+  // draw points or polygons right away
   if (!drawPoly) {
-    for (let idx = 0; idx < seedPoints.length; idx++) {
-      const v = seedPoints[idx];
+    for (let idx = 0; idx < currentPoints.length; idx++) {
+      const v = currentPoints[idx];
 
-      const brightness = getBrightness(imageData, canvas.width, canvas.height, v[0], v[1])
+      const brightness = getBrightness(
+        imageData,
+        canvas.width,
+        canvas.height,
+        v[0],
+        v[1]
+      );
 
       const brightFraction = brightness / 255;
       const darkFraction = 1 - brightFraction;
@@ -147,11 +162,17 @@ function draw() {
 
       let color;
       if (useColor) {
-        const {r, g, b} = getColor(imageData, canvas.width, canvas.height, v[0], v[1]);
-        color = `rgb(${r}, ${g}, ${b})`
+        const { r, g, b } = getColor(
+          imageData,
+          canvas.width,
+          canvas.height,
+          v[0],
+          v[1]
+        );
+        color = `rgb(${r}, ${g}, ${b})`;
       } else {
-        color = "black"
-      };
+        color = "black";
+      }
 
       ctx.globalAlpha = 0.9;
 
@@ -174,8 +195,14 @@ function draw() {
       ctx.closePath();
 
       if (useColor) {
-        const v = seedPoints[i];
-        const { r, g, b } = getColor(imageData, canvas.width, canvas.height, v[0], v[1])
+        const v = currentPoints[i];
+        const { r, g, b } = getColor(
+          imageData,
+          canvas.width,
+          canvas.height,
+          v[0],
+          v[1]
+        );
 
         const color = `rgb(${r}, ${g}, ${b})`;
         ctx.fillStyle = color;
@@ -186,16 +213,13 @@ function draw() {
     }
   }
 
-  // weighted
-
-  let centroids = new Array(cells.length);
-  for (let i = 0; i < centroids.length; i++) {
-    centroids[i] = [0, 0];
+  // Time to relax via Lloyds algorithm
+  let targetPoints = new Array(cells.length);
+  for (let i = 0; i < targetPoints.length; i++) {
+    targetPoints[i] = [0, 0];
   }
 
-  // console.log("s", seedPoints.length);
-  // console.log("c", centroids.length);
-  let centroidWeights = new Array(cells.length).fill(0);
+  let targetWeights = new Array(cells.length).fill(0);
   let delaunayIndex = 0;
   for (let i = 0; i < canvas.width; i++) {
     for (let j = 0; j < canvas.height; j++) {
@@ -207,32 +231,26 @@ function draw() {
       let weight = 1 - val / 255;
       delaunayIndex = delaunay.find(i, j, delaunayIndex);
 
-      centroids[delaunayIndex][0] += i * weight;
-      centroids[delaunayIndex][1] += j * weight;
-      centroidWeights[delaunayIndex] += weight;
+      targetPoints[delaunayIndex][0] += i * weight;
+      targetPoints[delaunayIndex][1] += j * weight;
+      targetWeights[delaunayIndex] += weight;
     }
   }
 
-  for (let i = 0; i < centroids.length; i++) {
-    if (centroidWeights[i] > 0) {
-      centroids[i][0] /= centroidWeights[i];
-      centroids[i][1] /= centroidWeights[i];
+  for (let i = 0; i < targetPoints.length; i++) {
+    if (targetWeights[i] > 0) {
+      targetPoints[i][0] /= targetWeights[i];
+      targetPoints[i][1] /= targetWeights[i];
     } else {
-      centroids[i] = [...seedPoints[i]];
+      targetPoints[i] = [...currentPoints[i]];
     }
   }
 
-  for (let i = 0; i < centroids.length; i++) {}
-
-  for (let idx = 0; idx < seedPoints.length; idx++) {
-    if (isVideoMode) {
-      seedPoints[idx] = lerp(seedPoints[idx], centroids[idx], 1);
-    } else {
-      seedPoints[idx] = lerp(seedPoints[idx], centroids[idx], 0.5);
-    }
+  for (let idx = 0; idx < currentPoints.length; idx++) {
+    currentPoints[idx] = lerp(currentPoints[idx], targetPoints[idx], 0.3);
   }
 
-  delaunay = Delaunay.from(seedPoints);
+  delaunay = Delaunay.from(currentPoints);
   voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]);
   animationFrameId = requestAnimationFrame(draw);
 }
