@@ -7,17 +7,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet"
-    />
+      rel="stylesheet" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css"
-    />
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" />
     <link rel="stylesheet" href="/src/style.css" />
     <script
       type="module"
-      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"
-    ></script>
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"></script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Voronoi Stippling Sandbox</title>
@@ -28,14 +25,17 @@
     </nav>
     <div id="app">
       <div class="controls" id="controls">
+        <input type="file" id="imageUpload" accept="image/*" />
+
+        <h3>Control</h3>
+
         <sl-range
           label="Num Points"
           id="numPointsSlider"
           min="1000"
           max="30000"
           value="2000"
-          step="1000"
-        >
+          step="1000">
         </sl-range>
         <sl-range
           label="Min Radius"
@@ -43,30 +43,30 @@
           min="0"
           max="20"
           step="0.1"
-          value="0.5"
-        ></sl-range>
+          value="0.5"></sl-range>
         <sl-range
           label="Max Radius"
           id="maxRadius"
           min="0.1"
           max="20"
           step="0.1"
-          value="3"
-        ></sl-range>
+          value="3"></sl-range>
 
+        <h3>Show</h3>
         <span class="checks">
-          <sl-checkbox id="colorToggle">With Color</sl-checkbox>
-          <sl-checkbox id="polyToggle">With Polygons</sl-checkbox>
+          <sl-checkbox checked id="circToggle">Points</sl-checkbox>
+          <sl-checkbox id="polyToggle">Polygons</sl-checkbox>
+          <sl-checkbox id="colorToggle">Colors</sl-checkbox>
         </span>
 
         <span class="playpause">
-        <sl-button id="btn-relax" variant="primary">Relax</sl-button>
-        <sl-button id="btn-stop">Stop</sl-button>
-        <sl-button id="restart-btn">Reset</sl-button>
+          <sl-button id="btn-relax" variant="primary">Relax</sl-button>
+          <sl-button id="btn-stop">Stop</sl-button>
+          <sl-button id="restart-btn">Reset</sl-button>
         </span>
 
-        <input type="file" id="imageUpload" accept="image/*" />
-        <sl-button id="btn-save-json" type="button">Save points (JSON)</sl-button>
+        <sl-button id="btn-save-json" type="button">Save Points
+          (JSON)</sl-button>
       </div>
       <canvas id="canvas"></canvas>
       <span id="loader" class="loader"></span>

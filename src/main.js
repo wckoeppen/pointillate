@@ -9,6 +9,8 @@ let imgCanvas = document.createElement("canvas");
 const canvas = document.getElementById("canvas");
 const colorToggle = document.getElementById("colorToggle");
 const polyToggle = document.getElementById("polyToggle");
+const circToggle = document.getElementById("circToggle");
+
 const minRadiusSlider = document.getElementById("minRadius");
 const maxRadiusSlider = document.getElementById("maxRadius");
 const numPointsSlider = document.getElementById("numPointsSlider");
@@ -87,7 +89,6 @@ function loadImageAndStart(img) {
     drawWidth = 960;
     drawHeight = img.height * scale;
     console.log("scaling to:", drawWidth, drawHeight);
-
   }
 
   imgCanvas.width = drawWidth;
@@ -202,12 +203,14 @@ function renderFrame() {
   // If your image is static, you can move this outside renderFrame().
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-  const useColor = colorToggle.checked;
-  const drawPoly = polyToggle.checked;
+  const showColor = colorToggle.checked;
+  const showPolygons = polyToggle.checked;
+  const showPoints = circToggle.checked;
+
   const MIN_POINT_RADIUS = parseFloat(minRadiusSlider.value);
   const MAX_POINT_RADIUS = parseFloat(maxRadiusSlider.value);
 
-  if (!drawPoly) {
+  if (showPoints) {
     for (let idx = 0; idx < currentPoints.length; idx++) {
       const v = currentPoints[idx];
 
@@ -226,7 +229,7 @@ function renderFrame() {
         MIN_POINT_RADIUS + curved * (MAX_POINT_RADIUS - MIN_POINT_RADIUS);
 
       let color = "black";
-      if (useColor) {
+      if (showColor) {
         const { r, g, b } = getColor(
           imageData,
           canvas.width,
@@ -240,31 +243,31 @@ function renderFrame() {
       ctx.globalAlpha = 0.9;
       drawPoint(ctx, v[0], v[1], color, radius);
     }
-    return;
   }
 
-  // Polygon mode
-  const cells = Array.from(voronoi.cellPolygons());
-  for (let i = 0; i < cells.length; i++) {
-    const poly = cells[i];
-    ctx.beginPath();
-    ctx.moveTo(poly[0][0], poly[0][1]);
-    for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
-    ctx.closePath();
+  if (showPolygons) {
+    const cells = Array.from(voronoi.cellPolygons());
+    for (let i = 0; i < cells.length; i++) {
+      const poly = cells[i];
+      ctx.beginPath();
+      ctx.moveTo(poly[0][0], poly[0][1]);
+      for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
+      ctx.closePath();
 
-    if (useColor) {
-      const v = currentPoints[i];
-      const { r, g, b } = getColor(
-        imageData,
-        canvas.width,
-        canvas.height,
-        v[0],
-        v[1]
-      );
-      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      ctx.fill();
-    } else {
-      ctx.stroke();
+      if (showColor) {
+        const v = currentPoints[i];
+        const { r, g, b } = getColor(
+          imageData,
+          canvas.width,
+          canvas.height,
+          v[0],
+          v[1]
+        );
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.fill();
+      } else {
+        ctx.stroke();
+      }
     }
   }
 }
@@ -322,9 +325,30 @@ function resumeRelaxation() {
   relaxEnabled = true;
 }
 
-function stepRelaxationOnce() {
-  relaxPoints(0.3);
-  renderFrame();
+function getWeightAtPoint(imageData, w, h, x, y) {
+  const brightness = getBrightness(imageData, w, h, x, y); // 0..255
+  return 1 - brightness / 255; // 0..1 darkness
+}
+
+function getColorStringAtPoint(imageData, w, h, x, y) {
+  const { r, g, b } = getColor(imageData, w, h, x, y);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function downloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
 }
 
 // event handlers
@@ -393,3 +417,38 @@ maxRadiusSlider.addEventListener("sl-input", () => {
 
 relaxBtn.addEventListener("click", () => resumeRelaxation());
 stopBtn.addEventListener("click", () => pauseRelaxation());
+
+const saveBtn = document.getElementById("btn-save-json");
+
+saveBtn?.addEventListener("click", () => {
+  if (!imgCtx || !imageData || currentPoints.length === 0) return;
+
+  // Ensure imageData is current (important if the image can change)
+  const w = canvas.width;
+  const h = canvas.height;
+  const data = imgCtx.getImageData(0, 0, w, h).data;
+
+  const exported = currentPoints.map((p, i) => {
+    const x = p[0];
+    const y = p[1];
+
+    const weight = getWeightAtPoint(data, w, h, x, y);
+    const color = getColorStringAtPoint(data, w, h, x, y);
+
+    return {
+      index: i,
+      positionX: x,
+      positionY: y,
+      weight,
+      color,
+    };
+  });
+
+  downloadJson("stipple-points.json", {
+    createdAt: new Date().toISOString(),
+    width: w,
+    height: h,
+    pointCount: exported.length,
+    points: exported,
+  });
+});
