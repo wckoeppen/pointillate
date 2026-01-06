@@ -19,14 +19,13 @@ const loader = document.getElementById("loader");
 const controls = document.getElementById("controls");
 const restartBtn = document.getElementById("restart-btn");
 const relaxBtn = document.getElementById("btn-relax");
-const stopBtn = document.getElementById("btn-stop");
 
 const ctx = canvas.getContext("2d");
 let imgCtx;
 let imageData;
 
+let relaxEnabled = false;
 let isRunning = false;
-let relaxEnabled = true;
 
 function getBrightness(imageData, width, height, x, y) {
   const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
@@ -105,7 +104,6 @@ function loadImageAndStart(img) {
   getVoronoi();
   renderFrame();
   stop();
-  resumeRelaxation();
   start();
 }
 
@@ -272,6 +270,15 @@ function renderFrame() {
   }
 }
 
+function syncRelaxButtonUI() {
+  relaxBtn.variant = relaxEnabled ? "primary" : "default";
+}
+
+relaxBtn.addEventListener("click", () => {
+  relaxEnabled = !relaxEnabled;
+  syncRelaxButtonUI();
+});
+
 function loadInitial() {
   // load in image then get voronoi
   const img = new Image();
@@ -284,6 +291,43 @@ function loadInitial() {
       maxRadiusSlider.updateComplete,
       numPointsSlider.updateComplete,
     ]);
+
+    syncRelaxButtonUI();
+
+    const saveBtn = document.getElementById("btn-save-json");
+
+    saveBtn?.addEventListener("click", () => {
+      if (!imgCtx || !imageData || currentPoints.length === 0) return;
+
+      // Ensure imageData is current (important if the image can change)
+      const w = canvas.width;
+      const h = canvas.height;
+      const data = imgCtx.getImageData(0, 0, w, h).data;
+
+      const exported = currentPoints.map((p, i) => {
+        const x = p[0];
+        const y = p[1];
+
+        const weight = getWeightAtPoint(data, w, h, x, y);
+        const color = getColorStringAtPoint(data, w, h, x, y);
+
+        return {
+          index: i,
+          positionX: x,
+          positionY: y,
+          weight,
+          color,
+        };
+      });
+
+      downloadJson("stipple-points.json", {
+        createdAt: new Date().toISOString(),
+        width: w,
+        height: h,
+        pointCount: exported.length,
+        points: exported,
+      });
+    });
 
     loadImageAndStart(img);
   };
@@ -315,14 +359,6 @@ function stop() {
   isRunning = false;
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
   animationFrameId = null;
-}
-
-function pauseRelaxation() {
-  relaxEnabled = false;
-}
-
-function resumeRelaxation() {
-  relaxEnabled = true;
 }
 
 function getWeightAtPoint(imageData, w, h, x, y) {
@@ -413,42 +449,4 @@ minRadiusSlider.addEventListener("sl-input", () => {
 maxRadiusSlider.addEventListener("sl-input", () => {
   syncRadiusFromMax();
   renderFrame();
-});
-
-relaxBtn.addEventListener("click", () => resumeRelaxation());
-stopBtn.addEventListener("click", () => pauseRelaxation());
-
-const saveBtn = document.getElementById("btn-save-json");
-
-saveBtn?.addEventListener("click", () => {
-  if (!imgCtx || !imageData || currentPoints.length === 0) return;
-
-  // Ensure imageData is current (important if the image can change)
-  const w = canvas.width;
-  const h = canvas.height;
-  const data = imgCtx.getImageData(0, 0, w, h).data;
-
-  const exported = currentPoints.map((p, i) => {
-    const x = p[0];
-    const y = p[1];
-
-    const weight = getWeightAtPoint(data, w, h, x, y);
-    const color = getColorStringAtPoint(data, w, h, x, y);
-
-    return {
-      index: i,
-      positionX: x,
-      positionY: y,
-      weight,
-      color,
-    };
-  });
-
-  downloadJson("stipple-points.json", {
-    createdAt: new Date().toISOString(),
-    width: w,
-    height: h,
-    pointCount: exported.length,
-    points: exported,
-  });
 });
