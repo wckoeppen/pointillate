@@ -4,61 +4,60 @@ import { drawPoint, getCentroid, lerp, randomUnitVector2D } from "./utils.js";
 import { MAX_POINT_RADIUS, MIN_POINT_RADIUS, NUM_POINTS } from "./constants.js";
 
 let seedPoints = [];
-
 let delaunay;
 let voronoi;
 let animationFrameId = null;
-
 let imgCanvas = document.createElement("canvas");
-
 const video = document.getElementById("video");
 let isVideoMode = false;
-
 const canvas = document.getElementById("canvas");
-
 const colorToggle = document.getElementById("colorToggle");
 const polyToggle = document.getElementById("polyToggle");
-
 const minRadiusSlider = document.getElementById("minRadius");
 const maxRadiusSlider = document.getElementById("maxRadius");
-
 const numPointsSlider = document.getElementById("numPointsSlider");
-
 const imageUploadInput = document.getElementById("imageUpload");
-
 const loader = document.getElementById("loader");
 const controls = document.getElementById("controls");
 const restartBtn = document.getElementById("restart-btn");
 
 const ctx = canvas.getContext("2d");
-
 let imgCtx;
 let imageData;
 
-function regenerateStipplePoints() {
+function getBrightness(imageData, width, height, x, y) {
+  const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
+  const iy = Math.max(0, Math.min(height - 1, Math.floor(y)));
+  const idx = (iy * width + ix) * 4;
+
+  return (
+    0.2126 * imageData[idx] +
+    0.7152 * imageData[idx + 1] +
+    0.0722 * imageData[idx + 2]
+  );
+}
+
+function addStipplePoints() {
   const numPoints = parseInt(numPointsSlider.value);
   if (isNaN(numPoints) || numPoints <= 0) {
-    // fallback
-    numPoints = 15000;
+    numPoints = 1000;
   }
-  // np is nan sometimes
-  // console.log("numPoints", numPoints);
   seedPoints = [];
 
   for (let i = 0; i < numPoints; i++) {
     let x = Math.random() * canvas.width;
     let y = Math.random() * canvas.height;
 
-    const imageSampleX = Math.floor(x);
-    const imageSampleY = Math.floor(y);
-    const index = (imageSampleY * canvas.width + imageSampleX) * 4;
-    const r = imageData[index];
-    const g = imageData[index + 1];
-    const b = imageData[index + 2];
-    const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const brightness = getBrightness(
+      imageData,
+      canvas.width,
+      canvas.height,
+      x,
+      y
+    );
     const threshold = Math.random() * 255;
 
-    if (threshold > brightness) {
+    if (brightness < threshold) {
       seedPoints.push([x, y]);
     } else {
       i--;
@@ -98,22 +97,35 @@ function loadImageAndStart(img) {
 
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-  regenerateStipplePoints();
-  setup();
+  addStipplePoints();
+  getVoronoi();
   draw();
 }
 
-function setup() {
+function getColor(imageData, width, height, x, y) {
+  const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
+  const iy = Math.max(0, Math.min(height - 1, Math.floor(y)));
+  const idx = (iy * width + ix) * 4;
+
+  const r = imageData[idx];
+  const g = imageData[idx + 1];
+  const b = imageData[idx + 2];
+  // const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+  return { r, g, b };
+}
+
+function getVoronoi() {
   delaunay = Delaunay.from(seedPoints);
+  console.log(delaunay);
+
   voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]);
+  console.log(voronoi);
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (isVideoMode) {
-    imgCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  }
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
 
   const useColor = colorToggle.checked;
@@ -126,22 +138,21 @@ function draw() {
     for (let idx = 0; idx < seedPoints.length; idx++) {
       const v = seedPoints[idx];
 
-      const imageSampleX = Math.floor(v[0]);
-      const imageSampleY = Math.floor(v[1]);
+      const brightness = getBrightness(imageData, canvas.width, canvas.height, v[0], v[1])
 
-      const index = (imageSampleY * canvas.width + imageSampleX) * 4;
-      const r = imageData[index];
-      const g = imageData[index + 1];
-      const b = imageData[index + 2];
-      const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-
-      const t = brightness / 255;
-      const inv = 1 - t;
-
+      const brightFraction = brightness / 255;
+      const darkFraction = 1 - brightFraction;
       const radius =
-        MIN_POINT_RADIUS + inv * (MAX_POINT_RADIUS - MIN_POINT_RADIUS);
+        MIN_POINT_RADIUS + darkFraction * (MAX_POINT_RADIUS - MIN_POINT_RADIUS);
 
-      const color = useColor ? `rgb(${r}, ${g}, ${b})` : "black";
+      let color;
+      if (useColor) {
+        const {r, g, b} = getColor(imageData, canvas.width, canvas.height, v[0], v[1]);
+        color = `rgb(${r}, ${g}, ${b})`
+      } else {
+        color = "black"
+      };
+
       ctx.globalAlpha = 0.9;
 
       drawPoint(ctx, v[0], v[1], color, radius);
@@ -164,14 +175,8 @@ function draw() {
 
       if (useColor) {
         const v = seedPoints[i];
+        const { r, g, b } = getColor(imageData, canvas.width, canvas.height, v[0], v[1])
 
-        const imageSampleX = Math.floor(v[0]);
-        const imageSampleY = Math.floor(v[1]);
-
-        const index = (imageSampleY * canvas.width + imageSampleX) * 4;
-        const r = imageData[index];
-        const g = imageData[index + 1];
-        const b = imageData[index + 2];
         const color = `rgb(${r}, ${g}, ${b})`;
         ctx.fillStyle = color;
         ctx.fill();
@@ -184,7 +189,6 @@ function draw() {
   // weighted
 
   let centroids = new Array(cells.length);
-
   for (let i = 0; i < centroids.length; i++) {
     centroids[i] = [0, 0];
   }
@@ -233,52 +237,10 @@ function draw() {
   animationFrameId = requestAnimationFrame(draw);
 }
 
-async function stopVideoStippling() {
-  if (animationFrameId !== null) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-
-    video.pause();
-    isVideoMode = false;
-    loadInitial();
-  }
-}
-
-async function startVideoStippling() {
-  if (animationFrameId !== null) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-  }
-
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  video.srcObject = stream;
-
-  await video.play();
-
-  isVideoMode = true;
-
-  const drawWidth = video.videoWidth;
-  const drawHeight = video.videoHeight;
-
-  canvas.width = drawWidth;
-  canvas.height = drawHeight;
-  imgCanvas.width = drawWidth;
-  imgCanvas.height = drawHeight;
-
-  imgCtx = imgCanvas.getContext("2d");
-
-  numPointsSlider.value = 1000;
-  maxRadiusSlider.value = 5;
-
-  regenerateStipplePoints();
-  setup();
-  draw();
-}
-
 function loadInitial() {
   // load in image then get voronoi
   const img = new Image();
-  img.src = img.src = `${import.meta.env.BASE_URL}cat-square.jpg`;
+  img.src = img.src = `${import.meta.env.BASE_URL}20100528-test-001c-small.jpg`;
 
   img.onload = async () => {
     await customElements.whenDefined("sl-range");
@@ -304,14 +266,6 @@ imageUploadInput.addEventListener("change", (e) => {
   controls.style.display = "none";
   loader.style.display = "inline-block";
 
-  // stop video if playing
-
-  if (video) {
-    video.pause();
-    videoBtn.innerText = "Live Video";
-  }
-  isVideoMode = false;
-
   const reader = new FileReader();
   reader.onload = (event) => {
     const uploadedImg = new Image();
@@ -324,22 +278,11 @@ imageUploadInput.addEventListener("change", (e) => {
 });
 
 numPointsSlider.addEventListener("input", () => {
-  regenerateStipplePoints();
-  setup();
+  addStipplePoints();
+  getVoronoi();
 });
 
 restartBtn.addEventListener("click", () => {
-  regenerateStipplePoints();
-  setup();
-});
-
-const videoBtn = document.getElementById("video-btn");
-videoBtn.addEventListener("click", () => {
-  if (!isVideoMode) {
-    startVideoStippling();
-    videoBtn.innerText = "Stop Video";
-  } else {
-    stopVideoStippling();
-    videoBtn.innerText = "Live Video";
-  }
+  addStipplePoints();
+  getVoronoi();
 });
