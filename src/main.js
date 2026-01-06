@@ -16,10 +16,15 @@ const imageUploadInput = document.getElementById("imageUpload");
 const loader = document.getElementById("loader");
 const controls = document.getElementById("controls");
 const restartBtn = document.getElementById("restart-btn");
+const relaxBtn = document.getElementById("btn-relax");
+const stopBtn = document.getElementById("btn-stop");
 
 const ctx = canvas.getContext("2d");
 let imgCtx;
 let imageData;
+
+let isRunning = false;
+let relaxEnabled = true;
 
 function getBrightness(imageData, width, height, x, y) {
   const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
@@ -62,7 +67,7 @@ function addStipplePoints() {
 }
 
 function loadImageAndStart(img) {
-  console.log("original image size", img.width, img.height);
+  console.log("original image:", img.width, img.height);
 
   if (animationFrameId !== null) {
     cancelAnimationFrame(animationFrameId);
@@ -73,14 +78,16 @@ function loadImageAndStart(img) {
   controls.style.display = "flex";
   loader.style.display = "none";
 
-  // resize large images
   let drawWidth = img.width;
   let drawHeight = img.height;
-  if (img.width > 800) {
-    console.log("resizing");
-    const scale = 800 / img.width;
-    drawWidth = 800;
+
+  //resize large images
+  if (img.width > 960) {
+    const scale = 960 / img.width;
+    drawWidth = 960;
     drawHeight = img.height * scale;
+    console.log("scaling to:", drawWidth, drawHeight);
+
   }
 
   imgCanvas.width = drawWidth;
@@ -95,7 +102,10 @@ function loadImageAndStart(img) {
 
   addStipplePoints();
   getVoronoi();
-  draw();
+  renderFrame();
+  stop();
+  resumeRelaxation();
+  start();
 }
 
 function getColor(imageData, width, height, x, y) {
@@ -131,10 +141,65 @@ function drawPoint(ctx, x, y, color = "black", radius = 1) {
   ctx.fill();
 }
 
+function relaxPoints(relaxFactor = 0.3) {
+  // If imageData is static, cache it once elsewhere rather than re-getting here.
+  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-function draw() {
+  // We only need the count; polygons themselves aren't required for centroid scan.
+  // Safer: use currentPoints.length directly.
+  const n = currentPoints.length;
+
+  const targetPoints = new Array(n);
+  for (let i = 0; i < n; i++) targetPoints[i] = [0, 0];
+
+  const targetWeights = new Array(n).fill(0);
+
+  let delaunayIndex = 0;
+
+  for (let x = 0; x < canvas.width; x++) {
+    for (let y = 0; y < canvas.height; y++) {
+      const idx = (y * canvas.width + x) * 4;
+
+      const r = imageData[idx];
+      const g = imageData[idx + 1];
+      const b = imageData[idx + 2];
+
+      const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      const weight = 1 - brightness / 255;
+
+      // nearest site index in currentPoints
+      delaunayIndex = delaunay.find(x, y, delaunayIndex);
+
+      targetPoints[delaunayIndex][0] += x * weight;
+      targetPoints[delaunayIndex][1] += y * weight;
+      targetWeights[delaunayIndex] += weight;
+    }
+  }
+
+  for (let i = 0; i < n; i++) {
+    if (targetWeights[i] > 0) {
+      targetPoints[i][0] /= targetWeights[i];
+      targetPoints[i][1] /= targetWeights[i];
+    } else {
+      targetPoints[i] = [...currentPoints[i]];
+    }
+  }
+
+  // Move points toward targets
+  for (let i = 0; i < n; i++) {
+    currentPoints[i] = lerp(currentPoints[i], targetPoints[i], relaxFactor);
+  }
+
+  // Rebuild geometry for next update
+  delaunay = Delaunay.from(currentPoints);
+  voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]);
+}
+
+function renderFrame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Only needs to be refreshed when the source image changes.
+  // If your image is static, you can move this outside renderFrame().
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
 
   const useColor = colorToggle.checked;
@@ -142,7 +207,6 @@ function draw() {
   const MIN_POINT_RADIUS = parseFloat(minRadiusSlider.value);
   const MAX_POINT_RADIUS = parseFloat(maxRadiusSlider.value);
 
-  // draw points or polygons right away
   if (!drawPoly) {
     for (let idx = 0; idx < currentPoints.length; idx++) {
       const v = currentPoints[idx];
@@ -154,13 +218,14 @@ function draw() {
         v[0],
         v[1]
       );
+      const darkFraction = 1 - brightness / 255;
 
-      const brightFraction = brightness / 255;
-      const darkFraction = 1 - brightFraction;
+      const curved = Math.pow(darkFraction, 2.0);
+
       const radius =
-        MIN_POINT_RADIUS + darkFraction * (MAX_POINT_RADIUS - MIN_POINT_RADIUS);
+        MIN_POINT_RADIUS + curved * (MAX_POINT_RADIUS - MIN_POINT_RADIUS);
 
-      let color;
+      let color = "black";
       if (useColor) {
         const { r, g, b } = getColor(
           imageData,
@@ -170,89 +235,38 @@ function draw() {
           v[1]
         );
         color = `rgb(${r}, ${g}, ${b})`;
-      } else {
-        color = "black";
       }
 
       ctx.globalAlpha = 0.9;
-
       drawPoint(ctx, v[0], v[1], color, radius);
     }
+    return;
   }
 
-  let polygons = voronoi.cellPolygons();
-  let cells = Array.from(polygons);
+  // Polygon mode
+  const cells = Array.from(voronoi.cellPolygons());
+  for (let i = 0; i < cells.length; i++) {
+    const poly = cells[i];
+    ctx.beginPath();
+    ctx.moveTo(poly[0][0], poly[0][1]);
+    for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
+    ctx.closePath();
 
-  if (drawPoly) {
-    // draw voronoi diagram (polygons) around points
-    for (let i = 0; i < cells.length; i++) {
-      const poly = cells[i];
-      ctx.beginPath();
-      ctx.moveTo(poly[0][0], poly[0][1]);
-      for (let i = 1; i < poly.length; i++) {
-        ctx.lineTo(poly[i][0], poly[i][1]);
-      }
-      ctx.closePath();
-
-      if (useColor) {
-        const v = currentPoints[i];
-        const { r, g, b } = getColor(
-          imageData,
-          canvas.width,
-          canvas.height,
-          v[0],
-          v[1]
-        );
-
-        const color = `rgb(${r}, ${g}, ${b})`;
-        ctx.fillStyle = color;
-        ctx.fill();
-      } else {
-        ctx.stroke();
-      }
-    }
-  }
-
-  // Time to relax via Lloyds algorithm
-  let targetPoints = new Array(cells.length);
-  for (let i = 0; i < targetPoints.length; i++) {
-    targetPoints[i] = [0, 0];
-  }
-
-  let targetWeights = new Array(cells.length).fill(0);
-  let delaunayIndex = 0;
-  for (let i = 0; i < canvas.width; i++) {
-    for (let j = 0; j < canvas.height; j++) {
-      const index = (j * canvas.width + i) * 4;
-      const r = imageData[index];
-      const g = imageData[index + 1];
-      const b = imageData[index + 2];
-      const val = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      let weight = 1 - val / 255;
-      delaunayIndex = delaunay.find(i, j, delaunayIndex);
-
-      targetPoints[delaunayIndex][0] += i * weight;
-      targetPoints[delaunayIndex][1] += j * weight;
-      targetWeights[delaunayIndex] += weight;
-    }
-  }
-
-  for (let i = 0; i < targetPoints.length; i++) {
-    if (targetWeights[i] > 0) {
-      targetPoints[i][0] /= targetWeights[i];
-      targetPoints[i][1] /= targetWeights[i];
+    if (useColor) {
+      const v = currentPoints[i];
+      const { r, g, b } = getColor(
+        imageData,
+        canvas.width,
+        canvas.height,
+        v[0],
+        v[1]
+      );
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      ctx.fill();
     } else {
-      targetPoints[i] = [...currentPoints[i]];
+      ctx.stroke();
     }
   }
-
-  for (let idx = 0; idx < currentPoints.length; idx++) {
-    currentPoints[idx] = lerp(currentPoints[idx], targetPoints[idx], 0.3);
-  }
-
-  delaunay = Delaunay.from(currentPoints);
-  voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]);
-  animationFrameId = requestAnimationFrame(draw);
 }
 
 function loadInitial() {
@@ -273,6 +287,45 @@ function loadInitial() {
 }
 
 loadInitial();
+
+function tick() {
+  // Update phase (optional)
+  if (relaxEnabled) {
+    relaxPoints(0.3);
+  }
+
+  // Render phase (always, if you want)
+  renderFrame();
+
+  if (isRunning) {
+    animationFrameId = requestAnimationFrame(tick);
+  }
+}
+
+function start() {
+  if (isRunning) return;
+  isRunning = true;
+  animationFrameId = requestAnimationFrame(tick);
+}
+
+function stop() {
+  isRunning = false;
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  animationFrameId = null;
+}
+
+function pauseRelaxation() {
+  relaxEnabled = false;
+}
+
+function resumeRelaxation() {
+  relaxEnabled = true;
+}
+
+function stepRelaxationOnce() {
+  relaxPoints(0.3);
+  renderFrame();
+}
 
 // event handlers
 
@@ -304,3 +357,39 @@ restartBtn.addEventListener("click", () => {
   addStipplePoints();
   getVoronoi();
 });
+
+function syncRadiusFromMin() {
+  let minR = Number(minRadiusSlider.value);
+  let maxR = Number(maxRadiusSlider.value);
+
+  if (minR > maxR) {
+    maxR = minR;
+    maxRadiusSlider.value = maxR;
+  }
+  return [minR, maxR];
+}
+
+function syncRadiusFromMax() {
+  let minR = Number(minRadiusSlider.value);
+  let maxR = Number(maxRadiusSlider.value);
+
+  if (maxR < minR) {
+    minR = maxR;
+    minRadiusSlider.value = minR;
+  }
+  return [minR, maxR];
+}
+
+// Use Shoelace's event
+minRadiusSlider.addEventListener("sl-input", () => {
+  syncRadiusFromMin();
+  renderFrame();
+});
+
+maxRadiusSlider.addEventListener("sl-input", () => {
+  syncRadiusFromMax();
+  renderFrame();
+});
+
+relaxBtn.addEventListener("click", () => resumeRelaxation());
+stopBtn.addEventListener("click", () => pauseRelaxation());
