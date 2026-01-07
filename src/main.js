@@ -396,9 +396,7 @@ function loadImageAndStart(img) {
 
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
   addStipplePoints();
-
   getVoronoi();
-
   renderFrame();
   startLoop();
 }
@@ -471,7 +469,6 @@ function loadInitial() {
     wireSaveButton();
 
     loadImageAndStart(img);
-    addStipplePoints();
   };
 }
 
@@ -509,7 +506,6 @@ numPointsSlider?.addEventListener("input", () => {
 });
 
 speedSlider?.addEventListener("input", () => {
-  speed = speedSlider.value;
   getVoronoi();
 });
 
