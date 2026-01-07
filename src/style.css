@@ -11,15 +11,12 @@ body {
 }
 
 h1 {
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Helvetica", sans-serif;
   font-size: 1.25rem;
   font-weight: 500;
   letter-spacing: 3px;
   text-transform: uppercase;
   color: #606060;
-}
-
-.highlight-text {
 }
 
 #app {
@@ -38,13 +35,27 @@ h1 {
   gap: 1rem;
 }
 
+.sliders {
+    padding: 10px 0;
+}
+
+.sliders sl-range {
+  padding: 10px 0;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 10px 0
+}
+
 canvas {
   display: none;
 }
 
 .checks {
   display: flex;
-  gap: 2rem;
+  gap: 1.2em;
 }
 
 .loader {
