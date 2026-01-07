@@ -45,9 +45,9 @@
         </div>
 
         <div class="colorPickers">
-          <wa-color-picker label="Background" value="#FFFFFF" size="medium"
+          <wa-color-picker id="backgroundColorBtn" label="Background" value="#FFFFFF" size="medium"
             swatches="#000; #fff"></wa-color-picker>
-          <wa-color-picker label="Points"
+          <wa-color-picker id="pointColorBtn" label="Points"
             value="#000000" size="medium"
             swatches="#000; #fff"></wa-color-picker>
         </div>
@@ -55,10 +55,10 @@
         <div class="seedTo">
           <wa-button-group>
             <wa-button id="btn-seedToDark" appearance="accent">
-              Dark Pixels
+              Seed Dark
             </wa-button>
             <wa-button id="btn-seedToLight" appearance="filled">
-              Light Pixels
+              Seed Light
             </wa-button>
           </wa-button-group>
         </div>
@@ -66,16 +66,16 @@
         <div class="relaxTo">
           <wa-button-group>
             <wa-button id="btn-relaxToDark" appearance="accent">
-              Dark Pixels
+              Dark Mass
             </wa-button>
             <wa-button id="btn-relaxToLight" appearance="filled">
-              Light Pixels
+              Light Mass
             </wa-button>
           </wa-button-group>
         </div>
 
         <div class="actions">
-          <wa-button appearance="filled" id="btn-relax">Relax</wa-button>
+          <wa-button appearance="filled" id="btn-relax">Run</wa-button>
           <wa-button appearance="filled" id="restart-btn">Reseed</wa-button>
           <wa-button appearance="filled" id="btn-save-json"
             type="button">Save</wa-button>

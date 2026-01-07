@@ -21,6 +21,28 @@ function setStyle(el, prop, value) {
   el.style[prop] = value;
 }
 
+// DOM refs
+
+const colorToggle = document.getElementById("colorToggle");
+const polyToggle = document.getElementById("polyToggle");
+const circToggle = document.getElementById("circToggle");
+
+const radiusSlider = document.getElementById("radiusSlider");
+const numPointsSlider = document.getElementById("numPointsSlider");
+const imageUploadInput = document.getElementById("imageUpload");
+const loader = document.getElementById("loader");
+const controls = document.getElementById("controls");
+
+const seedToDarkBtn = document.getElementById("btn-seedToDark");
+const seedToLightBtn = document.getElementById("btn-seedToLight");
+const relaxToDarkBtn = document.getElementById("btn-relaxToDark");
+const relaxToLightBtn = document.getElementById("btn-relaxToLight");
+const backgroundColorBtn = document.getElementById("backgroundColorBtn");
+const pointColorBtn = document.getElementById("pointColorBtn");
+
+const relaxBtn = document.getElementById("btn-relax");
+const restartBtn = document.getElementById("restart-btn");
+
 // State
 
 let currentPoints = [];
@@ -39,26 +61,8 @@ let seedToDarkPixels = true;
 let relaxToDarkPixels = true;
 let relaxEnabled = false;
 let isRunning = false;
-
-// DOM refs
-
-const colorToggle = document.getElementById("colorToggle");
-const polyToggle = document.getElementById("polyToggle");
-const circToggle = document.getElementById("circToggle");
-
-const radiusSlider = document.getElementById("radiusSlider");
-const numPointsSlider = document.getElementById("numPointsSlider");
-const imageUploadInput = document.getElementById("imageUpload");
-const loader = document.getElementById("loader");
-const controls = document.getElementById("controls");
-
-const seedToDarkBtn = document.getElementById("btn-seedToDark");
-const seedToLightBtn = document.getElementById("btn-seedToLight");
-const relaxToDarkBtn = document.getElementById("btn-relaxToDark");
-const relaxToLightBtn = document.getElementById("btn-relaxToLight");
-
-const relaxBtn = document.getElementById("btn-relax");
-const restartBtn = document.getElementById("restart-btn");
+let backgroundColor = "#fff";
+let pointColor = "#000";
 
 // Image sampling helpers
 
@@ -209,7 +213,12 @@ function relaxPoints(relaxFactor = 0.3) {
 function renderFrame() {
   if (!imgCtx || !imageData) return;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  console.log(backgroundColor);
+
+  // ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
 
   const showColor = colorToggle?.checked ?? false;
@@ -220,7 +229,7 @@ function renderFrame() {
   const MAX_POINT_RADIUS = parseFloat(radiusSlider?.maxValue ?? "1");
 
   if (showPoints) {
-    ctx.globalAlpha = 0.9;
+    // ctx.globalAlpha = 0.9;
 
     for (let idx = 0; idx < currentPoints.length; idx++) {
       const v = currentPoints[idx];
@@ -245,7 +254,7 @@ function renderFrame() {
       const radius =
         MIN_POINT_RADIUS + curved * (MAX_POINT_RADIUS - MIN_POINT_RADIUS);
 
-      let color = "black";
+      let color = pointColor;
       if (showColor) {
         const { r, g, b } = getColor(
           imageData,
@@ -305,9 +314,9 @@ function toggleSeedToBtn(mode) {
   seedToDarkBtn.appearance = seedToDarkPixels ? "accent" : "filled";
   seedToLightBtn.appearance = seedToDarkPixels ? "filled" : "accent";
 
-  addStipplePoints(mode=mode);
+  addStipplePoints((mode = mode));
   getVoronoi();
-  renderFrame(mode=mode);
+  renderFrame((mode = mode));
 }
 
 function toggleRelaxToBtn(mode) {
@@ -326,10 +335,18 @@ function toggleRelaxToBtn(mode) {
 
 //  Lifecycle
 
-function nextFrame() {
-  if (isRunning) return;
+function startLoop() {
+  if (animationFrameId != null) return;
   isRunning = true;
   animationFrameId = requestAnimationFrame(tick);
+}
+
+function stopLoop() {
+  isRunning = false;
+  if (animationFrameId != null) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
 }
 
 function tick() {
@@ -342,6 +359,7 @@ function tick() {
 //  Image loading / initialization
 
 function loadImageAndStart(img) {
+  stopLoop();
   console.log("original image:", img.width, img.height);
 
   if (animationFrameId !== null) {
@@ -377,7 +395,7 @@ function loadImageAndStart(img) {
   getVoronoi();
 
   renderFrame();
-  nextFrame();
+  startLoop();
 }
 
 function downloadJson(filename, data) {
@@ -457,6 +475,7 @@ loadInitial();
 relaxBtn?.addEventListener("click", () => {
   relaxEnabled = !relaxEnabled;
   syncRelaxButtonUI();
+  startLoop();
 });
 
 imageUploadInput?.addEventListener("change", (e) => {
@@ -504,4 +523,14 @@ relaxToDarkBtn?.addEventListener("click", () => {
 
 relaxToLightBtn?.addEventListener("click", () => {
   toggleRelaxToBtn("light");
+});
+
+backgroundColorBtn.addEventListener("input", () => {
+  backgroundColor = backgroundColorBtn.value;
+  renderFrame();
+});
+
+pointColorBtn.addEventListener("input", () => {
+  pointColor = pointColorBtn.value;
+  renderFrame();
 });
