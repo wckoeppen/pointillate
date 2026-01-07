@@ -55,7 +55,18 @@
           <sl-switch checked id="circToggle">Points</sl-switch>
           <sl-switch id="polyToggle">Cells</sl-switch>
           <sl-switch id="colorToggle">Colors</sl-switch>
-          </div>
+        </div>
+        <div class="colorPickers">
+          <sl-form-field label="Background">
+            <sl-color-picker
+              label="Background"
+              value="#ffffff">
+            </sl-color-picker>
+          </sl-form-field>
+          </sl-color-picker> <sl-color-picker value="#000000"
+            swatches="#000; #fff">Circles</sl-color-picker>
+
+        </div>
 
         <div class="actions">
           <sl-button id="btn-relax" variant="default" toggle>Relax</sl-button>
