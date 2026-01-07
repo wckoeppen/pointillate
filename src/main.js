@@ -61,8 +61,7 @@ const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
 let imageData;
 
-let numPoints = parseInt(numPointsSlider?.value, 10);
-if (isNaN(numPoints) || numPoints <= 0) numPoints = 1000;
+let numPoints = 1000;
 let speed = speedSlider.value;
 
 let seedToDarkPixels = true;
@@ -320,9 +319,9 @@ function toggleSeedToBtn(mode) {
   seedToDarkBtn.appearance = seedToDarkPixels ? "accent" : "filled";
   seedToLightBtn.appearance = seedToDarkPixels ? "filled" : "accent";
 
-  addStipplePoints((mode = mode));
+  addStipplePoints();
   getVoronoi();
-  renderFrame((mode = mode));
+  renderFrame();
 }
 
 function toggleRelaxToBtn(mode) {
@@ -396,8 +395,8 @@ function loadImageAndStart(img) {
   imgCtx.drawImage(img, 0, 0, drawWidth, drawHeight);
 
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-
   addStipplePoints();
+
   getVoronoi();
 
   renderFrame();
@@ -465,12 +464,14 @@ function loadInitial() {
     await Promise.all([
       radiusSlider?.updateComplete,
       numPointsSlider?.updateComplete,
+      speedSlider?.updateComplete,
     ]);
 
     syncRelaxButtonUI();
     wireSaveButton();
 
     loadImageAndStart(img);
+    addStipplePoints();
   };
 }
 
@@ -502,6 +503,7 @@ imageUploadInput?.addEventListener("change", (e) => {
 });
 
 numPointsSlider?.addEventListener("input", () => {
+  numPoints = numPointsSlider.value;
   addStipplePoints();
   getVoronoi();
 });
