@@ -29,6 +29,8 @@ const circToggle = document.getElementById("circToggle");
 
 const radiusSlider = document.getElementById("radiusSlider");
 const numPointsSlider = document.getElementById("numPointsSlider");
+const speedSlider = document.getElementById("speedSlider");
+
 const imageUploadInput = document.getElementById("imageUpload");
 const loader = document.getElementById("loader");
 const controls = document.getElementById("controls");
@@ -37,8 +39,10 @@ const seedToDarkBtn = document.getElementById("btn-seedToDark");
 const seedToLightBtn = document.getElementById("btn-seedToLight");
 const relaxToDarkBtn = document.getElementById("btn-relaxToDark");
 const relaxToLightBtn = document.getElementById("btn-relaxToLight");
+
 const backgroundColorBtn = document.getElementById("backgroundColorBtn");
 const pointColorBtn = document.getElementById("pointColorBtn");
+const lineColorBtn = document.getElementById("lineColorBtn");
 
 const relaxBtn = document.getElementById("btn-relax");
 const restartBtn = document.getElementById("restart-btn");
@@ -55,14 +59,20 @@ const canvas = document.getElementById("canvas");
 
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
-
 let imageData;
+
+let numPoints = parseInt(numPointsSlider?.value, 10);
+if (isNaN(numPoints) || numPoints <= 0) numPoints = 1000;
+let speed = speedSlider.value;
+
 let seedToDarkPixels = true;
 let relaxToDarkPixels = true;
 let relaxEnabled = false;
 let isRunning = false;
+
 let backgroundColor = "#fff";
 let pointColor = "#000";
+let lineColor = "#000";
 
 // Image sampling helpers
 
@@ -103,9 +113,6 @@ function getColorStringAtPoint(imageDataArr, w, h, x, y) {
 // Stippling / Voronoi
 
 function addStipplePoints() {
-  let numPoints = parseInt(numPointsSlider?.value, 10);
-  if (isNaN(numPoints) || numPoints <= 0) numPoints = 1000;
-
   currentPoints = [];
 
   for (let i = 0; i < numPoints; i++) {
@@ -156,7 +163,7 @@ function drawPoint(drawCtx, x, y, color = "black", radius = 1) {
   drawCtx.fill();
 }
 
-function relaxPoints(relaxFactor = 0.3) {
+function relaxPoints() {
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
 
   const n = currentPoints.length;
@@ -201,7 +208,7 @@ function relaxPoints(relaxFactor = 0.3) {
   }
 
   for (let i = 0; i < n; i++) {
-    currentPoints[i] = lerp(currentPoints[i], targetPoints[i], relaxFactor);
+    currentPoints[i] = lerp(currentPoints[i], targetPoints[i], speed);
   }
 
   delaunay = Delaunay.from(currentPoints);
@@ -212,8 +219,6 @@ function relaxPoints(relaxFactor = 0.3) {
 
 function renderFrame() {
   if (!imgCtx || !imageData) return;
-
-  console.log(backgroundColor);
 
   // ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = backgroundColor;
@@ -292,6 +297,7 @@ function renderFrame() {
         ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         ctx.fill();
       } else {
+        ctx.strokeStyle = lineColor;
         ctx.stroke();
       }
     }
@@ -500,6 +506,11 @@ numPointsSlider?.addEventListener("input", () => {
   getVoronoi();
 });
 
+speedSlider?.addEventListener("input", () => {
+  speed = speedSlider.value;
+  getVoronoi();
+});
+
 restartBtn?.addEventListener("click", () => {
   addStipplePoints();
   getVoronoi();
@@ -532,5 +543,10 @@ backgroundColorBtn.addEventListener("input", () => {
 
 pointColorBtn.addEventListener("input", () => {
   pointColor = pointColorBtn.value;
+  renderFrame();
+});
+
+lineColorBtn.addEventListener("input", () => {
+  lineColor = lineColorBtn.value;
   renderFrame();
 });
