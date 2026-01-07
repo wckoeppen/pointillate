@@ -15,6 +15,7 @@
     "vite": "^7.0.4"
   },
   "dependencies": {
+    "@awesome.me/webawesome": "^3.1.0",
     "d3-delaunay": "^6.0.4"
   },
   "homepage": "https://smallwhale1.github.io/voronoi-stippling/"

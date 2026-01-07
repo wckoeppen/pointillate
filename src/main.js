@@ -1,6 +1,12 @@
 import "./style.css";
 import { Delaunay } from "d3-delaunay";
 
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
+import "@awesome.me/webawesome/dist/components/slider/slider.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/switch/switch.js";
+
 let currentPoints = [];
 let delaunay;
 let voronoi;
@@ -40,7 +46,7 @@ function getBrightness(imageData, width, height, x, y) {
 }
 
 function addStipplePoints() {
-  const numPoints = parseInt(numPointsSlider.value);
+  let numPoints = parseInt(numPointsSlider.value);
   if (isNaN(numPoints) || numPoints <= 0) {
     numPoints = 1000;
   }
@@ -169,6 +175,7 @@ function relaxPoints(relaxFactor = 0.3) {
       // nearest site index in currentPoints
       delaunayIndex = delaunay.find(x, y, delaunayIndex);
 
+      // WHATVER WEIGHT IS AT x = 0 or y = 0 will get canceled out
       targetPoints[delaunayIndex][0] += x * weight;
       targetPoints[delaunayIndex][1] += y * weight;
       targetWeights[delaunayIndex] += weight;
@@ -201,9 +208,9 @@ function renderFrame() {
   // If your image is static, you can move this outside renderFrame().
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-  const showColor = colorToggle.checked;
-  const showPolygons = polyToggle.checked;
-  const showPoints = circToggle.checked;
+  const showColor = colorToggle?.checked ?? false;
+  const showPolygons = polyToggle?.checked ?? false;
+  const showPoints = circToggle?.checked ?? true;
 
   const MIN_POINT_RADIUS = parseFloat(minRadiusSlider.value);
   const MAX_POINT_RADIUS = parseFloat(maxRadiusSlider.value);
@@ -285,7 +292,6 @@ function loadInitial() {
   img.src = img.src = `${import.meta.env.BASE_URL}20100528-test-001c-small.jpg`;
 
   img.onload = async () => {
-    await customElements.whenDefined("sl-range");
     await Promise.all([
       minRadiusSlider.updateComplete,
       maxRadiusSlider.updateComplete,
@@ -440,13 +446,12 @@ function syncRadiusFromMax() {
   return [minR, maxR];
 }
 
-// Use Shoelace's event
-minRadiusSlider.addEventListener("sl-input", () => {
+minRadiusSlider.addEventListener("input", () => {
   syncRadiusFromMin();
   renderFrame();
 });
 
-maxRadiusSlider.addEventListener("sl-input", () => {
+maxRadiusSlider.addEventListener("input", () => {
   syncRadiusFromMax();
   renderFrame();
 });
