@@ -35,12 +35,28 @@ h1 {
   gap: 1rem;
 }
 
-.sliders {
+wa-slider {
     padding: 10px 0;
 }
+wa-slider::part(indicator) {
+  background-color: #7ea3e5;
+}
+wa-slider::part(thumb) {
+  background-color: #7ea3e5;
+  border: 1.5px solid #fff;
+}
 
-.sliders {
-  padding: 10px 0;
+wa-switch::part(control) {
+  background-color: #fff;
+  border-color: #ccc;
+}
+
+wa-switch:state(checked)::part(control) {
+  background-color: #7ea3e5;
+}
+
+wa-switch:state(checked)::part(thumb) {
+  background-color: #fff;
 }
 
 .actions {
@@ -56,6 +72,15 @@ canvas {
 .checks {
   display: flex;
   gap: 1.2em;
+}
+
+.colorPickers {
+  display: flex;
+  gap: 1.2em;
+}
+
+.colorPickers > wa-color-picker {
+  flex: 1 1 0;
 }
 
 .loader {
