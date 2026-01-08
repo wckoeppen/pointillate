@@ -62,13 +62,11 @@ const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
 let imageData;
 
 let numPoints = 1000;
-let speed = speedSlider.value;
-
+let speed = 0.3;
 let seedToDarkPixels = true;
 let relaxToDarkPixels = true;
 let relaxEnabled = false;
 let isRunning = false;
-
 let backgroundColor = "#fff";
 let pointColor = "#000";
 let lineColor = "#000";
