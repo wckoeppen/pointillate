@@ -28,13 +28,21 @@ h2 {
   text-align: left;
 }
 
-#app {
-  box-sizing: border-box;
-  padding-bottom: 2rem;
-  height: calc(100vh - 6rem);
+#app.ready .controls {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
+}
+
+#app.ready canvas {
+  display: block;
+}
+
+#app.loading .controls,
+#app.loading canvas {
+  display: none;
+}
+
+#app.loading .loader {
+  display: inline-block;
 }
 
 .controls {
@@ -45,7 +53,7 @@ h2 {
 }
 
 wa-slider {
-    padding-bottom: 20px;
+  padding-bottom: 20px;
 }
 wa-slider::part(indicator) {
   background-color: #7ea3e5;

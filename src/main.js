@@ -22,6 +22,7 @@ function setStyle(el, prop, value) {
 }
 
 // DOM refs
+const app = document.getElementById("app");
 
 const colorToggle = document.getElementById("colorToggle");
 const polyToggle = document.getElementById("polyToggle");
@@ -31,7 +32,7 @@ const radiusSlider = document.getElementById("radiusSlider");
 const numPointsSlider = document.getElementById("numPointsSlider");
 const speedSlider = document.getElementById("speedSlider");
 
-const imageUploadInput = document.getElementById("imageUpload");
+const mediaUploadBtn = document.getElementById("mediaUpload");
 const loader = document.getElementById("loader");
 const controls = document.getElementById("controls");
 
@@ -63,6 +64,80 @@ const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
 let imageData;
 
+let sourceMode = "image"; // "image" | "video"
+let sourceCanvas = null;
+let sourceCtx = null;
+let sourcePixels = null; // Uint8ClampedArray (RGBA)
+let sourceW = 0;
+let sourceH = 0;
+
+// Media source (image/video) state
+let activeVideo = null;
+let currentMediaUrl = null;
+let lastVideoSample = 0;
+const VIDEO_SAMPLE_HZ = 15;
+const VIDEO_SAMPLE_INTERVAL = 1000 / VIDEO_SAMPLE_HZ;
+
+function revokeCurrentMediaUrl() {
+  if (currentMediaUrl) {
+    URL.revokeObjectURL(currentMediaUrl);
+    currentMediaUrl = null;
+  }
+}
+
+function resetUI() {
+  // Fallback UI reset used on load failures
+  // Clear inline display overrides so CSS can control layout again
+  setLoadingUI();
+}
+
+function computeWorkingSize(mediaW, mediaH, maxW = 960) {
+  if (mediaW <= maxW) return { w: mediaW, h: mediaH };
+  const scale = maxW / mediaW;
+  return { w: Math.round(mediaW * scale), h: Math.round(mediaH * scale) };
+}
+
+function refreshSourcePixels(now, force = false) {
+  if (sourceMode !== "video" || !activeVideo) return;
+
+  if (!force && now != null && now - lastVideoSample < VIDEO_SAMPLE_INTERVAL)
+    return;
+
+  // Draw current video frame into the same buffer canvas used for images
+  imgCtx.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
+  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+  lastVideoSample = now != null ? now : performance.now();
+}
+
+function loadVideoAndStart(video) {
+  stopLoop();
+
+  sourceMode = "video";
+  activeVideo = video;
+  lastVideoSample = 0;
+
+  // Show UI (clear inline overrides so CSS governs layout)
+  setLoadingUI();
+
+  const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
+
+  imgCanvas.width = w;
+  imgCanvas.height = h;
+  canvas.width = w;
+  canvas.height = h;
+
+  // Prime pixels from the first frame
+  imgCtx.drawImage(video, 0, 0, w, h);
+  imageData = imgCtx.getImageData(0, 0, w, h).data;
+
+  seedPoints();
+  getVoronoi();
+  renderFrame();
+  setReadyUI();
+  startLoop();
+}
+
 let numPoints = 1000;
 let speed = 0.3;
 let seedPreference = "dark"; // "dark" | "light" | "none"
@@ -74,6 +149,17 @@ let isRunning = false;
 let backgroundColor = "#fff";
 let pointColor = "#000";
 let lineColor = "#000";
+
+function ensureSourceCanvas(w, h) {
+  if (!sourceCanvas) {
+    sourceCanvas = document.createElement("canvas");
+    sourceCtx = sourceCanvas.getContext("2d", { willReadFrequently: true });
+  }
+  if (sourceCanvas.width !== w) sourceCanvas.width = w;
+  if (sourceCanvas.height !== h) sourceCanvas.height = h;
+  sourceW = w;
+  sourceH = h;
+}
 
 // Image sampling helpers
 
@@ -167,8 +253,6 @@ function drawPoint(drawCtx, x, y, color = "black", radius = 1) {
 }
 
 function relaxPoints() {
-  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-
   const n = currentPoints.length;
   const targetPoints = new Array(n);
   for (let i = 0; i < n; i++) targetPoints[i] = [0, 0];
@@ -355,6 +439,16 @@ function toggleRelaxToBtn(mode) {
   renderFrame();
 }
 
+function setLoadingUI() {
+  app.classList.remove("ready");
+  app.classList.add("loading");
+}
+
+function setReadyUI() {
+  app.classList.remove("loading");
+  app.classList.add("ready");
+}
+
 //  Lifecycle
 
 function startLoop() {
@@ -371,8 +465,10 @@ function stopLoop() {
   }
 }
 
-function tick() {
-  if (relaxEnabled) relaxPoints(0.3);
+function tick(now) {
+  refreshSourcePixels(now);
+
+  if (relaxEnabled) relaxPoints();
   renderFrame();
 
   if (isRunning) animationFrameId = requestAnimationFrame(tick);
@@ -382,6 +478,10 @@ function tick() {
 
 function loadImageAndStart(img) {
   stopLoop();
+
+  sourceMode = "image";
+  activeVideo = null;
+  lastVideoSample = 0;
   console.log("original image:", img.width, img.height);
 
   if (animationFrameId !== null) {
@@ -389,9 +489,8 @@ function loadImageAndStart(img) {
     animationFrameId = null;
   }
 
-  setStyle(canvas, "display", "block");
-  setStyle(controls, "display", "flex");
-  setStyle(loader, "display", "none");
+  // Show UI (clear inline overrides so CSS governs layout)
+  setLoadingUI();
 
   let drawWidth = img.width;
   let drawHeight = img.height;
@@ -415,7 +514,52 @@ function loadImageAndStart(img) {
   seedPoints();
   getVoronoi();
   renderFrame();
+  setReadyUI();
   startLoop();
+}
+
+// Handlers
+
+function handleImageUpload(file) {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+
+  img.onload = () => {
+    revokeCurrentMediaUrl();
+
+    loadImageAndStart(img);
+  };
+
+  img.onerror = () => {
+    revokeCurrentMediaUrl();
+    alert("Failed to load image.");
+    resetUI();
+  };
+
+  img.src = url;
+}
+
+function handleVideoUpload(file) {
+  revokeCurrentMediaUrl();
+  const url = URL.createObjectURL(file);
+  currentMediaUrl = url;
+
+  const video = document.createElement("video");
+  video.src = url;
+  video.muted = true;
+  video.playsInline = true;
+
+  video.addEventListener("loadedmetadata", () => {
+    loadVideoAndStart(video);
+
+    video.play();
+  });
+
+  video.onerror = () => {
+    revokeCurrentMediaUrl();
+    alert("Failed to load video.");
+    resetUI();
+  };
 }
 
 function downloadJson(filename, data) {
@@ -431,7 +575,7 @@ function downloadJson(filename, data) {
   a.click();
   a.remove();
 
-  URL.revokeObjectURL(url);
+  revokeCurrentMediaUrl();
 }
 
 function wireSaveButton() {
@@ -491,7 +635,7 @@ function loadInitial() {
 
 loadInitial();
 
-//  Event handlers
+//  Listeners
 
 runBtn?.addEventListener("click", () => {
   relaxEnabled = !relaxEnabled;
@@ -499,21 +643,20 @@ runBtn?.addEventListener("click", () => {
   startLoop();
 });
 
-imageUploadInput?.addEventListener("change", (e) => {
+mediaUploadBtn?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];
   if (!file) return;
 
-  setStyle(canvas, "display", "none");
-  setStyle(controls, "display", "none");
-  setStyle(loader, "display", "inline-block");
+  setLoadingUI();
 
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const uploadedImg = new Image();
-    uploadedImg.onload = () => loadImageAndStart(uploadedImg);
-    uploadedImg.src = event.target.result;
-  };
-  reader.readAsDataURL(file);
+  if (file.type.startsWith("image/")) {
+    handleImageUpload(file);
+  } else if (file.type.startsWith("video/")) {
+    handleVideoUpload(file);
+  } else {
+    alert("Unsupported file type.");
+    resetUI();
+  }
 });
 
 numPointsSlider?.addEventListener("input", () => {

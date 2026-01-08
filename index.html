@@ -15,7 +15,8 @@
     </nav>
     <div id="app">
       <div class="controls" id="controls">
-        <input type="file" id="imageUpload" accept="image/*" />
+        <input type="file" id="mediaUpload"
+          accept="image/*,video/*,.mp4,.mov,.webm" />
         <div class="spacer"></div>
 
         <div class="checks">
@@ -88,28 +89,31 @@
         <div class="relaxTo">
           <h2>Weight</h2>
           <wa-button-group>
-            <wa-button id="btn-relaxToDark" appearance="accent" size="small">
-              Dark
-            </wa-button>
-            <wa-button id="btn-relaxToLight" appearance="filled" size="small">
-              Light
-            </wa-button>
+            <wa-button id="btn-relaxToDark" appearance="accent"
+              size="small">Dark</wa-button>
+            <wa-button id="btn-relaxToLight" appearance="filled"
+              size="small">Light</wa-button>
           </wa-button-group>
-          <wa-button appearance="filled" id="btn-run" size="small"><wa-icon
-              name="play"></wa-button>
-          </div>
 
-          <div class="spacer"></div>
-          <div class="actions">
-            <wa-button appearance="filled" id="btn-save-json"
-              type="button">Save</wa-button>
-          </div>
+          <wa-button appearance="filled" id="btn-run" size="small">
+            <wa-icon name="play"></wa-icon>
+          </wa-button>
         </div>
 
-        <canvas id="canvas"></canvas>
-        <span id="loader" class="loader"></span>
+        <div class="spacer"></div>
+
+        <div class="actions">
+          <wa-button appearance="filled" id="btn-save-json"
+            type="button">Save</wa-button>
+        </div>
+
       </div>
+      <canvas id="canvas"></canvas>
+      <span id="loader" class="loader"></span>
+
       <video id="video" autoplay playsinline muted
         style="display: none"></video>
-    </body>
-  </html>
+    </div>
+
+  </body>
+</html>
