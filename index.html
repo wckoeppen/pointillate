@@ -69,39 +69,49 @@
         <div class="spacer"></div>
 
         <div class="relaxTo">
+          <h2>Weight</h2>
           <wa-button-group>
             <wa-button id="btn-relaxToDark" appearance="accent" size="small">
-              Weight Dark
+              Dark
             </wa-button>
             <wa-button id="btn-relaxToLight" appearance="filled" size="small">
-              Weight Light
+              Light
             </wa-button>
           </wa-button-group>
+          <wa-button appearance="filled" id="btn-relax" size="small"><wa-icon
+              name="play"></wa-button>
+
+          </div>
+
+          <div class="seedTo">
+            <h2>Seed</h2>
+            <wa-button-group>
+              <wa-button id="btn-seedToDark" appearance="accent" size="small">
+                Dark
+              </wa-button>
+              <wa-button id="btn-seedToLight" appearance="filled" size="small">
+                Light
+              </wa-button>
+              <wa-button id="btn-seedToNone" appearance="filled" size="small">
+                None
+              </wa-button>
+            </wa-button-group>
+            <wa-button appearance="filled" id="restart-btn"
+              size="small"><wa-icon name="arrows-rotate"></wa-icon></wa-button>
+
+          </div>
+
+          <div class="spacer"></div>
+          <div class="actions">
+            <wa-button appearance="filled" id="btn-save-json"
+              type="button">Save</wa-button>
+          </div>
         </div>
 
-        <div class="seedTo">
-          <wa-button-group>
-            <wa-button id="btn-seedToDark" appearance="accent" size="small">
-              Seed Dark
-            </wa-button>
-            <wa-button id="btn-seedToLight" appearance="filled" size="small">
-              Seed Light
-            </wa-button>
-          </wa-button-group>
-        </div>
-
-        <div class="spacer"></div>
-        <div class="actions">
-          <wa-button appearance="filled" id="btn-relax">Run</wa-button>
-          <wa-button appearance="filled" id="restart-btn">Reseed</wa-button>
-          <wa-button appearance="filled" id="btn-save-json"
-            type="button">Save</wa-button>
-        </div>
+        <canvas id="canvas"></canvas>
+        <span id="loader" class="loader"></span>
       </div>
-
-      <canvas id="canvas"></canvas>
-      <span id="loader" class="loader"></span>
-    </div>
-    <video id="video" autoplay playsinline muted style="display: none"></video>
-  </body>
-</html>
+      <video id="video" autoplay playsinline muted
+        style="display: none"></video>
+    </body>
+  </html>

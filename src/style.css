@@ -14,9 +14,18 @@ h1 {
   font-family: "Helvetica", sans-serif;
   font-size: 1.25rem;
   font-weight: 500;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   color: #606060;
+}
+
+h2 {
+  font-family: "Helvetica", sans-serif;
+  font-size: 1.25em;
+  font-weight: 500;
+  color: #606060;
+  margin: auto 10px auto 0;
+  text-align: left;
 }
 
 #app {
@@ -83,7 +92,6 @@ canvas {
 
 .relaxTo {
   display: flex;
-  gap: 1em;
   margin: 0 0;
 }
 
@@ -93,6 +101,7 @@ canvas {
 
 .seedTo {
   display: flex;
+  margin: 0;
 }
 
 .seedTo > wa-button-group {

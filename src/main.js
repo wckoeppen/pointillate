@@ -37,6 +37,8 @@ const controls = document.getElementById("controls");
 
 const seedToDarkBtn = document.getElementById("btn-seedToDark");
 const seedToLightBtn = document.getElementById("btn-seedToLight");
+const seedToNoneBtn = document.getElementById("btn-seedToNone");
+
 const relaxToDarkBtn = document.getElementById("btn-relaxToDark");
 const relaxToLightBtn = document.getElementById("btn-relaxToLight");
 
@@ -63,7 +65,9 @@ let imageData;
 
 let numPoints = 1000;
 let speed = 0.3;
-let seedToDarkPixels = true;
+let seedPreference = "dark"; // "dark" | "light" | "none"
+
+// let seedToDarkPixels = true;
 let relaxToDarkPixels = true;
 let relaxEnabled = false;
 let isRunning = false;
@@ -109,12 +113,24 @@ function getColorStringAtPoint(imageDataArr, w, h, x, y) {
 
 // Stippling / Voronoi
 
-function addStipplePoints() {
+const acceptanceProbability = {
+  dark: (b) => 1 - b / 255,
+  light: (b) => b / 255,
+  none: () => 1,
+};
+
+function seedPoints() {
+  const acceptanceFn = acceptanceProbability[seedPreference];
   currentPoints = [];
 
-  for (let i = 0; i < numPoints; i++) {
-    let x = Math.random() * canvas.width;
-    let y = Math.random() * canvas.height;
+  while (currentPoints.length < numPoints) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+
+    if (seedPreference === "none") {
+      currentPoints.push([x, y]);
+      continue;
+    }
 
     const brightness = getBrightness(
       imageData,
@@ -123,20 +139,10 @@ function addStipplePoints() {
       x,
       y
     );
-    const threshold = Math.random() * 255;
 
-    if (seedToDarkPixels) {
-      if (brightness < threshold) {
-        currentPoints.push([x, y]);
-      } else {
-        i--;
-      }
-    } else {
-      if (brightness > threshold) {
-        currentPoints.push([x, y]);
-      } else {
-        i--;
-      }
+    const p = acceptanceFn(brightness);
+    if (Math.random() < p) {
+      currentPoints.push([x, y]);
     }
   }
 }
@@ -230,6 +236,34 @@ function renderFrame() {
   const MIN_POINT_RADIUS = parseFloat(radiusSlider?.minValue ?? "0");
   const MAX_POINT_RADIUS = parseFloat(radiusSlider?.maxValue ?? "1");
 
+  if (showPolygons && voronoi) {
+    const cells = Array.from(voronoi.cellPolygons());
+    for (let i = 0; i < cells.length; i++) {
+      const poly = cells[i];
+
+      ctx.beginPath();
+      ctx.moveTo(poly[0][0], poly[0][1]);
+      for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
+      ctx.closePath();
+
+      if (showColor) {
+        const v = currentPoints[i];
+        const { r, g, b } = getColor(
+          imageData,
+          canvas.width,
+          canvas.height,
+          v[0],
+          v[1]
+        );
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = lineColor;
+        ctx.stroke();
+      }
+    }
+  }
+
   if (showPoints) {
     // ctx.globalAlpha = 0.9;
 
@@ -271,34 +305,6 @@ function renderFrame() {
       drawPoint(ctx, v[0], v[1], color, radius);
     }
   }
-
-  if (showPolygons && voronoi) {
-    const cells = Array.from(voronoi.cellPolygons());
-    for (let i = 0; i < cells.length; i++) {
-      const poly = cells[i];
-
-      ctx.beginPath();
-      ctx.moveTo(poly[0][0], poly[0][1]);
-      for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
-      ctx.closePath();
-
-      if (showColor) {
-        const v = currentPoints[i];
-        const { r, g, b } = getColor(
-          imageData,
-          canvas.width,
-          canvas.height,
-          v[0],
-          v[1]
-        );
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        ctx.fill();
-      } else {
-        ctx.strokeStyle = lineColor;
-        ctx.stroke();
-      }
-    }
-  }
 }
 
 //  UI sync
@@ -308,16 +314,31 @@ function syncRelaxButtonUI() {
   setProp(relaxBtn, "appearance", nextVariant);
 }
 
-function toggleSeedToBtn(mode) {
-  const next = mode === "dark";
-  if (next === seedToDarkPixels) return; // already selected
+function syncSeedButtonsUI() {
+  const isDark = seedPreference === "dark";
+  const isLight = seedPreference === "light";
+  const isNone = seedPreference === "none";
 
-  seedToDarkPixels = next;
+  if (seedToDarkBtn) seedToDarkBtn.appearance = isDark ? "accent" : "filled";
+  if (seedToLightBtn) seedToLightBtn.appearance = isLight ? "accent" : "filled";
+  if (seedToNoneBtn) seedToNoneBtn.appearance = isNone ? "accent" : "filled";
 
-  seedToDarkBtn.appearance = seedToDarkPixels ? "accent" : "filled";
-  seedToLightBtn.appearance = seedToDarkPixels ? "filled" : "accent";
+  // If your component supports pressed state, keep it consistent too
+  if (seedToDarkBtn && "pressed" in seedToDarkBtn)
+    seedToDarkBtn.pressed = isDark;
+  if (seedToLightBtn && "pressed" in seedToLightBtn)
+    seedToLightBtn.pressed = isLight;
+  if (seedToNoneBtn && "pressed" in seedToNoneBtn)
+    seedToNoneBtn.pressed = isNone;
+}
 
-  addStipplePoints();
+function setSeedPreference(next) {
+  if (next === seedPreference) return; // already selected
+  seedPreference = next;
+
+  syncSeedButtonsUI();
+
+  seedPoints(); // uses seedPreference internally
   getVoronoi();
   renderFrame();
 }
@@ -331,7 +352,7 @@ function toggleRelaxToBtn(mode) {
   relaxToDarkBtn.appearance = relaxToDarkPixels ? "accent" : "filled";
   relaxToLightBtn.appearance = relaxToDarkPixels ? "filled" : "accent";
 
-  addStipplePoints();
+  seedPoints();
   getVoronoi();
   renderFrame();
 }
@@ -393,7 +414,7 @@ function loadImageAndStart(img) {
   imgCtx.drawImage(img, 0, 0, drawWidth, drawHeight);
 
   imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-  addStipplePoints();
+  seedPoints();
   getVoronoi();
   renderFrame();
   startLoop();
@@ -499,7 +520,7 @@ imageUploadInput?.addEventListener("change", (e) => {
 
 numPointsSlider?.addEventListener("input", () => {
   numPoints = numPointsSlider.value;
-  addStipplePoints();
+  seedPoints();
   getVoronoi();
 });
 
@@ -509,7 +530,7 @@ speedSlider?.addEventListener("input", () => {
 });
 
 restartBtn?.addEventListener("click", () => {
-  addStipplePoints();
+  seedPoints();
   getVoronoi();
 });
 
@@ -517,32 +538,28 @@ radiusSlider?.addEventListener("input", () => {
   renderFrame();
 });
 
-seedToDarkBtn?.addEventListener("click", () => {
-  toggleSeedToBtn("dark");
-});
+// Seed button buttons
+seedToDarkBtn?.addEventListener("click", () => setSeedPreference("dark"));
+seedToLightBtn?.addEventListener("click", () => setSeedPreference("light"));
+seedToNoneBtn?.addEventListener("click", () => setSeedPreference("none"));
 
-seedToLightBtn?.addEventListener("click", () => {
-  toggleSeedToBtn("light");
-});
-
+// Relax button listeners
 relaxToDarkBtn?.addEventListener("click", () => {
   toggleRelaxToBtn("dark");
 });
-
 relaxToLightBtn?.addEventListener("click", () => {
   toggleRelaxToBtn("light");
 });
 
+// Color button listeners
 backgroundColorBtn.addEventListener("input", () => {
   backgroundColor = backgroundColorBtn.value;
   renderFrame();
 });
-
 pointColorBtn.addEventListener("input", () => {
   pointColor = pointColorBtn.value;
   renderFrame();
 });
-
 lineColorBtn.addEventListener("input", () => {
   lineColor = lineColorBtn.value;
   renderFrame();
