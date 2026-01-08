@@ -46,8 +46,8 @@ const backgroundColorBtn = document.getElementById("backgroundColorBtn");
 const pointColorBtn = document.getElementById("pointColorBtn");
 const lineColorBtn = document.getElementById("lineColorBtn");
 
-const relaxBtn = document.getElementById("btn-relax");
-const restartBtn = document.getElementById("restart-btn");
+const runBtn = document.getElementById("btn-run");
+const resetBtn = document.getElementById("reset-btn");
 
 // State
 
@@ -227,8 +227,6 @@ function renderFrame() {
   ctx.fillStyle = backgroundColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-
   const showColor = colorToggle?.checked ?? false;
   const showPolygons = polyToggle?.checked ?? false;
   const showPoints = circToggle?.checked ?? true;
@@ -311,7 +309,7 @@ function renderFrame() {
 
 function syncRelaxButtonUI() {
   const nextVariant = relaxEnabled ? "accent" : "filled";
-  setProp(relaxBtn, "appearance", nextVariant);
+  setProp(runBtn, "appearance", nextVariant);
 }
 
 function syncSeedButtonsUI() {
@@ -475,7 +473,7 @@ function wireSaveButton() {
 
 function loadInitial() {
   const img = new Image();
-  img.src = `${import.meta.env.BASE_URL}20100528-test-001c-small.jpg`;
+  img.src = `${import.meta.env.BASE_URL}test-photo-small.jpg`;
 
   img.onload = async () => {
     await Promise.all([
@@ -495,7 +493,7 @@ loadInitial();
 
 //  Event handlers
 
-relaxBtn?.addEventListener("click", () => {
+runBtn?.addEventListener("click", () => {
   relaxEnabled = !relaxEnabled;
   syncRelaxButtonUI();
   startLoop();
@@ -529,7 +527,7 @@ speedSlider?.addEventListener("input", () => {
   getVoronoi();
 });
 
-restartBtn?.addEventListener("click", () => {
+resetBtn?.addEventListener("click", () => {
   seedPoints();
   getVoronoi();
 });

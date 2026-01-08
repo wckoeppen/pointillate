@@ -30,7 +30,7 @@
             id="numPointsSlider"
             label="Number of Points"
             min="1000"
-            max="30000"
+            max="10000"
             value="2000"
             step="1000">
           </wa-slider>
@@ -68,6 +68,23 @@
 
         <div class="spacer"></div>
 
+        <div class="seedTo">
+          <h2>Seed</h2>
+          <wa-button-group>
+            <wa-button id="btn-seedToDark" appearance="accent" size="small">
+              Dark
+            </wa-button>
+            <wa-button id="btn-seedToLight" appearance="filled" size="small">
+              Light
+            </wa-button>
+            <wa-button id="btn-seedToNone" appearance="filled" size="small">
+              None
+            </wa-button>
+          </wa-button-group>
+          <wa-button appearance="filled" id="reset-btn"
+            size="small"><wa-icon name="arrows-rotate"></wa-icon></wa-button>
+        </div>
+
         <div class="relaxTo">
           <h2>Weight</h2>
           <wa-button-group>
@@ -78,27 +95,8 @@
               Light
             </wa-button>
           </wa-button-group>
-          <wa-button appearance="filled" id="btn-relax" size="small"><wa-icon
+          <wa-button appearance="filled" id="btn-run" size="small"><wa-icon
               name="play"></wa-button>
-
-          </div>
-
-          <div class="seedTo">
-            <h2>Seed</h2>
-            <wa-button-group>
-              <wa-button id="btn-seedToDark" appearance="accent" size="small">
-                Dark
-              </wa-button>
-              <wa-button id="btn-seedToLight" appearance="filled" size="small">
-                Light
-              </wa-button>
-              <wa-button id="btn-seedToNone" appearance="filled" size="small">
-                None
-              </wa-button>
-            </wa-button-group>
-            <wa-button appearance="filled" id="restart-btn"
-              size="small"><wa-icon name="arrows-rotate"></wa-icon></wa-button>
-
           </div>
 
           <div class="spacer"></div>
