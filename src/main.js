@@ -436,9 +436,9 @@ function wireSaveButton() {
       const color = getColorStringAtPoint(data, w, h, x, y);
 
       return {
-        index: i,
-        positionX: x,
-        positionY: y,
+        i: i,
+        x: x,
+        y: y,
         weight,
         color,
       };
@@ -506,6 +506,7 @@ numPointsSlider?.addEventListener("input", () => {
 });
 
 speedSlider?.addEventListener("input", () => {
+  speed = parseFloat(speedSlider.value);
   getVoronoi();
 });
 

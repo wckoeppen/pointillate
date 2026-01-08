@@ -1,5 +1,5 @@
 nav {
-  height: 6rem;
+  height: 4rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -36,7 +36,7 @@ h1 {
 }
 
 wa-slider {
-    padding: 10px 0;
+    padding-bottom: 20px;
 }
 wa-slider::part(indicator) {
   background-color: #7ea3e5;
@@ -62,7 +62,6 @@ wa-switch:state(checked)::part(thumb) {
 .actions {
   display: flex;
   gap: 0.5rem;
-  padding: 10px 0
 }
 
 canvas {
@@ -76,11 +75,32 @@ canvas {
 
 .colorPickers {
   display: flex;
-  gap: 1.2em;
 }
 
 .colorPickers > wa-color-picker {
   flex: 1 1 0;
+}
+
+.relaxTo {
+  display: flex;
+  gap: 1em;
+  margin: 0 0;
+}
+
+.relaxTo > wa-button-group {
+  flex: 1 1 0;
+}
+
+.seedTo {
+  display: flex;
+}
+
+.seedTo > wa-button-group {
+  flex: 1 1 0;
+}
+
+.spacer {
+  height: 5px;
 }
 
 .loader {
