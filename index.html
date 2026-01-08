@@ -14,9 +14,11 @@
       <h1>Voronoi Stippling Sandbox</h1>
     </nav>
     <div id="app">
-      <div class="controls" id="controls">
+      <div class="controls" id="controlPane">
+
         <input type="file" id="mediaUpload"
           accept="image/*,video/*,.mp4,.mov,.webm" />
+
         <div class="spacer"></div>
 
         <div class="checks">
@@ -108,8 +110,11 @@
         </div>
 
       </div>
-      <canvas id="canvas"></canvas>
+      <div id="displayPane">
+              <canvas id="canvas"></canvas>
       <span id="loader" class="loader"></span>
+      </div>
+
 
       <video id="video" autoplay playsinline muted
         style="display: none"></video>

@@ -22,7 +22,7 @@ function setStyle(el, prop, value) {
 }
 
 // DOM refs
-const app = document.getElementById("app");
+const displayPane = document.getElementById("displayPane");
 
 const colorToggle = document.getElementById("colorToggle");
 const polyToggle = document.getElementById("polyToggle");
@@ -440,13 +440,13 @@ function toggleRelaxToBtn(mode) {
 }
 
 function setLoadingUI() {
-  app.classList.remove("ready");
-  app.classList.add("loading");
+  displayPane.classList.remove("ready");
+  displayPane.classList.add("loading");
 }
 
 function setReadyUI() {
-  app.classList.remove("loading");
-  app.classList.add("ready");
+  displayPane.classList.remove("loading");
+  displayPane.classList.add("ready");
 }
 
 //  Lifecycle

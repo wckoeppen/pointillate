@@ -28,26 +28,32 @@ h2 {
   text-align: left;
 }
 
-#app.ready .controls {
+#app {
+  border: 1px solid red;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+#displayPane.ready {
   display: flex;
 }
 
-#app.ready canvas {
+#displayPane.ready canvas {
   display: block;
 }
 
-#app.loading .controls,
-#app.loading canvas {
+#displayPane.loading,
+#displayPane.loading canvas {
   display: none;
 }
 
-#app.loading .loader {
+#displayPane.loading .loader {
   display: inline-block;
 }
 
 .controls {
   width: 300px;
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 1rem;
 }
