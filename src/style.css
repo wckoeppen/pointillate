@@ -35,18 +35,20 @@ h2 {
   display: flex;
   justify-content: center;
   gap: 1rem;
+  width: 100%;
+  border: 1px solid red;
 }
 
-#displayPane.ready {
+#displayPane.ready #canvas {
   display: flex;
 }
 
-#displayPane.ready canvas {
-  display: block;
+#displayPane.ready #loader {
+  display: none;
 }
 
-#displayPane.loading,
-#displayPane.loading canvas {
+
+#displayPane.loading #canvas {
   display: none;
 }
 
@@ -91,7 +93,7 @@ wa-switch:state(checked)::part(thumb) {
 }
 
 canvas {
-  display: none;
+  display: block;
 }
 
 .checks {
@@ -129,7 +131,7 @@ canvas {
   height: 5px;
 }
 
-.loader {
+#loader {
   align-self: center;
   width: 48px;
   height: 48px;
