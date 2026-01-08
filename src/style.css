@@ -39,21 +39,24 @@ h2 {
   border: 1px solid red;
 }
 
-#displayPane.ready #canvas {
-  display: flex;
+canvas {
+  display: none;
+}
+
+#displayPane.loading canvas {
+  display: none;
+}
+
+#displayPane.loading #loader {
+  display: inline-block;
 }
 
 #displayPane.ready #loader {
   display: none;
 }
 
-
-#displayPane.loading #canvas {
-  display: none;
-}
-
-#displayPane.loading .loader {
-  display: inline-block;
+#displayPane.ready canvas {
+  display: flex;
 }
 
 .controls {
@@ -90,10 +93,6 @@ wa-switch:state(checked)::part(thumb) {
 .actions {
   display: flex;
   gap: 0.5rem;
-}
-
-canvas {
-  display: block;
 }
 
 .checks {
