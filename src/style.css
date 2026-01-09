@@ -146,6 +146,16 @@ canvas {
   height: 5px;
 }
 
+wa-details {
+  width: 100%;
+}
+
+a-details::part(summary) {
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 wa-slider {
   padding-bottom: 20px;
 }

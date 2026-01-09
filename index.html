@@ -67,7 +67,7 @@
 
         </div>
         
-        <wa-details summary="Seed">
+        <wa-details summary="Base Colors">
           <div class="colorPickers">
             <wa-color-picker id="backgroundColorBtn" label="Canvas"
               value="#FFFFFF" size="medium"
@@ -83,7 +83,12 @@
 
         <div class="spacer"></div>
 
-        <h2>Seed</h2>
+        <wa-select size="medium">
+          <wa-option value="seedDark" icon-placement="start" selected>Seed to Dark Areas</wa-option>
+          <wa-option value="seedLight" icon-placement="start" selected>Seed to Light Areas</wa-option>
+          <wa-option value="seedRandom" icon-placement="start" selected>Seed Randomly</wa-option>
+        </wa-select>
+
         <div class="seedTo">
           <wa-button-group>
             <wa-button id="btn-seedToDark" appearance="accent" size="small">
@@ -99,6 +104,11 @@
           <wa-button appearance="filled" id="reset-btn"
             size="small"><wa-icon name="arrows-rotate"></wa-icon></wa-button>
         </div>
+
+        <wa-select size="medium">
+          <wa-option value="relaxDark" icon-placement="start" selected>Relax to Dark Areas</wa-option>
+          <wa-option value="relaxLight" icon-placement="start" selected>Relax to Light Areas</wa-option>
+        </wa-select>
 
         <h2>Weight</h2>
         <div class="relaxTo">
