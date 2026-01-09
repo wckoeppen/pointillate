@@ -10,10 +10,20 @@
 
   </head>
   <body>
+
     <nav>
-      <h1>Voronoi Stippling Sandbox</h1>
+      <h1>Stippling Sandbox</h1>
     </nav>
-    <div id="app">
+
+    <div id="app" class="loading">
+      <span id="loader" class="loader"></span>
+      <div id="displayPane">
+        <canvas id="canvas"></canvas>
+      </div>
+
+      <video id="video" playsinline muted
+        style="display: none"></video>
+
       <div class="controls" id="controlPane">
 
         <input type="file" id="mediaUpload"
@@ -56,23 +66,25 @@
             step="0.01"></wa-slider>
 
         </div>
-
-        <div class="colorPickers">
-          <wa-color-picker id="backgroundColorBtn" label="Canvas"
-            value="#FFFFFF" size="medium"
-            swatches="#000; #fff"></wa-color-picker>
-          <wa-color-picker id="pointColorBtn" label="Points"
-            value="#000000" size="medium"
-            swatches="#000; #fff"></wa-color-picker>
-          <wa-color-picker id="lineColorBtn" label="Lines"
-            value="#000000" size="medium"
-            swatches="#000; #fff"></wa-color-picker>
-        </div>
+        
+        <wa-details summary="Seed">
+          <div class="colorPickers">
+            <wa-color-picker id="backgroundColorBtn" label="Canvas"
+              value="#FFFFFF" size="medium"
+              swatches="#000; #fff"></wa-color-picker>
+            <wa-color-picker id="pointColorBtn" label="Points"
+              value="#000000" size="medium"
+              swatches="#000; #fff"></wa-color-picker>
+            <wa-color-picker id="lineColorBtn" label="Lines"
+              value="#000000" size="medium"
+              swatches="#000; #fff"></wa-color-picker>
+          </div>
+        </wa-details>
 
         <div class="spacer"></div>
 
+        <h2>Seed</h2>
         <div class="seedTo">
-          <h2>Seed</h2>
           <wa-button-group>
             <wa-button id="btn-seedToDark" appearance="accent" size="small">
               Dark
@@ -88,8 +100,8 @@
             size="small"><wa-icon name="arrows-rotate"></wa-icon></wa-button>
         </div>
 
+        <h2>Weight</h2>
         <div class="relaxTo">
-          <h2>Weight</h2>
           <wa-button-group>
             <wa-button id="btn-relaxToDark" appearance="accent"
               size="small">Dark</wa-button>
@@ -123,12 +135,6 @@
         </div>
 
       </div>
-      <div id="displayPane">
-        <canvas id="canvas"></canvas>
-        <span id="loader" class="loader"></span>
-      </div>
-      <video id="video" playsinline muted
-        style="display: none"></video>
 
     </div>
 

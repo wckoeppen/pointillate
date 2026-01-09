@@ -23,7 +23,10 @@ function setStyle(el, prop, value) {
 
 // DOM refs
 
+const app = document.getElementById("app");
 const displayPane = document.getElementById("displayPane");
+const canvas = document.getElementById("canvas");
+const video = document.getElementById("video");
 
 const colorToggle = document.getElementById("colorToggle");
 const polyToggle = document.getElementById("polyToggle");
@@ -64,7 +67,6 @@ let delaunay;
 let voronoi;
 let animationFrameId = null;
 let imgCanvas = document.createElement("canvas");
-const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
 let imageData;
@@ -83,12 +85,6 @@ function revokeCurrentMediaUrl() {
     URL.revokeObjectURL(currentMediaUrl);
     currentMediaUrl = null;
   }
-}
-
-function resetUI() {
-  // Fallback UI reset used on load failures
-  // Clear inline display overrides so CSS can control layout again
-  setLoadingUI();
 }
 
 function showVideoControls(show) {
@@ -132,7 +128,7 @@ function loadVideoAndStart(video) {
   lastVideoSample = 0;
 
   // Show UI (clear inline overrides so CSS governs layout)
-  setLoadingUI();
+  setCanvasAspectRatio(video.videoWidth, video.videoHeight);
 
   const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
 
@@ -147,7 +143,6 @@ function loadVideoAndStart(video) {
 
   seedPoints();
   getVoronoi();
-  setReadyUI();
   renderFrame();
 }
 
@@ -393,6 +388,11 @@ function renderFrame() {
 
 //  UI sync
 
+function setCanvasAspectRatio(w, h) {
+  if (!w || !h) return;
+  displayPane.style.setProperty("--canvas-ar", `${w} / ${h}`);
+}
+
 function syncRelaxButtonUI() {
   const nextVariant = relaxEnabled ? "accent" : "filled";
   setProp(runBtn, "appearance", nextVariant);
@@ -441,16 +441,6 @@ function toggleRelaxToBtn(mode) {
   renderFrame();
 }
 
-function setLoadingUI() {
-  displayPane.classList.remove("ready");
-  displayPane.classList.add("loading");
-}
-
-function setReadyUI() {
-  displayPane.classList.remove("loading");
-  displayPane.classList.add("ready");
-}
-
 //  Lifecycle
 
 function startLoop() {
@@ -484,7 +474,7 @@ function loadImageAndStart(img) {
   sourceMode = "image";
   activeVideo = null;
   lastVideoSample = 0;
-  console.log("original image:", img.width, img.height);
+  setCanvasAspectRatio(img.width, img.height);
 
   if (animationFrameId !== null) {
     cancelAnimationFrame(animationFrameId);
@@ -492,8 +482,6 @@ function loadImageAndStart(img) {
   }
 
   // Show UI (clear inline overrides so CSS governs layout)
-  setLoadingUI();
-
   let drawWidth = img.width;
   let drawHeight = img.height;
 
@@ -502,7 +490,6 @@ function loadImageAndStart(img) {
     const scale = 960 / img.width;
     drawWidth = 960;
     drawHeight = img.height * scale;
-    console.log("scaling to:", drawWidth, drawHeight);
   }
 
   imgCanvas.width = drawWidth;
@@ -516,7 +503,6 @@ function loadImageAndStart(img) {
   seedPoints();
   getVoronoi();
   renderFrame();
-  setReadyUI();
   startLoop();
 }
 
@@ -536,7 +522,6 @@ function handleImageUpload(file) {
   img.onerror = () => {
     revokeCurrentMediaUrl();
     alert("Failed to load image.");
-    resetUI();
   };
 
   img.src = url;
@@ -563,7 +548,6 @@ function handleVideoUpload(file) {
   video.onerror = () => {
     revokeCurrentMediaUrl();
     alert("Failed to load video.");
-    resetUI();
   };
 }
 
@@ -634,6 +618,8 @@ function loadInitial() {
     wireSaveButton();
 
     loadImageAndStart(img);
+    app.classList.remove("loading");
+    app.classList.add("ready");
   };
 }
 
@@ -651,15 +637,12 @@ mediaUploadBtn?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];
   if (!file) return;
 
-  setLoadingUI();
-
   if (file.type.startsWith("image/")) {
     handleImageUpload(file);
   } else if (file.type.startsWith("video/")) {
     handleVideoUpload(file);
   } else {
     alert("Unsupported file type.");
-    resetUI();
   }
 });
 
