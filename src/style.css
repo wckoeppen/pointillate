@@ -35,8 +35,10 @@ h2 {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  width: 100%;
-  border: 1px solid red;
+}
+
+#displayPane {
+  display: flex;
 }
 
 canvas {
@@ -56,7 +58,7 @@ canvas {
 }
 
 #displayPane.ready canvas {
-  display: flex;
+  display: block;
 }
 
 .controls {

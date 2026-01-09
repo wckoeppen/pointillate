@@ -109,14 +109,27 @@
             type="button">Save</wa-button>
         </div>
 
+        <div class="videoControls" id="videoControls" style="display: none">
+          <wa-button-group>
+            <wa-button id="btn-video-play" size="small">
+              <wa-icon name="play"></wa-icon>
+            </wa-button>
+            <wa-button id="btn-video-pause" size="small">
+              <wa-icon name="pause"></wa-icon>
+            </wa-button>
+          </wa-button-group>
+
+          <wa-switch id="videoLoopToggle" checked>Loop</wa-switch>
+        </div>
+
       </div>
       <div id="displayPane">
         <canvas id="canvas"></canvas>
         <span id="loader" class="loader"></span>
       </div>
-
-      <video id="video" autoplay playsinline muted
+      <video id="video" playsinline muted
         style="display: none"></video>
+
     </div>
 
   </body>

@@ -22,6 +22,7 @@ function setStyle(el, prop, value) {
 }
 
 // DOM refs
+
 const displayPane = document.getElementById("displayPane");
 
 const colorToggle = document.getElementById("colorToggle");
@@ -43,6 +44,12 @@ const seedToNoneBtn = document.getElementById("btn-seedToNone");
 const relaxToDarkBtn = document.getElementById("btn-relaxToDark");
 const relaxToLightBtn = document.getElementById("btn-relaxToLight");
 
+const videoEl = document.getElementById("video");
+const videoControls = document.getElementById("videoControls");
+const playBtn = document.getElementById("btn-video-play");
+const pauseBtn = document.getElementById("btn-video-pause");
+const loopToggle = document.getElementById("videoLoopToggle");
+
 const backgroundColorBtn = document.getElementById("backgroundColorBtn");
 const pointColorBtn = document.getElementById("pointColorBtn");
 const lineColorBtn = document.getElementById("lineColorBtn");
@@ -56,20 +63,13 @@ let currentPoints = [];
 let delaunay;
 let voronoi;
 let animationFrameId = null;
-
 let imgCanvas = document.createElement("canvas");
 const canvas = document.getElementById("canvas");
-
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
 let imageData;
 
 let sourceMode = "image"; // "image" | "video"
-let sourceCanvas = null;
-let sourceCtx = null;
-let sourcePixels = null; // Uint8ClampedArray (RGBA)
-let sourceW = 0;
-let sourceH = 0;
 
 // Media source (image/video) state
 let activeVideo = null;
@@ -89,6 +89,20 @@ function resetUI() {
   // Fallback UI reset used on load failures
   // Clear inline display overrides so CSS can control layout again
   setLoadingUI();
+}
+
+function showVideoControls(show) {
+  videoControls.style.display = show ? "" : "none";
+}
+
+function syncVideoUI() {
+  const isPaused = videoEl.paused;
+
+  // Optional: visually “accent” whichever state is active
+  if (playBtn) playBtn.appearance = isPaused ? "filled" : "accent";
+  if (pauseBtn) pauseBtn.appearance = isPaused ? "accent" : "filled";
+
+  if (loopToggle) loopToggle.checked = !!videoEl.loop;
 }
 
 function computeWorkingSize(mediaW, mediaH, maxW = 960) {
@@ -133,9 +147,8 @@ function loadVideoAndStart(video) {
 
   seedPoints();
   getVoronoi();
-  renderFrame();
   setReadyUI();
-  startLoop();
+  renderFrame();
 }
 
 let numPoints = 1000;
@@ -149,17 +162,6 @@ let isRunning = false;
 let backgroundColor = "#fff";
 let pointColor = "#000";
 let lineColor = "#000";
-
-function ensureSourceCanvas(w, h) {
-  if (!sourceCanvas) {
-    sourceCanvas = document.createElement("canvas");
-    sourceCtx = sourceCanvas.getContext("2d", { willReadFrequently: true });
-  }
-  if (sourceCanvas.width !== w) sourceCanvas.width = w;
-  if (sourceCanvas.height !== h) sourceCanvas.height = h;
-  sourceW = w;
-  sourceH = h;
-}
 
 // Image sampling helpers
 
@@ -318,34 +320,6 @@ function renderFrame() {
   const MIN_POINT_RADIUS = parseFloat(radiusSlider?.minValue ?? "0");
   const MAX_POINT_RADIUS = parseFloat(radiusSlider?.maxValue ?? "1");
 
-  if (showPolygons && voronoi) {
-    const cells = Array.from(voronoi.cellPolygons());
-    for (let i = 0; i < cells.length; i++) {
-      const poly = cells[i];
-
-      ctx.beginPath();
-      ctx.moveTo(poly[0][0], poly[0][1]);
-      for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
-      ctx.closePath();
-
-      if (showColor) {
-        const v = currentPoints[i];
-        const { r, g, b } = getColor(
-          imageData,
-          canvas.width,
-          canvas.height,
-          v[0],
-          v[1]
-        );
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        ctx.fill();
-      } else {
-        ctx.strokeStyle = lineColor;
-        ctx.stroke();
-      }
-    }
-  }
-
   if (showPoints) {
     // ctx.globalAlpha = 0.9;
 
@@ -385,6 +359,34 @@ function renderFrame() {
       }
 
       drawPoint(ctx, v[0], v[1], color, radius);
+    }
+  }
+
+  if (showPolygons && voronoi) {
+    const cells = Array.from(voronoi.cellPolygons());
+    for (let i = 0; i < cells.length; i++) {
+      const poly = cells[i];
+
+      ctx.beginPath();
+      ctx.moveTo(poly[0][0], poly[0][1]);
+      for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
+      ctx.closePath();
+
+      if (showColor) {
+        const v = currentPoints[i];
+        const { r, g, b } = getColor(
+          imageData,
+          canvas.width,
+          canvas.height,
+          v[0],
+          v[1]
+        );
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = lineColor;
+        ctx.stroke();
+      }
     }
   }
 }
@@ -521,6 +523,7 @@ function loadImageAndStart(img) {
 // Handlers
 
 function handleImageUpload(file) {
+  showVideoControls(false);
   const img = new Image();
   const url = URL.createObjectURL(file);
 
@@ -544,16 +547,18 @@ function handleVideoUpload(file) {
   const url = URL.createObjectURL(file);
   currentMediaUrl = url;
 
-  const video = document.createElement("video");
+  const video = document.getElementById("video");
   video.src = url;
   video.muted = true;
   video.playsInline = true;
 
-  video.addEventListener("loadedmetadata", () => {
-    loadVideoAndStart(video);
+  showVideoControls(true);
+  videoEl.loop = true; // or default from UI
+  syncVideoUI();
 
-    video.play();
-  });
+  video.onloadedmetadata = () => {
+    loadVideoAndStart(video);
+  };
 
   video.onerror = () => {
     revokeCurrentMediaUrl();
@@ -574,8 +579,7 @@ function downloadJson(filename, data) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-
-  revokeCurrentMediaUrl();
+  URL.revokeObjectURL(url);
 }
 
 function wireSaveButton() {
@@ -663,16 +667,19 @@ numPointsSlider?.addEventListener("input", () => {
   numPoints = numPointsSlider.value;
   seedPoints();
   getVoronoi();
+  renderFrame();
 });
 
 speedSlider?.addEventListener("input", () => {
   speed = parseFloat(speedSlider.value);
   getVoronoi();
+  renderFrame();
 });
 
 resetBtn?.addEventListener("click", () => {
   seedPoints();
   getVoronoi();
+  renderFrame();
 });
 
 radiusSlider?.addEventListener("input", () => {
@@ -705,3 +712,31 @@ lineColorBtn.addEventListener("input", () => {
   lineColor = lineColorBtn.value;
   renderFrame();
 });
+
+// Video listeners
+playBtn?.addEventListener("click", async () => {
+  try {
+    await videoEl.play();
+  } catch (err) {
+    // Autoplay policy or decode error
+    console.warn("Video play failed:", err);
+  }
+  startLoop();
+  syncVideoUI();
+});
+
+pauseBtn?.addEventListener("click", () => {
+  videoEl.pause();
+  if (!relaxEnabled) stopLoop();
+  syncVideoUI();
+});
+
+loopToggle?.addEventListener("change", () => {
+  videoEl.loop = loopToggle.checked;
+  syncVideoUI();
+});
+
+// Keep UI synced if playback state changes externally
+videoEl?.addEventListener("play", syncVideoUI);
+videoEl?.addEventListener("pause", syncVideoUI);
+videoEl?.addEventListener("ended", syncVideoUI);
