@@ -65,7 +65,7 @@ let currentPoints = [];
 let delaunay;
 let voronoi;
 let animationFrameId = null;
-let imgCanvas = document.createElement("canvas");
+let imgCanvas = document.createElement("canvas"); // this is for the image data
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
 let imageData;
@@ -370,7 +370,7 @@ function renderFrame() {
 
 function setCanvasAspectRatio(w, h) {
   if (!w || !h) return;
-  displayPane.style.setProperty("--canvas-ar", `${w} / ${h}`);
+  canvasStage.style.setProperty("--canvas-ar", `${w} / ${h}`);
 }
 
 function setSeedPreference(next) {
