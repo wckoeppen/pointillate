@@ -5,13 +5,9 @@
 }
 
 :root {
-  --nav-h: 3rem;
-  --gap: 5px;
-  --controls-w: 320px;
-  --app-max: 1280px;
-  --canvas-ar: 1 / 1;
-  font-size: 16px;
+  --nav-h: 4rem;
   --runbar-h: 56px;
+  --gap: 1rem;
 }
 
 html,
@@ -21,6 +17,7 @@ body {
 
 body {
   margin: 0;
+  height: 100vh;
   overflow: hidden;
 }
 
@@ -28,7 +25,7 @@ nav {
   height: var(--nav-h);
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 1rem;
   padding: 0 1rem;
 }
 
@@ -51,14 +48,7 @@ h2 {
 }
 
 #app {
-  width: min(100%, var(--app-max));
-  margin: 0 auto;
   height: calc(100vh - var(--nav-h));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--controls-w);
-  gap: var(--gap);
-  align-items: stretch;
-  position: relative;
 }
 
 #loader {
@@ -76,56 +66,52 @@ h2 {
   animation: rotation 0.9s linear infinite;
 }
 
-#optionPane {
-  min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 0 20px;
-  scrollbar-gutter: stable;
-  border: 2px solid #ddd;
+wa-drawer {
+  --size: 400px; /* drawer width */
+}
+
+wa-drawer::part(dialog)::backdrop {
+  background: rgba(0, 0, 0, 0);
+}
+
+wa-drawer::part(dialog) {
+  background: #f8f8f8; /* or any color */
+}
+
+wa-drawer .options {
+  padding: 1rem;
+}
+
+wa-drawer .options > * {
+  margin-bottom: 10px;
 }
 
 #displayPane {
-  min-width: 0;
-  min-height: 0;
+  height: 100%;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  overflow: hidden;
+  grid-template-rows: minmax(0, 1fr);
 }
 
 #canvasStage {
-  width: 100%;
-  height: 100%;
+  min-width: 0;
+  min-height: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1px solid red;
 }
 
 #displayPane #canvas {
   max-height: calc(100vh - var(--nav-h) - (2 * var(--gap)));
 }
 
-#canvasFit {
-  max-width: 100%;
-  max-height: 100%;
-  aspect-ratio: var(--canvas-ar);
-  width: 100%;
-  height: auto;
-}
-
 /* Canvas always fills the fit box */
 #canvas {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  aspect-ratio: var(--canvas-ar);
   display: block;
-  width: 100%;
-  height: 100%;
-  border: 2px solid blue;
 }
 
 #app.loading #displayPane {
@@ -154,6 +140,11 @@ h2 {
 
 .spacer {
   height: 5px;
+}
+
+wa-button:not(:defined),
+wa-drawer:not(:defined) {
+  visibility: hidden;
 }
 
 wa-slider {
@@ -195,15 +186,22 @@ wa-details::part(header) {
 }
 
 #runControls {
-  grid-row: 2;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid #ccc;
+  background: #fff;
+  display: none;
 }
 
-#relaxControls,
+#relaxControls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 #videoControls {
   display: flex;
   align-items: center;
@@ -223,11 +221,6 @@ wa-details::part(header) {
 
 #relaxBtn {
   flex: 0 0 auto;
-}
-
-.actions {
-  display: flex;
-  gap: 0.5rem;
 }
 
 .checks {

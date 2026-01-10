@@ -1,4 +1,4 @@
-import "./style.css";
+import "./styles.css";
 import { Delaunay } from "d3-delaunay";
 
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
@@ -9,6 +9,7 @@ import "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 import "@awesome.me/webawesome/dist/components/slider/slider.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/switch/switch.js";
+import "@awesome.me/webawesome/dist/components/drawer/drawer.js";
 
 // Property Utlities
 
@@ -59,6 +60,11 @@ const pointColorBtn = document.getElementById("pointColorBtn");
 const lineColorBtn = document.getElementById("lineColorBtn");
 
 const relaxBtn = document.getElementById("relaxBtn");
+
+await customElements.whenDefined("wa-drawer");
+const optionsDrawer = document.getElementById("optionsDrawer");
+const openButton = document.getElementById("menuBtn")
+openButton.addEventListener("click", () => (optionsDrawer.open = true));
 
 // State
 let currentPoints = [];
@@ -418,8 +424,6 @@ function syncRadiusUI() {
   radiusSlider.style.display = "none";
   radiusRange.style.display = "";
 }
-
-
 
 function setSizePreference(next) {
   if (next === sizePreference) return;
