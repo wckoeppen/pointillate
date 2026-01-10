@@ -108,6 +108,10 @@ h2 {
   border: 1px solid red;
 }
 
+#displayPane #canvas {
+  max-height: calc(100vh - var(--nav-h) - (2 * var(--gap)));
+}
+
 #canvasFit {
   max-width: 100%;
   max-height: 100%;
@@ -205,6 +209,7 @@ wa-details::part(header) {
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
+  display: none;
 }
 
 #relaxControls {
