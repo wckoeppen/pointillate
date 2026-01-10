@@ -11,6 +11,7 @@
   --app-max: 1280px;
   --canvas-ar: 1 / 1;
   font-size: 16px;
+  --runbar-h: 56px;
 }
 
 html,
@@ -75,7 +76,7 @@ h2 {
   animation: rotation 0.9s linear infinite;
 }
 
-#controlPane {
+#optionPane {
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
@@ -87,42 +88,45 @@ h2 {
   gap: 10px;
   padding: 0 20px;
   scrollbar-gutter: stable;
-  border: 1px solid red;
+  border: 2px solid #ddd;
 }
 
 #displayPane {
-  position: relative;
   min-width: 0;
   min-height: 0;
   display: grid;
-  place-items: top;
+  grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden;
 }
 
-#displayPane #canvas {
-  max-height: calc(100vh - var(--nav-h) - (2 * var(--gap)));
+/* Preserve aspect ratio + fit in available space */
+#canvasStage {
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid red;
 }
 
-/* Preserve aspect ratio + fit in available space */
 #canvas {
   display: block;
+  object-fit: contain;
   max-width: 100%;
   max-height: 100%;
-  aspect-ratio: var(--canvas-ar);
-  width: 100%;
+  width: auto;
   height: auto;
-  object-fit: contain;
-}
-
-canvas {
-  display: none;
+  aspect-ratio: var(--canvas-ar);
 }
 
 #app.loading #displayPane {
   display: none;
 }
 
-#app.loading #controlPane {
+#app.loading #optionPane {
   display: none;
 }
 
@@ -134,11 +138,11 @@ canvas {
   display: grid;
 }
 
-#app.ready #controlPane {
+#app.ready #optionPane {
   display: flex;
 }
 
-#controlPane > * {
+#optionPane > * {
   max-width: 100%;
 }
 
@@ -170,22 +174,48 @@ wa-switch:state(checked)::part(thumb) {
   background-color: #fff;
 }
 
-.relaxButtons {
+wa-select::part(combobox) {
+  border-color: #ddd;
+  border-radius: 6px;
+}
+
+wa-details::part(base) {
+  border-color: #ddd;
+  border-radius: 6px;
+}
+
+wa-details::part(header) {
+  padding: 7px 12px;
+}
+
+#runControls {
+  grid-row: 2;
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
-  border: 1px solid red;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+#relaxControls,
+#videoControls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+#relaxControls {
+  flex: 1 1 auto;
 }
 
 #speedSlider {
-  flex: 1 1 auto;
-  border: 1px solid red;
+  flex: 1 1 240px; /* grows, but has a sensible minimum */
+  min-width: 140px;
 }
 
 #relaxBtn {
   flex: 0 0 auto;
-  border: 1px solid red;
 }
 
 .actions {
@@ -199,11 +229,22 @@ wa-switch:state(checked)::part(thumb) {
 }
 
 .colorPickers {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .colorPickers > wa-color-picker {
-  flex: 1 1 0;
+  justify-self: center;
+}
+
+.colorPickers wa-color-picker::part(label) {
+  text-align: center;
+  white-space: normal;
+}
+
+.colorPickers wa-color-picker::part(trigger) {
+  margin-inline: auto;
 }
 
 input[type="file"]::file-selector-button {
@@ -252,7 +293,7 @@ input[type="file"]::file-selector-button:active {
     max-height: calc(100vh - var(--nav-h) - 2rem);
   }
 
-  #controlPane {
+  #optionPane {
     width: 100%;
     max-width: clamp(280px, 90vw, var(--controls-w));
     margin-inline: auto;

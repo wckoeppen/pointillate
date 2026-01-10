@@ -7,10 +7,8 @@
     <link rel="stylesheet" href="/src/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Voronoi Stippling Sandbox</title>
-
   </head>
   <body>
-
     <nav>
       <h1>Stippling Sandbox</h1>
     </nav>
@@ -18,13 +16,48 @@
     <div id="app" class="loading">
       <span id="loader" class="loader"></span>
       <div id="displayPane">
-        <canvas id="canvas"></canvas>
+        <div id="canvasStage">
+          <canvas id="canvas"></canvas>
+        </div>
+
+        <div id="runControls">
+
+          <div id="relaxControls">
+
+            <wa-button appearance="filled" id="relaxBtn" size="small">
+              <wa-icon name="play"></wa-icon>
+            </wa-button>
+
+            <wa-slider with-tooltip
+              id="speedSlider"
+              label="Speed"
+              min="0"
+              max="1"
+              value="0.3"
+              step="0.01"></wa-slider>
+
+          </div>
+
+          <div id="videoControls" class="videoControls" style="display: none">
+            <wa-button-group>
+              <wa-button id="btn-video-play" size="small">
+                <wa-icon name="play"></wa-icon>
+              </wa-button>
+              <wa-button id="btn-video-pause" size="small">
+                <wa-icon name="pause"></wa-icon>
+              </wa-button>
+            </wa-button-group>
+            <wa-switch id="videoLoopToggle" checked>Loop</wa-switch>
+          </div>
+
+        </div>
+
       </div>
 
       <video id="video" playsinline muted
         style="display: none"></video>
 
-      <div class="controls" id="controlPane">
+      <div id="optionPane">
 
         <input type="file" id="mediaUpload"
           accept="image/*,video/*,.mp4,.mov,.webm" />
@@ -67,7 +100,6 @@
             step="0.1"
             style="display:none;">
           </wa-slider>
-
         </div>
 
         <div class="spacer"></div>
@@ -111,42 +143,13 @@
           </div>
         </wa-details>
 
-        <div class="relaxButtons">
-          <wa-slider with-tooltip
-            id="speedSlider"
-            label="Speed"
-            min="0"
-            max="1"
-            value="0.3"
-            step="0.01"></wa-slider>
-          <wa-button appearance="filled" id="relaxBtn" size="small">
-            <wa-icon name="play"></wa-icon>
-          </wa-button>
-        </div>
-
         <div class="spacer"></div>
 
         <div class="actions">
           <wa-button appearance="filled" id="btn-save-json"
             type="button">Save</wa-button>
         </div>
-
-        <div class="videoControls" id="videoControls" style="display: none">
-          <wa-button-group>
-            <wa-button id="btn-video-play" size="small">
-              <wa-icon name="play"></wa-icon>
-            </wa-button>
-            <wa-button id="btn-video-pause" size="small">
-              <wa-icon name="pause"></wa-icon>
-            </wa-button>
-          </wa-button-group>
-
-          <wa-switch id="videoLoopToggle" checked>Loop</wa-switch>
-        </div>
-
       </div>
-
     </div>
-
   </body>
 </html>

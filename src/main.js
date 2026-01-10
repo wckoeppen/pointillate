@@ -61,7 +61,6 @@ const lineColorBtn = document.getElementById("lineColorBtn");
 const relaxBtn = document.getElementById("relaxBtn");
 
 // State
-
 let currentPoints = [];
 let delaunay;
 let voronoi;
@@ -70,8 +69,24 @@ let imgCanvas = document.createElement("canvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
 let imageData;
-
 let sourceMode = "image"; // "image" | "video"
+
+let numPoints = numPointsSlider?.value || 1000;
+let minRadius = radiusRange?.minValue || 1;
+let maxRadius = radiusRange?.maxValue || 4;
+let uniformRadius = radiusSlider?.value || 1;
+let speed = speedSlider.value || 0.5;
+
+let seedPreference = "dark"; // "dark" | "light" | "none"
+let sizePreference = "dark"; // "dark" | "light" | "none"
+let relaxPreference = "dark"; // "dark" | "light"
+
+// let seedToDarkPixels = true;
+let relaxEnabled = false;
+let isRunning = false;
+let backgroundColor = backgroundColorBtn?.value || "#fff";
+let pointColor = pointColorBtn?.value || "#000";
+let lineColor = lineColorBtn?.value || "#000";
 
 // Media source (image/video) state
 let activeVideo = null;
@@ -145,19 +160,6 @@ function loadVideoAndStart(video) {
   getVoronoi();
   renderFrame();
 }
-
-let numPoints = 1000;
-let speed = 0.3;
-let seedPreference = "dark"; // "dark" | "light" | "none"
-let sizePreference = "dark"; // "dark" | "light" | "none"
-let relaxPreference = "dark"; // "dark" | "light"
-
-// let seedToDarkPixels = true;
-let relaxEnabled = false;
-let isRunning = false;
-let backgroundColor = "#fff";
-let pointColor = "#000";
-let lineColor = "#000";
 
 // Image sampling helpers
 
@@ -310,22 +312,21 @@ function renderFrame() {
 
   if (showPoints) {
     // ctx.globalAlpha = 0.9;
+    const useUniform = sizePreference === "none";
     const sizeFn = toneResponse[sizePreference];
-    const minRadius = parseFloat(radiusRange?.minValue ?? "0");
-    const maxRadius = parseFloat(radiusRange?.maxValue ?? "1");
-    const uniformRadius = parseFloat(radiusSlider?.value ?? "1");
+    let radiusSpan = maxRadius - minRadius;
 
     for (let idx = 0; idx < currentPoints.length; idx++) {
       const [x, y] = currentPoints[idx];
-      const brightness = getBrightness(imageData, w, h, x, y);
 
-      let size = sizeFn(brightness);
-      const curved = size * size; // scaling this thing
-
-      let radius =
-        sizePreference === "none"
-          ? uniformRadius
-          : minRadius + curved * (maxRadius - minRadius);
+      const radius = useUniform
+        ? uniformRadius
+        : (() => {
+            const brightness = getBrightness(imageData, w, h, x, y);
+            const t = sizeFn(brightness);
+            const curved = t * t;
+            return minRadius + curved * radiusSpan;
+          })();
 
       let color = pointColor;
       if (showColor) {
@@ -380,20 +381,45 @@ function setSeedPreference(next) {
   renderFrame();
 }
 
-function syncRadiusUI() {
-  if (sizePreference == "none") {
-    // derive a single radius from the current range
-    const r = Number(radiusRange.maxValue);
+// Always keep radiusRange.maxValue and radiusSlider.value in sync
+function syncRadiusValuesUI() {
+  if (sizePreference === "none") {
+    uniformRadius = radiusSlider.value;
 
-    radiusSlider.value = r;
+    maxRadius = uniformRadius;
+    radiusRange.maxValue = maxRadius;
+    return;
+  }
+
+  minRadius = radiusRange.minValue;
+  maxRadius = radiusRange.maxValue;
+
+  uniformRadius = maxRadius;
+  radiusSlider.value = uniformRadius;
+}
+
+function syncRadiusUI() {
+  if (sizePreference === "none") {
+    radiusSlider.value = maxRadius;
+    uniformRadius = maxRadius;
 
     radiusRange.style.display = "none";
     radiusSlider.style.display = "";
-  } else {
-    radiusSlider.style.display = "none";
-    radiusRange.style.display = "";
+    return;
   }
+
+  if (minRadius > maxRadius) {
+    minRadius = maxRadius;
+  }
+
+  radiusRange.minValue = minRadius;
+  radiusRange.maxValue = maxRadius;
+
+  radiusSlider.style.display = "none";
+  radiusRange.style.display = "";
 }
+
+
 
 function setSizePreference(next) {
   if (next === sizePreference) return;
@@ -623,16 +649,18 @@ numPointsSlider?.addEventListener("input", () => {
 });
 
 speedSlider?.addEventListener("input", () => {
-  speed = parseFloat(speedSlider.value);
+  speed = speedSlider.value;
   getVoronoi();
   renderFrame();
 });
 
 radiusRange?.addEventListener("input", () => {
+  syncRadiusValuesUI();
   renderFrame();
 });
 
 radiusSlider?.addEventListener("input", () => {
+  syncRadiusValuesUI();
   renderFrame();
 });
 
