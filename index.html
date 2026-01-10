@@ -49,24 +49,54 @@
           </wa-slider>
 
           <wa-slider range with-tooltip
-            id="radiusSlider"
+            id="radiusRange"
             label="Point Radius"
             min="0"
             max="20"
+            value="1.5"
             min-value="1"
             max-value="4"
             step="0.1"></wa-slider>
 
           <wa-slider with-tooltip
-            id="speedSlider"
-            label="Speed"
+            id="radiusSlider"
+            label="Point Radius"
             min="0"
-            max="1"
-            value="0.3"
-            step="0.01"></wa-slider>
+            max="20"
+            value="2"
+            step="0.1"
+            style="display:none;">
+          </wa-slider>
 
         </div>
-        
+
+        <div class="spacer"></div>
+
+        <wa-select id="seedSelect" size="medium">
+          <wa-option value="seedDark" icon-placement="start"
+            label="Seed in Dark Areas" selected>Seed in Dark Areas</wa-option>
+          <wa-option value="seedLight" icon-placement="start"
+            label="Seed in Light Areas">Seed in Light Areas</wa-option>
+          <wa-option value="seedRandom" icon-placement="start"
+            label="Seed Randomly">Seed Randomly</wa-option>
+        </wa-select>
+
+        <wa-select id="sizeSelect" size="medium">
+          <wa-option value="sizeDark" label="Size by Darkness"
+            selected>Size by Darkness</wa-option>
+          <wa-option value="sizeLight" label="Size by Lightness">Size by
+            Lightness</wa-option>
+          <wa-option value="sizeNone" label="One Size Fits All">One Size Fits
+            All</wa-option>
+        </wa-select>
+
+        <wa-select id="relaxSelect" size="medium">
+          <wa-option value="relaxDark" label="Relax to Dark Areas"
+            selected>Relax to Dark Areas</wa-option>
+          <wa-option value="relaxLight" label="Relax to Light Areas">Relax to
+            Light Areas</wa-option>
+        </wa-select>
+
         <wa-details summary="Base Colors">
           <div class="colorPickers">
             <wa-color-picker id="backgroundColorBtn" label="Canvas"
@@ -81,45 +111,15 @@
           </div>
         </wa-details>
 
-        <div class="spacer"></div>
-
-        <wa-select size="medium">
-          <wa-option value="seedDark" icon-placement="start" selected>Seed to Dark Areas</wa-option>
-          <wa-option value="seedLight" icon-placement="start" selected>Seed to Light Areas</wa-option>
-          <wa-option value="seedRandom" icon-placement="start" selected>Seed Randomly</wa-option>
-        </wa-select>
-
-        <div class="seedTo">
-          <wa-button-group>
-            <wa-button id="btn-seedToDark" appearance="accent" size="small">
-              Dark
-            </wa-button>
-            <wa-button id="btn-seedToLight" appearance="filled" size="small">
-              Light
-            </wa-button>
-            <wa-button id="btn-seedToNone" appearance="filled" size="small">
-              None
-            </wa-button>
-          </wa-button-group>
-          <wa-button appearance="filled" id="reset-btn"
-            size="small"><wa-icon name="arrows-rotate"></wa-icon></wa-button>
-        </div>
-
-        <wa-select size="medium">
-          <wa-option value="relaxDark" icon-placement="start" selected>Relax to Dark Areas</wa-option>
-          <wa-option value="relaxLight" icon-placement="start" selected>Relax to Light Areas</wa-option>
-        </wa-select>
-
-        <h2>Weight</h2>
-        <div class="relaxTo">
-          <wa-button-group>
-            <wa-button id="btn-relaxToDark" appearance="accent"
-              size="small">Dark</wa-button>
-            <wa-button id="btn-relaxToLight" appearance="filled"
-              size="small">Light</wa-button>
-          </wa-button-group>
-
-          <wa-button appearance="filled" id="btn-run" size="small">
+        <div class="relaxButtons">
+          <wa-slider with-tooltip
+            id="speedSlider"
+            label="Speed"
+            min="0"
+            max="1"
+            value="0.3"
+            step="0.01"></wa-slider>
+          <wa-button appearance="filled" id="relaxBtn" size="small">
             <wa-icon name="play"></wa-icon>
           </wa-button>
         </div>

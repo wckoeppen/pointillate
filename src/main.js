@@ -5,12 +5,10 @@ import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "@awesome.me/webawesome/dist/components/details/details.js";
 import "@awesome.me/webawesome/dist/components/select/select.js";
 import "@awesome.me/webawesome/dist/components/option/option.js";
-
 import "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 import "@awesome.me/webawesome/dist/components/slider/slider.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/switch/switch.js";
-
 
 // Property Utlities
 
@@ -33,10 +31,15 @@ const displayPane = document.getElementById("displayPane");
 const canvas = document.getElementById("canvas");
 const video = document.getElementById("video");
 
+const seedSelect = document.getElementById("seedSelect");
+const sizeSelect = document.getElementById("sizeSelect");
+const relaxSelect = document.getElementById("relaxSelect");
+
 const colorToggle = document.getElementById("colorToggle");
 const polyToggle = document.getElementById("polyToggle");
 const circToggle = document.getElementById("circToggle");
 
+const radiusRange = document.getElementById("radiusRange");
 const radiusSlider = document.getElementById("radiusSlider");
 const numPointsSlider = document.getElementById("numPointsSlider");
 const speedSlider = document.getElementById("speedSlider");
@@ -44,13 +47,6 @@ const speedSlider = document.getElementById("speedSlider");
 const mediaUploadBtn = document.getElementById("mediaUpload");
 const loader = document.getElementById("loader");
 const controls = document.getElementById("controls");
-
-const seedToDarkBtn = document.getElementById("btn-seedToDark");
-const seedToLightBtn = document.getElementById("btn-seedToLight");
-const seedToNoneBtn = document.getElementById("btn-seedToNone");
-
-const relaxToDarkBtn = document.getElementById("btn-relaxToDark");
-const relaxToLightBtn = document.getElementById("btn-relaxToLight");
 
 const videoEl = document.getElementById("video");
 const videoControls = document.getElementById("videoControls");
@@ -62,8 +58,7 @@ const backgroundColorBtn = document.getElementById("backgroundColorBtn");
 const pointColorBtn = document.getElementById("pointColorBtn");
 const lineColorBtn = document.getElementById("lineColorBtn");
 
-const runBtn = document.getElementById("btn-run");
-const resetBtn = document.getElementById("reset-btn");
+const relaxBtn = document.getElementById("relaxBtn");
 
 // State
 
@@ -154,9 +149,10 @@ function loadVideoAndStart(video) {
 let numPoints = 1000;
 let speed = 0.3;
 let seedPreference = "dark"; // "dark" | "light" | "none"
+let sizePreference = "dark"; // "dark" | "light" | "none"
+let relaxPreference = "dark"; // "dark" | "light"
 
 // let seedToDarkPixels = true;
-let relaxToDarkPixels = true;
 let relaxEnabled = false;
 let isRunning = false;
 let backgroundColor = "#fff";
@@ -199,16 +195,15 @@ function getColorStringAtPoint(imageDataArr, w, h, x, y) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-// Stippling / Voronoi
-
-const acceptanceProbability = {
+// Do we target darks, lights, or give everything equal weight?
+const toneResponse = {
   dark: (b) => 1 - b / 255,
   light: (b) => b / 255,
   none: () => 1,
 };
 
 function seedPoints() {
-  const acceptanceFn = acceptanceProbability[seedPreference];
+  const acceptanceFn = toneResponse[seedPreference];
   currentPoints = [];
 
   while (currentPoints.length < numPoints) {
@@ -255,6 +250,7 @@ function drawPoint(drawCtx, x, y, color = "black", radius = 1) {
 }
 
 function relaxPoints() {
+  const weightFunction = toneResponse[relaxPreference];
   const n = currentPoints.length;
   const targetPoints = new Array(n);
   for (let i = 0; i < n; i++) targetPoints[i] = [0, 0];
@@ -271,19 +267,14 @@ function relaxPoints() {
 
       const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-      let weight;
-      if (relaxToDarkPixels) {
-        weight = 1 - brightness / 255;
-      } else {
-        weight = brightness / 255;
-      }
+      let w = weightFunction(brightness);
 
       // nearest site index in currentPoints
       delaunayIndex = delaunay.find(x, y, delaunayIndex);
 
-      targetPoints[delaunayIndex][0] += x * weight;
-      targetPoints[delaunayIndex][1] += y * weight;
-      targetWeights[delaunayIndex] += weight;
+      targetPoints[delaunayIndex][0] += x * w;
+      targetPoints[delaunayIndex][1] += y * w;
+      targetWeights[delaunayIndex] += w;
     }
   }
 
@@ -305,60 +296,44 @@ function relaxPoints() {
 }
 
 // Render
-
 function renderFrame() {
   if (!imgCtx || !imageData) return;
 
-  // ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = backgroundColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const showColor = colorToggle?.checked ?? false;
   const showPolygons = polyToggle?.checked ?? false;
   const showPoints = circToggle?.checked ?? true;
-
-  const MIN_POINT_RADIUS = parseFloat(radiusSlider?.minValue ?? "0");
-  const MAX_POINT_RADIUS = parseFloat(radiusSlider?.maxValue ?? "1");
+  const w = canvas.width;
+  const h = canvas.height;
 
   if (showPoints) {
     // ctx.globalAlpha = 0.9;
+    const sizeFn = toneResponse[sizePreference];
+    const minRadius = parseFloat(radiusRange?.minValue ?? "0");
+    const maxRadius = parseFloat(radiusRange?.maxValue ?? "1");
+    const uniformRadius = parseFloat(radiusSlider?.value ?? "1");
 
     for (let idx = 0; idx < currentPoints.length; idx++) {
-      const v = currentPoints[idx];
+      const [x, y] = currentPoints[idx];
+      const brightness = getBrightness(imageData, w, h, x, y);
 
-      const brightness = getBrightness(
-        imageData,
-        canvas.width,
-        canvas.height,
-        v[0],
-        v[1]
-      );
+      let size = sizeFn(brightness);
+      const curved = size * size; // scaling this thing
 
-      let weight;
-      if (relaxToDarkPixels) {
-        weight = 1 - brightness / 255;
-      } else {
-        weight = brightness / 255;
-      }
-
-      const curved = Math.pow(weight, 2.0);
-
-      const radius =
-        MIN_POINT_RADIUS + curved * (MAX_POINT_RADIUS - MIN_POINT_RADIUS);
+      let radius =
+        sizePreference === "none"
+          ? uniformRadius
+          : minRadius + curved * (maxRadius - minRadius);
 
       let color = pointColor;
       if (showColor) {
-        const { r, g, b } = getColor(
-          imageData,
-          canvas.width,
-          canvas.height,
-          v[0],
-          v[1]
-        );
+        const { r, g, b } = getColor(imageData, w, h, x, y);
         color = `rgb(${r}, ${g}, ${b})`;
       }
 
-      drawPoint(ctx, v[0], v[1], color, radius);
+      drawPoint(ctx, x, y, color, radius);
     }
   }
 
@@ -366,20 +341,19 @@ function renderFrame() {
     const cells = Array.from(voronoi.cellPolygons());
     for (let i = 0; i < cells.length; i++) {
       const poly = cells[i];
-
       ctx.beginPath();
       ctx.moveTo(poly[0][0], poly[0][1]);
       for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
       ctx.closePath();
 
       if (showColor) {
-        const v = currentPoints[i];
+        const [x, y] = currentPoints[i];
         const { r, g, b } = getColor(
           imageData,
           canvas.width,
           canvas.height,
-          v[0],
-          v[1]
+          x,
+          y
         );
         ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         ctx.fill();
@@ -398,50 +372,42 @@ function setCanvasAspectRatio(w, h) {
   displayPane.style.setProperty("--canvas-ar", `${w} / ${h}`);
 }
 
-function syncRelaxButtonUI() {
-  const nextVariant = relaxEnabled ? "accent" : "filled";
-  setProp(runBtn, "appearance", nextVariant);
-}
-
-function syncSeedButtonsUI() {
-  const isDark = seedPreference === "dark";
-  const isLight = seedPreference === "light";
-  const isNone = seedPreference === "none";
-
-  if (seedToDarkBtn) seedToDarkBtn.appearance = isDark ? "accent" : "filled";
-  if (seedToLightBtn) seedToLightBtn.appearance = isLight ? "accent" : "filled";
-  if (seedToNoneBtn) seedToNoneBtn.appearance = isNone ? "accent" : "filled";
-
-  // If your component supports pressed state, keep it consistent too
-  if (seedToDarkBtn && "pressed" in seedToDarkBtn)
-    seedToDarkBtn.pressed = isDark;
-  if (seedToLightBtn && "pressed" in seedToLightBtn)
-    seedToLightBtn.pressed = isLight;
-  if (seedToNoneBtn && "pressed" in seedToNoneBtn)
-    seedToNoneBtn.pressed = isNone;
-}
-
 function setSeedPreference(next) {
-  if (next === seedPreference) return; // already selected
   seedPreference = next;
 
-  syncSeedButtonsUI();
-
-  seedPoints(); // uses seedPreference internally
+  seedPoints();
   getVoronoi();
   renderFrame();
 }
 
-function toggleRelaxToBtn(mode) {
-  const next = mode === "dark";
-  if (next === relaxToDarkPixels) return; // already selected
+function syncRadiusUI() {
+  if (sizePreference == "none") {
+    // derive a single radius from the current range
+    const r = Number(radiusRange.maxValue);
 
-  relaxToDarkPixels = next;
+    radiusSlider.value = r;
 
-  relaxToDarkBtn.appearance = relaxToDarkPixels ? "accent" : "filled";
-  relaxToLightBtn.appearance = relaxToDarkPixels ? "filled" : "accent";
+    radiusRange.style.display = "none";
+    radiusSlider.style.display = "";
+  } else {
+    radiusSlider.style.display = "none";
+    radiusRange.style.display = "";
+  }
+}
 
-  seedPoints();
+function setSizePreference(next) {
+  if (next === sizePreference) return;
+  sizePreference = next;
+
+  syncRadiusUI();
+  getVoronoi();
+  renderFrame();
+}
+
+function setRelaxPreference(next) {
+  if (next === relaxPreference) return;
+  relaxPreference = next;
+
   getVoronoi();
   renderFrame();
 }
@@ -614,12 +580,11 @@ function loadInitial() {
 
   img.onload = async () => {
     await Promise.all([
-      radiusSlider?.updateComplete,
+      radiusRange?.updateComplete,
       numPointsSlider?.updateComplete,
       speedSlider?.updateComplete,
     ]);
 
-    syncRelaxButtonUI();
     wireSaveButton();
 
     loadImageAndStart(img);
@@ -632,9 +597,8 @@ loadInitial();
 
 //  Listeners
 
-runBtn?.addEventListener("click", () => {
+relaxBtn?.addEventListener("click", () => {
   relaxEnabled = !relaxEnabled;
-  syncRelaxButtonUI();
   startLoop();
 });
 
@@ -664,9 +628,7 @@ speedSlider?.addEventListener("input", () => {
   renderFrame();
 });
 
-resetBtn?.addEventListener("click", () => {
-  seedPoints();
-  getVoronoi();
+radiusRange?.addEventListener("input", () => {
   renderFrame();
 });
 
@@ -674,17 +636,29 @@ radiusSlider?.addEventListener("input", () => {
   renderFrame();
 });
 
-// Seed button buttons
-seedToDarkBtn?.addEventListener("click", () => setSeedPreference("dark"));
-seedToLightBtn?.addEventListener("click", () => setSeedPreference("light"));
-seedToNoneBtn?.addEventListener("click", () => setSeedPreference("none"));
-
-// Relax button listeners
-relaxToDarkBtn?.addEventListener("click", () => {
-  toggleRelaxToBtn("dark");
+relaxSelect.addEventListener("change", (event) => {
+  switch (event.target.value) {
+    case "relaxDark":
+      setRelaxPreference("dark");
+      break;
+    case "relaxLight":
+      setRelaxPreference("light");
+      break;
+  }
 });
-relaxToLightBtn?.addEventListener("click", () => {
-  toggleRelaxToBtn("light");
+
+sizeSelect.addEventListener("change", (event) => {
+  switch (event.target.value) {
+    case "sizeDark":
+      setSizePreference("dark");
+      break;
+    case "sizeLight":
+      setSizePreference("light");
+      break;
+    case "sizeNone":
+      setSizePreference("none");
+      break;
+  }
 });
 
 // Color button listeners
@@ -699,6 +673,20 @@ pointColorBtn.addEventListener("input", () => {
 lineColorBtn.addEventListener("input", () => {
   lineColor = lineColorBtn.value;
   renderFrame();
+});
+
+seedSelect.addEventListener("change", (event) => {
+  switch (event.target.value) {
+    case "seedDark":
+      setSeedPreference("dark");
+      break;
+    case "seedLight":
+      setSeedPreference("light");
+      break;
+    case "seedRandom":
+      setSeedPreference("none");
+      break;
+  }
 });
 
 // Video listeners

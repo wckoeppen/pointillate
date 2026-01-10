@@ -70,8 +70,8 @@ h2 {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 4px solid rgba(0,0,0,0.15);
-  border-top-color: rgba(0,0,0,0.55);
+  border: 4px solid rgba(0, 0, 0, 0.15);
+  border-top-color: rgba(0, 0, 0, 0.55);
   animation: rotation 0.9s linear infinite;
 }
 
@@ -146,16 +146,6 @@ canvas {
   height: 5px;
 }
 
-wa-details {
-  width: 100%;
-}
-
-a-details::part(summary) {
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
 wa-slider {
   padding-bottom: 20px;
 }
@@ -180,6 +170,24 @@ wa-switch:state(checked)::part(thumb) {
   background-color: #fff;
 }
 
+.relaxButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid red;
+}
+
+#speedSlider {
+  flex: 1 1 auto;
+  border: 1px solid red;
+}
+
+#relaxBtn {
+  flex: 0 0 auto;
+  border: 1px solid red;
+}
+
 .actions {
   display: flex;
   gap: 0.5rem;
@@ -195,24 +203,6 @@ wa-switch:state(checked)::part(thumb) {
 }
 
 .colorPickers > wa-color-picker {
-  flex: 1 1 0;
-}
-
-.relaxTo {
-  display: flex;
-  margin: 0 0;
-}
-
-.relaxTo > wa-button-group {
-  flex: 1 1 0;
-}
-
-.seedTo {
-  display: flex;
-  margin: 0;
-}
-
-.seedTo > wa-button-group {
   flex: 1 1 0;
 }
 
