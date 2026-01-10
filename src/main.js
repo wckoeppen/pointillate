@@ -28,7 +28,7 @@ function setStyle(el, prop, value) {
 // DOM refs
 
 const app = document.getElementById("app");
-const displayPane = document.getElementById("displayPane");
+const canvasStage = document.getElementById("canvasStage");
 const canvas = document.getElementById("canvas");
 const video = document.getElementById("video");
 
@@ -63,7 +63,7 @@ const relaxBtn = document.getElementById("relaxBtn");
 
 await customElements.whenDefined("wa-drawer");
 const optionsDrawer = document.getElementById("optionsDrawer");
-const openButton = document.getElementById("menuBtn")
+const openButton = document.getElementById("menuBtn");
 openButton.addEventListener("click", () => (optionsDrawer.open = true));
 
 // State
@@ -76,6 +76,8 @@ const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
 let imageData;
 let sourceMode = "image"; // "image" | "video"
+let mediaWidth = 0;
+let mediaHeight = 0;
 
 let numPoints = numPointsSlider?.value || 1000;
 let minRadius = radiusRange?.minValue || 1;
@@ -149,7 +151,12 @@ function loadVideoAndStart(video) {
   lastVideoSample = 0;
 
   // Show UI (clear inline overrides so CSS governs layout)
-  setCanvasAspectRatio(video.videoWidth, video.videoHeight);
+  mediaWidth = video.videoWidth;
+  mediaHeight = video.videoHeight;
+
+  setCanvasAspectRatio();
+  setCanvasSize();
+  requestAnimationFrame(setCanvasSize);
 
   const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
 
@@ -373,10 +380,20 @@ function renderFrame() {
 }
 
 //  UI sync
+function setCanvasAspectRatio() {
+  if (!mediaWidth || !mediaHeight) return;
+  canvasStage.style.setProperty(
+    "--canvas-aspect-ratio",
+    `${mediaWidth} / ${mediaHeight}`
+  );
+}
 
-function setCanvasAspectRatio(w, h) {
-  if (!w || !h) return;
-  canvasStage.style.setProperty("--canvas-ar", `${w} / ${h}`);
+function setCanvasSize() {
+  if (!mediaWidth || !mediaHeight) return;
+  const { width: sw, height: sh } = canvasStage.getBoundingClientRect();
+  const scale = Math.min(sw / mediaWidth, sh / mediaHeight);
+  canvas.style.width = `${Math.floor(mediaWidth * scale)}px`;
+  canvas.style.height = `${Math.floor(mediaHeight * scale)}px`;
 }
 
 function setSeedPreference(next) {
@@ -475,7 +492,11 @@ function loadImageAndStart(img) {
   sourceMode = "image";
   activeVideo = null;
   lastVideoSample = 0;
-  setCanvasAspectRatio(img.width, img.height);
+  mediaWidth = img.naturalWidth;
+  mediaHeight = img.naturalHeight;
+  setCanvasAspectRatio();
+  setCanvasSize();
+  requestAnimationFrame(setCanvasSize);
 
   if (animationFrameId !== null) {
     cancelAnimationFrame(animationFrameId);
@@ -748,3 +769,7 @@ loopToggle?.addEventListener("change", () => {
 videoEl?.addEventListener("play", syncVideoUI);
 videoEl?.addEventListener("pause", syncVideoUI);
 videoEl?.addEventListener("ended", syncVideoUI);
+
+// Resize the stage
+new ResizeObserver(setCanvasSize).observe(canvasStage);
+window.addEventListener("resize", setCanvasSize);
