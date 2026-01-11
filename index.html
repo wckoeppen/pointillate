@@ -21,19 +21,24 @@
       </div>
 
       <div id="controlPane">
-        <div id="relaxation controls">
-          <wa-button id="menuBtn" aria-label="Open options" size="small"
-            appearance="filled">
-            ☰
-          </wa-button>
-          <wa-button appearance="filled" id="relaxBtn" size="small">
-            <wa-icon name="play"></wa-icon>
-          </wa-button>
-        </div>
+        <wa-button id="openOptions" aria-label="Open options" size="small"
+          appearance="filled">☰</wa-button>
+        <p>And I'm going to put things here. And I'm going to put things here. And
+        I'm going to put things here. And I'm going to put things here. And I'm
+        going to put things here. And I'm going to put things here. And I'm
+        going to put things here. And I'm going to put things here. And I'm
+        going to put things here. And I'm going to put things here. </p>
+
       </div>
     </div>
 
-    <wa-drawer id="optionsDrawer" placement="end" style="display:none;">
+    <div id="relaxation controls">
+
+      <wa-button appearance="filled" id="relaxBtn" size="small">
+        <wa-icon name="play"></wa-icon>
+      </wa-button>
+    </div>
+    <wa-drawer id="optionsDrawer" placement="bottom" style="display:none;">
       <div class="options">
         <input type="file" id="mediaUpload"
           accept="image/*,video/*,.mp4,.mov,.webm" />
@@ -151,7 +156,7 @@
       </div>
     </div>
 
-    <wa-drawer id="optionsDrawer" placement="end">
+    <wa-drawer id="optionsDrawer" placement="bottom">
       <div class="options">
         <input type="file" id="mediaUpload"
           accept="image/*,video/*,.mp4,.mov,.webm" />

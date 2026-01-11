@@ -28,8 +28,11 @@ function setStyle(el, prop, value) {
 // DOM refs
 
 const app = document.getElementById("app");
+const titlePane = document.getElementById("titlePane");
+const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
 const canvas = document.getElementById("canvas");
+
 const video = document.getElementById("video");
 
 const seedSelect = document.getElementById("seedSelect");
@@ -63,8 +66,11 @@ const relaxBtn = document.getElementById("relaxBtn");
 
 await customElements.whenDefined("wa-drawer");
 const optionsDrawer = document.getElementById("optionsDrawer");
-const openDrawer = document.getElementById("menuBtn");
-openDrawer.addEventListener("click", () => (optionsDrawer.open = true));
+const openOptions = document.getElementById("openOptions");
+
+openOptions.addEventListener("click", () => {
+  app.classList.toggle("controls-open");
+});
 
 // State
 let currentPoints = [];
@@ -390,10 +396,26 @@ function setCanvasAspectRatio() {
 
 function setCanvasSize() {
   if (!mediaWidth || !mediaHeight) return;
-  const { width: sw, height: sh } = canvasStage.getBoundingClientRect();
-  const scale = Math.min(sw / mediaWidth, sh / mediaHeight);
-  canvas.style.width = `${Math.floor(mediaWidth * scale)}px`;
-  canvas.style.height = `${Math.floor(mediaHeight * scale)}px`;
+
+  // Available space in the viewport for the stage
+  const titleH = titlePane.getBoundingClientRect().height;
+  const controlH = controlPane.getBoundingClientRect().height;
+  const availH = Math.max(0, window.innerHeight - titleH - controlH);
+
+  // Available width for the stage
+  const availW = canvasStage.clientWidth;
+
+  // Scale to CONTAIN within (availW, availH)
+  const scale = Math.min(availW / mediaWidth, availH / mediaHeight);
+
+  const cssW = Math.floor(mediaWidth * scale);
+  const cssH = Math.floor(mediaHeight * scale);
+
+  canvas.style.width = `${cssW}px`;
+  canvas.style.height = `${cssH}px`;
+
+  // Optional: make stage hug the canvas (safe because we don't read stage height)
+  canvasStage.style.height = `${cssH}px`;
 }
 
 function setSeedPreference(next) {
@@ -653,6 +675,11 @@ relaxBtn?.addEventListener("click", () => {
   startLoop();
 });
 
+canvas?.addEventListener("click", () => {
+  relaxEnabled = !relaxEnabled;
+  startLoop();
+});
+
 mediaUploadBtn?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];
   if (!file) return;
@@ -771,5 +798,11 @@ videoEl?.addEventListener("pause", syncVideoUI);
 videoEl?.addEventListener("ended", syncVideoUI);
 
 // Resize the stage
-new ResizeObserver(setCanvasSize).observe(canvasStage);
-window.addEventListener("resize", setCanvasSize);
+new ResizeObserver(() => {
+  setCanvasSize();
+  requestAnimationFrame(setCanvasSize);
+}).observe(controlPane);
+new ResizeObserver(() => {
+  setCanvasSize();
+  requestAnimationFrame(setCanvasSize);
+}).observe(titlePane);
