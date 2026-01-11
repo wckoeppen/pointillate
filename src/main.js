@@ -11,20 +11,6 @@ import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/switch/switch.js";
 import "@awesome.me/webawesome/dist/components/drawer/drawer.js";
 
-// Property Utlities
-
-function setProp(el, prop, value) {
-  if (!el) return;
-  if (el[prop] === value) return;
-  el[prop] = value;
-}
-
-function setStyle(el, prop, value) {
-  if (!el) return;
-  if (el.style[prop] === value) return;
-  el.style[prop] = value;
-}
-
 // DOM refs
 
 const app = document.getElementById("app");
@@ -32,8 +18,6 @@ const titlePane = document.getElementById("titlePane");
 const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
 const canvas = document.getElementById("canvas");
-
-const video = document.getElementById("video");
 
 const seedSelect = document.getElementById("seedSelect");
 const sizeSelect = document.getElementById("sizeSelect");
@@ -49,8 +33,6 @@ const numPointsSlider = document.getElementById("numPointsSlider");
 const speedSlider = document.getElementById("speedSlider");
 
 const mediaUploadBtn = document.getElementById("mediaUpload");
-const loader = document.getElementById("loader");
-const controls = document.getElementById("controls");
 
 const videoEl = document.getElementById("video");
 const videoControls = document.getElementById("videoControls");
@@ -65,7 +47,6 @@ const lineColorBtn = document.getElementById("lineColorBtn");
 const relaxBtn = document.getElementById("relaxBtn");
 
 await customElements.whenDefined("wa-drawer");
-const optionsDrawer = document.getElementById("optionsDrawer");
 const openOptions = document.getElementById("openOptions");
 
 openOptions.addEventListener("click", () => {
@@ -156,13 +137,7 @@ function loadVideoAndStart(video) {
   activeVideo = video;
   lastVideoSample = 0;
 
-  // Show UI (clear inline overrides so CSS governs layout)
-  mediaWidth = video.videoWidth;
-  mediaHeight = video.videoHeight;
-
-  setCanvasAspectRatio();
-  setCanvasSize();
-  requestAnimationFrame(setCanvasSize);
+  setMediaSize(video.videoWidth, video.videoHeight);
 
   const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
 
@@ -385,27 +360,27 @@ function renderFrame() {
   }
 }
 
-//  UI sync
-function setCanvasAspectRatio() {
-  if (!mediaWidth || !mediaHeight) return;
-  canvasStage.style.setProperty(
-    "--canvas-aspect-ratio",
-    `${mediaWidth} / ${mediaHeight}`
-  );
+// Control the layout
+function setMediaSize(w, h) {
+  mediaWidth = w;
+  mediaHeight = h;
+  fitCanvas();
+  requestAnimationFrame(fitCanvas); // settle after layout
 }
 
-function setCanvasSize() {
+function desiredControlHeightPx() {
+  const maxH = parseFloat(getComputedStyle(controlPane).maxHeight); // computed -> px
+  return Math.min(controlPane.scrollHeight, maxH);
+}
+
+function fitCanvas() {
   if (!mediaWidth || !mediaHeight) return;
 
-  // Available space in the viewport for the stage
   const titleH = titlePane.getBoundingClientRect().height;
-  const controlH = controlPane.getBoundingClientRect().height;
+  const controlH = desiredControlHeightPx();
   const availH = Math.max(0, window.innerHeight - titleH - controlH);
-
-  // Available width for the stage
   const availW = canvasStage.clientWidth;
 
-  // Scale to CONTAIN within (availW, availH)
   const scale = Math.min(availW / mediaWidth, availH / mediaHeight);
 
   const cssW = Math.floor(mediaWidth * scale);
@@ -413,11 +388,10 @@ function setCanvasSize() {
 
   canvas.style.width = `${cssW}px`;
   canvas.style.height = `${cssH}px`;
-
-  // Optional: make stage hug the canvas (safe because we don't read stage height)
   canvasStage.style.height = `${cssH}px`;
 }
 
+// Controls
 function setSeedPreference(next) {
   seedPreference = next;
 
@@ -514,20 +488,16 @@ function loadImageAndStart(img) {
   sourceMode = "image";
   activeVideo = null;
   lastVideoSample = 0;
-  mediaWidth = img.naturalWidth;
-  mediaHeight = img.naturalHeight;
-  setCanvasAspectRatio();
-  setCanvasSize();
-  requestAnimationFrame(setCanvasSize);
 
   if (animationFrameId !== null) {
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
   }
 
+  setMediaSize(img.naturalWidth, img.naturalHeight);
   // Show UI (clear inline overrides so CSS governs layout)
-  let drawWidth = img.width;
-  let drawHeight = img.height;
+  let drawWidth = img.naturalWidth;
+  let drawHeight = img.naturalHeight;
 
   // resize large images?
   if (img.width > 960) {
@@ -559,7 +529,6 @@ function handleImageUpload(file) {
 
   img.onload = () => {
     revokeCurrentMediaUrl();
-
     loadImageAndStart(img);
   };
 
@@ -797,12 +766,76 @@ videoEl?.addEventListener("play", syncVideoUI);
 videoEl?.addEventListener("pause", syncVideoUI);
 videoEl?.addEventListener("ended", syncVideoUI);
 
+// The dreaded controlPane (scroll/swipe to open/close)
+function openControls() {
+  if (!app.classList.contains("controls-open")) {
+    app.classList.add("controls-open");
+    fitCanvas();
+    requestAnimationFrame(fitCanvas);
+  }
+}
+
+function closeControls() {
+  if (app.classList.contains("controls-open")) {
+    app.classList.remove("controls-open");
+    fitCanvas();
+    requestAnimationFrame(fitCanvas);
+  }
+}
+
+canvasStage.addEventListener(
+  "wheel",
+  (e) => {
+    if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+    if (e.deltaY > 15) openControls();
+    if (e.deltaY < -15) closeControls();
+  },
+  { passive: true }
+);
+
+let touchStartY = null;
+let touchStartX = null;
+
+canvasStage.addEventListener(
+  "touchstart",
+  (e) => {
+    if (e.touches.length !== 1) return;
+    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
+  },
+  { passive: true }
+);
+
+canvasStage.addEventListener(
+  "touchend",
+  (e) => {
+    if (touchStartY == null || touchStartX == null) return;
+
+    const t = e.changedTouches[0];
+    const dy = t.clientY - touchStartY;
+    const dx = t.clientX - touchStartX;
+
+    if (Math.abs(dy) > Math.abs(dx) * 1.5) {
+      if (dy < -50) openControls();
+      if (dy > 50) closeControls();
+    }
+
+    touchStartY = null;
+    touchStartX = null;
+  },
+  { passive: true }
+);
+
 // Resize the stage
+window.addEventListener("resize", () => {
+  fitCanvas();
+  requestAnimationFrame(fitCanvas);
+});
 new ResizeObserver(() => {
-  setCanvasSize();
-  requestAnimationFrame(setCanvasSize);
+  fitCanvas();
+  requestAnimationFrame(fitCanvas);
 }).observe(controlPane);
 new ResizeObserver(() => {
-  setCanvasSize();
-  requestAnimationFrame(setCanvasSize);
+  fitCanvas();
+  requestAnimationFrame(fitCanvas);
 }).observe(titlePane);

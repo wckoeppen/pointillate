@@ -24,9 +24,8 @@ h2 {
 
 :root {
   --title-height: 3rem;
-  --control-height: 6rem;
-  --control-height-max: 40vh;
-  --canvas-aspect-ratio: 1 / 1;
+  --control-collapsed: 3rem;
+  --control-open-max: 40vh; /* your max open height */
 }
 
 html,
@@ -36,59 +35,67 @@ body {
 
 body {
   margin: 0;
-  height: 100vh;
   overflow: hidden;
 }
 
 #app {
+  position: relative;
   height: 100vh;
   display: grid;
   grid-template-rows: var(--title-height) auto auto;
+  align-content: start;
 }
 
 #titlePane {
+  height: var(--title-height);
   display: grid;
   place-items: center;
 }
 
+#titlePane h1 {
+  margin: 0;
+}
+
 #canvasStage {
-  min-width: 0;
-  min-height: 0;
   display: grid;
-  border: 1px solid red;
   justify-items: center;
   align-items: start;
-  overflow: visible;
+  overflow: hidden;
+  touch-action: pan-y;
 }
 
 #canvas {
   display: block;
-  max-width: 100%;
-  max-height: 100%;
   width: auto;
   height: auto;
-  aspect-ratio: var(--canvas-aspect-ratio);
-  border: 1px solid blue;
 }
 
 #controlPane {
-  max-height: var(--control-height);
+  max-height: var(--control-collapsed);
   overflow: hidden;
   padding: 0 1rem;
   border-top: 1px solid rgba(0, 0, 0, 0.15);
   transition: max-height 200ms ease, padding 200ms ease;
-  border: 2px dotted red;
+  border: 1px solid darkgray;
 }
 
 #app.controls-open #controlPane {
-  max-height: var(--control-height-max);
-  overflow: auto; /* scroll if contents exceed max-height */
+  max-height: var(--control-open-max);
+  overflow: auto;
+  padding: 0.75rem 1rem;
+}
+
+#controlPane p {
+  margin: 0;
 }
 
 #loader {
   position: absolute;
-  inset: 0;
-  margin: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: none;
 }
 
 .loader {
@@ -100,9 +107,20 @@ body {
   animation: rotation 0.9s linear infinite;
 }
 
-#optionsDrawer {
+#app.loading #loader {
+  display: block;
 }
 
+#app.ready #loader {
+  display: none;
+}
+
+#app.loading #canvasStage,
+#app.loading #controlPane {
+  display: none;
+}
+
+/* 
 wa-drawer {
   --size: 400px;
 }
@@ -122,26 +140,9 @@ wa-drawer .options {
 wa-drawer .options > * {
   margin-bottom: 10px;
 }
+  */
 
-#app.loading #canvasStage {
-  display: none;
-}
-
-#app.loading #optionsDrawer {
-  display: none;
-}
-
-#app.ready #loader {
-  display: none;
-}
-
-#app.ready #canvasStage {
-  display: grid;
-}
-
-#app.ready #optionsDrawer {
-  display: flex;
-}
+/*
 
 #optionsDrawer > * {
   max-width: 100%;
@@ -192,8 +193,8 @@ wa-details::part(base) {
 
 wa-details::part(header) {
   padding: 7px 12px;
-}
-
+} */
+/* 
 #runControls {
   display: flex;
   align-items: center;
@@ -274,7 +275,7 @@ input[type="file"]::file-selector-button:hover {
 
 input[type="file"]::file-selector-button:active {
   background-color: #e5e7eb;
-}
+} */
 
 @keyframes rotation {
   0% {

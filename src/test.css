@@ -1,0 +1,78 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --title-height: 3rem;
+  --control-collapsed: 3rem;
+  --control-open-max: 40vh; /* your max open height */
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+#app {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: var(--title-height) auto auto;
+  align-content: start; /* key: prevents “auto” rows stretching */
+  border: 1px solid darkgray;
+}
+
+#titlePane {
+  height: var(--title-height);
+  display: grid;
+  place-items: center;
+  border: 1px solid darkgray;
+}
+
+#titlePane h1 {
+  margin: 0;
+}
+
+#canvasStage {
+  display: grid;
+  justify-items: center; /* horizontally centered */
+  align-items: start; /* top-aligned */
+  overflow: hidden; /* safety */
+  border: 1px solid darkgray;
+}
+
+#canvas {
+  display: block;
+  width: auto; /* JS sets px sizes */
+  height: auto;
+  border: 1px dotted darkgray;
+}
+
+#controlPane {
+  max-height: var(--control-collapsed);
+  overflow: hidden;
+  padding: 0 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  transition: max-height 200ms ease, padding 200ms ease;
+  border: 1px solid darkgray;
+}
+
+#app.controls-open #controlPane {
+  max-height: var(--control-open-max);
+  overflow: auto;
+  padding: 0.75rem 1rem;
+}
+
+#controlPane p {
+  margin: 0;
+}
+
+wa-button:not(:defined),
+wa-drawer:not(:defined) {
+  visibility: hidden;
+}
