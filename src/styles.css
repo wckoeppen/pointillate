@@ -72,8 +72,6 @@ body {
   border: 1px dotted red;
 }
 
-
-
 #loader {
   position: absolute;
   inset: 0;
@@ -114,16 +112,11 @@ wa-drawer .options > * {
   display: grid;
 }
 
-
-#displayPane #canvas {
-  max-height: calc(100vh - var(--title-height));
-}
-
-#app.loading #displayPane {
+#app.loading #canvasStage {
   display: none;
 }
 
-#app.loading #optionPane {
+#app.loading #controlPane {
   display: none;
 }
 
@@ -131,15 +124,13 @@ wa-drawer .options > * {
   display: none;
 }
 
-#app.ready #displayPane {
+#app.ready #canvasStage {
   display: grid;
 }
 
 #app.ready #optionPane {
   display: flex;
 }
-
-/* 
 
 #optionPane > * {
   max-width: 100%;
@@ -274,7 +265,6 @@ input[type="file"]::file-selector-button:active {
   background-color: #e5e7eb;
 }
 
- */
 
 @keyframes rotation {
   0% {

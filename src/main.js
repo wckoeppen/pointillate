@@ -63,8 +63,8 @@ const relaxBtn = document.getElementById("relaxBtn");
 
 await customElements.whenDefined("wa-drawer");
 const optionsDrawer = document.getElementById("optionsDrawer");
-const openButton = document.getElementById("menuBtn");
-openButton.addEventListener("click", () => (optionsDrawer.open = true));
+const openDrawer = document.getElementById("menuBtn");
+openDrawer.addEventListener("click", () => (optionsDrawer.open = true));
 
 // State
 let currentPoints = [];

@@ -10,6 +10,7 @@
   </head>
   <body>
     <div id="app">
+      <span id="loader" class="loader"></span>
 
       <div id="titlePane">
         <h1>Stippling Sandbox</h1>
@@ -32,8 +33,111 @@
       </div>
     </div>
 
-    <div class="hiddenfornow">
+    <wa-drawer id="optionsDrawer" placement="end" style="display:none;">
+      <div class="options">
+        <input type="file" id="mediaUpload"
+          accept="image/*,video/*,.mp4,.mov,.webm" />
 
+        <div class="spacer"></div>
+
+        <div class="checks">
+          <wa-switch checked id="circToggle">Points</wa-switch>
+          <wa-switch id="polyToggle">Cells</wa-switch>
+          <wa-switch id="colorToggle">Colors</wa-switch>
+        </div>
+        <div class="spacer"></div>
+
+        <div class="sliders">
+          <wa-slider with-tooltip
+            id="numPointsSlider"
+            label="Number of Points"
+            min="1000"
+            max="10000"
+            value="2000"
+            step="1000">
+          </wa-slider>
+
+          <wa-slider range with-tooltip
+            id="radiusRange"
+            label="Point Radius"
+            min="0"
+            max="20"
+            value="1.5"
+            min-value="1"
+            max-value="4"
+            step="0.1"></wa-slider>
+
+          <wa-slider with-tooltip
+            id="radiusSlider"
+            label="Point Radius"
+            min="0"
+            max="20"
+            value="2"
+            step="0.1"
+            style="display:none;">
+          </wa-slider>
+
+        </div>
+
+        <div class="spacer"></div>
+
+        <wa-select id="seedSelect" size="medium">
+          <wa-option value="seedDark" icon-placement="start"
+            label="Seed in Dark Areas" selected>Seed in Dark
+            Areas</wa-option>
+          <wa-option value="seedLight" icon-placement="start"
+            label="Seed in Light Areas">Seed in Light Areas</wa-option>
+          <wa-option value="seedRandom" icon-placement="start"
+            label="Seed Randomly">Seed Randomly</wa-option>
+        </wa-select>
+
+        <wa-select id="sizeSelect" size="medium">
+          <wa-option value="sizeDark" label="Size by Darkness"
+            selected>Size by Darkness</wa-option>
+          <wa-option value="sizeLight" label="Size by Lightness">Size by
+            Lightness</wa-option>
+          <wa-option value="sizeNone" label="One Size Fits All">One Size
+            Fits
+            All</wa-option>
+        </wa-select>
+
+        <wa-select id="relaxSelect" size="medium">
+          <wa-option value="relaxDark" label="Relax to Dark Areas"
+            selected>Relax to Dark Areas</wa-option>
+          <wa-option value="relaxLight" label="Relax to Light Areas">Relax
+            to
+            Light Areas</wa-option>
+        </wa-select>
+
+        <wa-details summary="Base Colors">
+          <div class="colorPickers">
+            <wa-color-picker id="backgroundColorBtn" label="Canvas"
+              value="#FFFFFF" size="medium"
+              swatches="#000; #fff"></wa-color-picker>
+            <wa-color-picker id="pointColorBtn" label="Points"
+              value="#000000" size="medium"
+              swatches="#000; #fff"></wa-color-picker>
+            <wa-color-picker id="lineColorBtn" label="Lines"
+              value="#000000" size="medium"
+              swatches="#000; #fff"></wa-color-picker>
+          </div>
+        </wa-details>
+
+        <wa-slider with-tooltip
+          id="speedSlider"
+          label="Relaxation Speed"
+          min="0"
+          max="1"
+          value="0.3"
+          step="0.01"></wa-slider>
+
+        <wa-button appearance="filled" id="btn-save-json"
+          type="button">Save</wa-button>
+
+      </div>
+    </wa-drawer>
+
+    <div class="hiddenfornow">
       <div id="videoControls" class="videoControls" style="display: none">
         <wa-button-group>
           <wa-button id="btn-video-play" size="small">
@@ -47,7 +151,7 @@
       </div>
     </div>
 
-    <wa-drawer id="optionsDrawer" placement="end" style="display:none;">
+    <wa-drawer id="optionsDrawer" placement="end">
       <div class="options">
         <input type="file" id="mediaUpload"
           accept="image/*,video/*,.mp4,.mov,.webm" />
