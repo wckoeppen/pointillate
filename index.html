@@ -20,13 +20,35 @@
       </div>
 
       <div id="controlPane">
-        <wa-button id="openOptions" aria-label="Open options" size="small"
-          appearance="filled">☰</wa-button>
+        <input
+          type="file"
+          id="mediaUpload"
+          accept="image/*,video/*,.mp4,.mov,.webm"
+          hidden />
 
-        <p>There will be some options here</p>
-        <ul><li>option 1</li><li>option 2</li></ul>
+        <div class="controlDock">
+          <wa-button id="uploadButton" size="small" appearance="filled"
+            aria-label="Choose file">
+            <wa-icon name="plus"></wa-icon>
+          </wa-button>
 
+          <wa-button id="editButton" size="small" appearance="filled"
+            aria-label="Edit options">
+            <wa-icon name="bars"></wa-icon>
+          </wa-button>
+
+          <wa-button id="relaxButton" size="small" appearance="filled"
+            aria-label="Play/Pause">
+            <wa-icon name="play"></wa-icon>
+          </wa-button>
+        </div>
+
+        <div id="controlExpanded">
+          <p>There will be some options here</p>
+          <ul><li>option 1</li><li>option 2</li><li>option 3</li><li>option
+              4</li></ul> </div>
       </div>
+
     </div>
 
     <div id="relaxation controls">
@@ -39,8 +61,6 @@
     <div class="hiddenfornow">
       <wa-drawer id="optionsDrawer" placement="bottom" style="display:none;">
         <div class="options">
-          <input type="file" id="mediaUpload"
-            accept="image/*,video/*,.mp4,.mov,.webm" />
 
           <div class="spacer"></div>
 

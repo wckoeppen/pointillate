@@ -1,3 +1,10 @@
+:root {
+  --title-height: 3rem;
+  --dock-height: 5rem;
+  --dock-open-max: 40vh; /* your max open height */
+  --dock-max-width: 240px;
+}
+
 *,
 *::before,
 *::after {
@@ -20,12 +27,6 @@ h2 {
   color: #606060;
   margin: 0;
   text-align: left;
-}
-
-:root {
-  --title-height: 3rem;
-  --control-collapsed: 3rem;
-  --control-open-max: 40vh; /* your max open height */
 }
 
 html,
@@ -71,22 +72,46 @@ body {
 }
 
 #controlPane {
-  max-height: var(--control-collapsed);
-  overflow: hidden;
-  padding: 0 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
-  transition: max-height 200ms ease, padding 200ms ease;
-  border: 1px solid darkgray;
+  max-height: var(--dock-height);
+  padding: 0.75rem 1rem;
+  overflow-y: hidden;
+  overflow-x: auto;
+  transition: max-height 0.5s ease;
+  -webkit-overflow-scrolling: touch;
 }
 
 #app.controls-open #controlPane {
-  max-height: var(--control-open-max);
-  overflow: auto;
-  padding: 0.75rem 1rem;
+  max-height: var(--dock-open-max);
+  overflow-y: hidden;
+  overflow-x: auto;
 }
 
 #controlPane p {
   margin: 0;
+}
+
+.controlDock {
+  position: sticky;
+  top: 0;
+  background: inherit;
+  max-width: var(--dock-max-width);
+  margin: 0 auto;
+  height: calc(var(--dock-height));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#controlExpanded {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
+#mediaUpload {
+  display: none !important;
 }
 
 #loader {

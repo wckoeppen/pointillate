@@ -32,7 +32,7 @@ const radiusSlider = document.getElementById("radiusSlider");
 const numPointsSlider = document.getElementById("numPointsSlider");
 const speedSlider = document.getElementById("speedSlider");
 
-const mediaUploadBtn = document.getElementById("mediaUpload");
+const mediaUpload = document.getElementById("mediaUpload");
 
 const videoEl = document.getElementById("video");
 const videoControls = document.getElementById("videoControls");
@@ -44,14 +44,10 @@ const backgroundColorBtn = document.getElementById("backgroundColorBtn");
 const pointColorBtn = document.getElementById("pointColorBtn");
 const lineColorBtn = document.getElementById("lineColorBtn");
 
-const relaxBtn = document.getElementById("relaxBtn");
+const relaxButton = document.getElementById("relaxButton");
 
 await customElements.whenDefined("wa-drawer");
 const openOptions = document.getElementById("openOptions");
-
-openOptions.addEventListener("click", () => {
-  app.classList.toggle("controls-open");
-});
 
 // State
 let currentPoints = [];
@@ -639,7 +635,7 @@ loadInitial();
 
 //  Listeners
 
-relaxBtn?.addEventListener("click", () => {
+relaxButton?.addEventListener("click", () => {
   relaxEnabled = !relaxEnabled;
   startLoop();
 });
@@ -649,7 +645,7 @@ canvas?.addEventListener("click", () => {
   startLoop();
 });
 
-mediaUploadBtn?.addEventListener("change", (e) => {
+mediaUpload?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];
   if (!file) return;
 
@@ -782,6 +778,22 @@ function closeControls() {
     requestAnimationFrame(fitCanvas);
   }
 }
+
+controlPane.addEventListener("transitionend", (e) => {
+  if (e.propertyName === "max-height") {
+    fitCanvas();
+    requestAnimationFrame(fitCanvas);
+  }
+});
+
+// Dock buttons
+document.getElementById("mediaUpload").addEventListener("click", () => {
+  mediaUpload.click();
+});
+
+editButton.addEventListener("click", () => {
+  app.classList.toggle("controls-open");
+});
 
 canvasStage.addEventListener(
   "wheel",
