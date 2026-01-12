@@ -1,7 +1,7 @@
 :root {
   --title-height: 3rem;
   --dock-height: 5rem;
-  --dock-open-max: 40vh; /* your max open height */
+  --dock-open-max: 40vh;
   --dock-max-width: 240px;
 }
 
@@ -63,31 +63,46 @@ body {
   align-items: start;
   overflow: hidden;
   touch-action: pan-y;
+  border: 1px solid blue;
+}
+
+#canvasVisual {
+  transition: height 280ms ease;
 }
 
 #canvas {
-  display: block;
-  width: auto;
-  height: auto;
+  transition: width 280ms ease, height 280ms ease;
+
 }
 
 #controlPane {
-  max-height: var(--dock-height);
-  padding: 0.75rem 1rem;
+  position: relative;
+  height: var(--dock-height);
   overflow-y: hidden;
   overflow-x: auto;
-  transition: max-height 0.5s ease;
+  transition: height 0.5s ease;
   -webkit-overflow-scrolling: touch;
+  border: 1px solid red;
 }
 
 #app.controls-open #controlPane {
-  max-height: var(--dock-open-max);
-  overflow-y: hidden;
-  overflow-x: auto;
+  height: var(--dock-open-height, var(--dock-open-max));
+  border: 1px solid red;
 }
 
-#controlPane p {
-  margin: 0;
+#controlPaneInner {
+  height: 100%;
+  transform: translateY(calc(100% - var(--dock-height)));
+  transition: transform 450ms ease;
+  will-change: transform;
+}
+
+#app.controls-open #controlPaneInner {
+  transform: translateY(0);
+}
+
+#app.controls-open #canvasVisual {
+  transform: scale(var(--canvas-scale, 1));
 }
 
 .controlDock {

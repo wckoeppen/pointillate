@@ -17,7 +17,13 @@ const app = document.getElementById("app");
 const titlePane = document.getElementById("titlePane");
 const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
+const canvasVisual = document.getElementById("canvasVisual");
+const controlExpanded = document.getElementById("controlExpanded");
 const canvas = document.getElementById("canvas");
+
+const mediaUploadDialog = document.getElementById("mediaUpload");
+const uploadButton = document.getElementById("uploadButton");
+const editButton = document.getElementById("editButton");
 
 const seedSelect = document.getElementById("seedSelect");
 const sizeSelect = document.getElementById("sizeSelect");
@@ -32,8 +38,6 @@ const radiusSlider = document.getElementById("radiusSlider");
 const numPointsSlider = document.getElementById("numPointsSlider");
 const speedSlider = document.getElementById("speedSlider");
 
-const mediaUpload = document.getElementById("mediaUpload");
-
 const videoEl = document.getElementById("video");
 const videoControls = document.getElementById("videoControls");
 const playBtn = document.getElementById("btn-video-play");
@@ -47,7 +51,6 @@ const lineColorBtn = document.getElementById("lineColorBtn");
 const relaxButton = document.getElementById("relaxButton");
 
 await customElements.whenDefined("wa-drawer");
-const openOptions = document.getElementById("openOptions");
 
 // State
 let currentPoints = [];
@@ -86,6 +89,10 @@ let lastVideoSample = 0;
 const VIDEO_SAMPLE_HZ = 15;
 const VIDEO_SAMPLE_INTERVAL = 1000 / VIDEO_SAMPLE_HZ;
 
+function px(n) {
+  return `${Math.max(0, Math.floor(n))}px`;
+}
+
 function revokeCurrentMediaUrl() {
   if (currentMediaUrl) {
     URL.revokeObjectURL(currentMediaUrl);
@@ -111,6 +118,16 @@ function computeWorkingSize(mediaW, mediaH, maxW = 960) {
   if (mediaW <= maxW) return { w: mediaW, h: mediaH };
   const scale = maxW / mediaW;
   return { w: Math.round(mediaW * scale), h: Math.round(mediaH * scale) };
+}
+
+function computeOpenHeights() {
+  const dockClosedH = parseFloat(getComputedStyle(document.documentElement)
+    .getPropertyValue("--dock-height")) * 16;
+  const maxOpenPx = window.innerHeight * 0.40;
+  const desiredOpen = dockClosedH + controlExpanded.scrollHeight;
+  const openH = Math.min(desiredOpen, maxOpenPx);
+
+  controlPane.style.setProperty("--dock-open-height", `${openH}px`);
 }
 
 function refreshSourcePixels(now, force = false) {
@@ -373,7 +390,7 @@ function fitCanvas() {
   if (!mediaWidth || !mediaHeight) return;
 
   const titleH = titlePane.getBoundingClientRect().height;
-  const controlH = desiredControlHeightPx();
+  const controlH = controlPane.getBoundingClientRect().height;
   const availH = Math.max(0, window.innerHeight - titleH - controlH);
   const availW = canvasStage.clientWidth;
 
@@ -645,7 +662,7 @@ canvas?.addEventListener("click", () => {
   startLoop();
 });
 
-mediaUpload?.addEventListener("change", (e) => {
+mediaUploadDialog?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];
   if (!file) return;
 
@@ -764,35 +781,24 @@ videoEl?.addEventListener("ended", syncVideoUI);
 
 // The dreaded controlPane (scroll/swipe to open/close)
 function openControls() {
-  if (!app.classList.contains("controls-open")) {
-    app.classList.add("controls-open");
-    fitCanvas();
-    requestAnimationFrame(fitCanvas);
-  }
+  computeOpenHeights();
+  app.classList.add("controls-open");
+  requestAnimationFrame(fitCanvas);
 }
 
 function closeControls() {
-  if (app.classList.contains("controls-open")) {
-    app.classList.remove("controls-open");
-    fitCanvas();
-    requestAnimationFrame(fitCanvas);
-  }
+  app.classList.remove("controls-open");
+  requestAnimationFrame(fitCanvas);
 }
 
-controlPane.addEventListener("transitionend", (e) => {
-  if (e.propertyName === "max-height") {
-    fitCanvas();
-    requestAnimationFrame(fitCanvas);
-  }
-});
-
 // Dock buttons
-document.getElementById("mediaUpload").addEventListener("click", () => {
-  mediaUpload.click();
+uploadButton.addEventListener("click", () => {
+  mediaUploadDialog.click();
 });
 
 editButton.addEventListener("click", () => {
-  app.classList.toggle("controls-open");
+  if (app.classList.contains("controls-open")) closeControls();
+  else openControls();
 });
 
 canvasStage.addEventListener(
@@ -840,8 +846,7 @@ canvasStage.addEventListener(
 
 // Resize the stage
 window.addEventListener("resize", () => {
-  fitCanvas();
-  requestAnimationFrame(fitCanvas);
+  if (app.classList.contains("controls-open")) computeOpenHeights();
 });
 new ResizeObserver(() => {
   fitCanvas();

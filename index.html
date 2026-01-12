@@ -16,16 +16,12 @@
       <div id="loader" class="loader"></div>
 
       <div id="canvasStage">
-        <canvas id="canvas"></canvas>
+        <div id="canvasVisual">
+          <canvas id="canvas"></canvas>
+        </div>
       </div>
 
       <div id="controlPane">
-        <input
-          type="file"
-          id="mediaUpload"
-          accept="image/*,video/*,.mp4,.mov,.webm"
-          hidden />
-
         <div class="controlDock">
           <wa-button id="uploadButton" size="small" appearance="filled"
             aria-label="Choose file">
@@ -43,15 +39,19 @@
           </wa-button>
         </div>
 
-        <div id="controlExpanded">
-          <p>There will be some options here</p>
-          <ul><li>option 1</li><li>option 2</li><li>option 3</li><li>option
-              4</li></ul> </div>
+        <div id="controlExpandedWrap">
+          <div id="controlExpanded">
+            <p>There will be some options here</p>
+            <ul>
+              <li>option 1</li><li>option 2</li><li>option 3</li><li>option
+                4</li>
+            </ul>
+          </div>
+        </div>
       </div>
-
     </div>
 
-    <div id="relaxation controls">
+    <div id="relaxationControls">
 
       <wa-button appearance="filled" id="relaxBtn" size="small">
         <wa-icon name="play"></wa-icon>
