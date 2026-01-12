@@ -21,7 +21,7 @@ const canvasVisual = document.getElementById("canvasVisual");
 const controlExpanded = document.getElementById("controlExpanded");
 const canvas = document.getElementById("canvas");
 
-const mediaUploadDialog = document.getElementById("mediaUpload");
+const mediaUploadDialog = document.getElementById("mediaUploadDialog");
 const uploadButton = document.getElementById("uploadButton");
 const editButton = document.getElementById("editButton");
 
@@ -121,11 +121,11 @@ function computeWorkingSize(mediaW, mediaH, maxW = 960) {
 }
 
 function computeOpenHeights() {
-  const dockClosedH = parseFloat(getComputedStyle(document.documentElement)
-    .getPropertyValue("--dock-height")) * 16;
-  const maxOpenPx = window.innerHeight * 0.40;
-  const desiredOpen = dockClosedH + controlExpanded.scrollHeight;
-  const openH = Math.min(desiredOpen, maxOpenPx);
+  const dockClosedH = document.getElementById("controlDock")
+    .getBoundingClientRect().height;
+
+  const expandedH = controlExpanded.scrollHeight;
+  const openH = dockClosedH + expandedH;
 
   controlPane.style.setProperty("--dock-open-height", `${openH}px`);
 }

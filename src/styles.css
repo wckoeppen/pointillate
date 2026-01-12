@@ -1,14 +1,21 @@
 :root {
   --title-height: 3rem;
-  --dock-height: 5rem;
-  --dock-open-max: 40vh;
-  --dock-max-width: 240px;
-}
+  --dock-height: 3.5rem;
+  --dock-open-height: 240px;}
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* wireframes */
+#app,
+#titlePane,
+#canvasStage,
+#controlPane,
+#controlDock {
+  border: 1px dashed pink;
 }
 
 h1 {
@@ -18,15 +25,6 @@ h1 {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #606060;
-}
-
-h2 {
-  font-family: "Helvetica", sans-serif;
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: #606060;
-  margin: 0;
-  text-align: left;
 }
 
 html,
@@ -53,68 +51,53 @@ body {
   place-items: center;
 }
 
-#titlePane h1 {
-  margin: 0;
-}
-
 #canvasStage {
   display: grid;
   justify-items: center;
   align-items: start;
   overflow: hidden;
   touch-action: pan-y;
-  border: 1px solid blue;
-}
-
-#canvasVisual {
-  transition: height 280ms ease;
-}
-
-#canvas {
-  transition: width 280ms ease, height 280ms ease;
-
 }
 
 #controlPane {
   position: relative;
   height: var(--dock-height);
-  overflow-y: hidden;
-  overflow-x: auto;
-  transition: height 0.5s ease;
-  -webkit-overflow-scrolling: touch;
-  border: 1px solid red;
+  overflow: hidden;
+  transition: height 0.2s ease;
 }
 
 #app.controls-open #controlPane {
-  height: var(--dock-open-height, var(--dock-open-max));
-  border: 1px solid red;
+  height: var(--dock-open-height);
 }
 
-#controlPaneInner {
-  height: 100%;
-  transform: translateY(calc(100% - var(--dock-height)));
-  transition: transform 450ms ease;
-  will-change: transform;
-}
-
-#app.controls-open #controlPaneInner {
-  transform: translateY(0);
-}
-
-#app.controls-open #canvasVisual {
-  transform: scale(var(--canvas-scale, 1));
-}
-
-.controlDock {
-  position: sticky;
-  top: 0;
-  background: inherit;
-  max-width: var(--dock-max-width);
-  margin: 0 auto;
-  height: calc(var(--dock-height));
+#controlDock {
+  height: var(--dock-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  max-width: 240px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  background: inherit;
+}
+
+#controlExpandedWrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--dock-height);
+  bottom: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  transform: translateY(100%);
+  transition: transform 0.2s ease;
+  will-change: transform;
+  overflow-y: hidden;
+}
+
+#app.controls-open #controlExpandedWrap {
+  transform: translateY(0);
 }
 
 #controlExpanded {
@@ -190,11 +173,6 @@ wa-drawer .options > * {
 
 .spacer {
   height: 5px;
-}
-
-wa-button:not(:defined),
-wa-drawer:not(:defined) {
-  visibility: hidden;
 }
 
 wa-slider {

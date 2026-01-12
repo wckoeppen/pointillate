@@ -22,7 +22,7 @@
       </div>
 
       <div id="controlPane">
-        <div class="controlDock">
+        <div id="controlDock">
           <wa-button id="uploadButton" size="small" appearance="filled"
             aria-label="Choose file">
             <wa-icon name="plus"></wa-icon>
@@ -174,7 +174,15 @@
       </div>
     </div>
 
-    <video id="video" playsinline muted
-      style="display: none"></video>
+    <div class="behindTheVeil">
+      <video id="video" playsinline muted
+        style="display: none"></video>
+      <input
+        type="file"
+        id="mediaUploadDialog"
+        accept="image/*,video/*,.mp4,.mov,.webm"
+        hidden />
+    </div>
+    
   </body>
 </html>
