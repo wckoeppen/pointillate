@@ -119,10 +119,6 @@ body {
   background: #f0f0f0;
 }
 
-.controlCard:last-child {
-  margin-right: 0;
-}
-
 #mediaUpload {
   display: none !important;
 }
@@ -170,12 +166,12 @@ wa-slider::part(indicator) {
   background-color: #7ea3e5;
 }
 wa-slider::part(track) {
-  margin-top: 10px;
   margin-inline: 6px;
 }
 wa-slider::part(label) {
   display: block;
   text-align: center;
+  margin-bottom: 16px;
 }
 wa-slider::part(thumb) {
   background-color: #7ea3e5;
