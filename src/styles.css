@@ -14,7 +14,7 @@
 #titlePane,
 #canvasStage,
 #controlPane,
-#controlDock {
+#controlDock, .controlCard {
   border: 1px dashed pink;
 }
 
@@ -82,30 +82,19 @@ body {
   background: inherit;
 }
 
-#controlExpandedWrap {
+#controlCarousel {
   position: absolute;
   left: 0;
   right: 0;
   top: var(--dock-height);
-  bottom: 0;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  transform: translateY(100%);
-  transition: transform 0.2s ease;
-  will-change: transform;
   overflow-y: hidden;
 }
 
-#app.controls-open #controlExpandedWrap {
-  transform: translateY(0);
-}
-
-#controlExpanded {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  white-space: nowrap;
-  flex-wrap: nowrap;
+.controlCard {
+  max-width: 200px;
+  float:left;
 }
 
 #mediaUpload {
@@ -143,6 +132,21 @@ body {
   display: none;
 }
 
+wa-button[appearance="accent"]::part(base) {
+  background-color: #999;
+}
+
+wa-slider {
+  padding-bottom: 20px;
+}
+wa-slider::part(indicator) {
+  background-color: #7ea3e5;
+}
+wa-slider::part(thumb) {
+  background-color: #7ea3e5;
+  border: 1.5px solid #fff;
+}
+
 /* 
 wa-drawer {
   --size: 400px;
@@ -175,16 +179,7 @@ wa-drawer .options > * {
   height: 5px;
 }
 
-wa-slider {
-  padding-bottom: 20px;
-}
-wa-slider::part(indicator) {
-  background-color: #7ea3e5;
-}
-wa-slider::part(thumb) {
-  background-color: #7ea3e5;
-  border: 1.5px solid #fff;
-}
+
 
 wa-switch::part(control) {
   background-color: #fff;
@@ -275,25 +270,6 @@ wa-details::part(header) {
   margin-inline: auto;
 }
 
-input[type="file"]::file-selector-button {
-  border-radius: 4px;
-  padding: 0 16px;
-  height: 40px;
-  cursor: pointer;
-  background-color: white;
-  border: 1px solid rgba(0, 0, 0, 0.16);
-  box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
-  margin-right: 16px;
-  transition: background-color 200ms;
-}
-
-input[type="file"]::file-selector-button:hover {
-  background-color: #f3f4f6;
-}
-
-input[type="file"]::file-selector-button:active {
-  background-color: #e5e7eb;
-} */
 
 @keyframes rotation {
   0% {

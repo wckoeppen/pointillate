@@ -9,7 +9,7 @@
     <title>Voronoi Stippling Sandbox</title>
   </head>
   <body>
-    <div id="app" class="loading">
+    <div id="app" class="loading controls-open">
       <div id="titlePane">
         <h1>Stippling Sandbox</h1>
       </div>
@@ -23,29 +23,49 @@
 
       <div id="controlPane">
         <div id="controlDock">
+
+          <wa-button id="editButton" size="small" appearance="filled"
+            aria-label="Edit options">
+            <wa-icon id="editIcon" name="sliders"></wa-icon>
+          </wa-button>
+
+          <wa-tooltip for="uploadButton">Upload Your Own</wa-tooltip>
           <wa-button id="uploadButton" size="small" appearance="filled"
             aria-label="Choose file">
             <wa-icon name="plus"></wa-icon>
           </wa-button>
 
-          <wa-button id="editButton" size="small" appearance="filled"
-            aria-label="Edit options">
-            <wa-icon name="bars"></wa-icon>
-          </wa-button>
-
           <wa-button id="relaxButton" size="small" appearance="filled"
             aria-label="Play/Pause">
-            <wa-icon name="play"></wa-icon>
+            <wa-icon id="relaxIcon" name="play"></wa-icon>
           </wa-button>
         </div>
 
-        <div id="controlExpandedWrap">
-          <div id="controlExpanded">
-            <p>There will be some options here</p>
-            <ul>
-              <li>option 1</li><li>option 2</li><li>option 3</li><li>option
-                4</li>
-            </ul>
+        <div id="controlCarousel">
+          <div class="controlTrack">
+
+            <div class="controlCard">
+              <wa-slider with-tooltip
+                id="numPointsSlider"
+                label="Number of Points"
+                min="1000"
+                max="10000"
+                value="2000"
+                step="1000">
+              </wa-slider>
+            </div>
+
+            <div class="controlCard">
+              <wa-slider range with-tooltip
+                id="radiusRange"
+                label="Point Radius"
+                min="0"
+                max="20"
+                value="1.5"
+                min-value="1"
+                max-value="4"
+                step="0.1"></wa-slider>
+            </div>
           </div>
         </div>
       </div>
@@ -59,6 +79,19 @@
     </div>
 
     <div class="hiddenfornow">
+
+      <div class="controlCard">
+        <wa-slider with-tooltip
+          id="radiusSlider"
+          label="Point Radius"
+          min="0"
+          max="20"
+          value="2"
+          step="0.1"
+          style="display:none;">
+        </wa-slider>
+      </div>
+
       <wa-drawer id="optionsDrawer" placement="bottom" style="display:none;">
         <div class="options">
 
@@ -69,41 +102,6 @@
             <wa-switch id="polyToggle">Cells</wa-switch>
             <wa-switch id="colorToggle">Colors</wa-switch>
           </div>
-          <div class="spacer"></div>
-
-          <div class="sliders">
-            <wa-slider with-tooltip
-              id="numPointsSlider"
-              label="Number of Points"
-              min="1000"
-              max="10000"
-              value="2000"
-              step="1000">
-            </wa-slider>
-
-            <wa-slider range with-tooltip
-              id="radiusRange"
-              label="Point Radius"
-              min="0"
-              max="20"
-              value="1.5"
-              min-value="1"
-              max-value="4"
-              step="0.1"></wa-slider>
-
-            <wa-slider with-tooltip
-              id="radiusSlider"
-              label="Point Radius"
-              min="0"
-              max="20"
-              value="2"
-              step="0.1"
-              style="display:none;">
-            </wa-slider>
-
-          </div>
-
-          <div class="spacer"></div>
 
           <wa-select id="seedSelect" size="medium">
             <wa-option value="seedDark" icon-placement="start"
@@ -179,10 +177,11 @@
         style="display: none"></video>
       <input
         type="file"
+        aria-label="Upload image or video"
         id="mediaUploadDialog"
         accept="image/*,video/*,.mp4,.mov,.webm"
         hidden />
     </div>
-    
+
   </body>
 </html>

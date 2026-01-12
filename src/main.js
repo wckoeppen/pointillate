@@ -8,6 +8,7 @@ import "@awesome.me/webawesome/dist/components/option/option.js";
 import "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 import "@awesome.me/webawesome/dist/components/slider/slider.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
 import "@awesome.me/webawesome/dist/components/switch/switch.js";
 import "@awesome.me/webawesome/dist/components/drawer/drawer.js";
 
@@ -17,12 +18,12 @@ const app = document.getElementById("app");
 const titlePane = document.getElementById("titlePane");
 const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
-const controlExpanded = document.getElementById("controlExpanded");
 const canvas = document.getElementById("canvas");
 
 const mediaUploadDialog = document.getElementById("mediaUploadDialog");
 const uploadButton = document.getElementById("uploadButton");
 const editButton = document.getElementById("editButton");
+const editIcon = document.getElementById("editIcon");
 
 const seedSelect = document.getElementById("seedSelect");
 const sizeSelect = document.getElementById("sizeSelect");
@@ -117,17 +118,6 @@ function computeWorkingSize(mediaW, mediaH, maxW = 960) {
   if (mediaW <= maxW) return { w: mediaW, h: mediaH };
   const scale = maxW / mediaW;
   return { w: Math.round(mediaW * scale), h: Math.round(mediaH * scale) };
-}
-
-function computeOpenHeights() {
-  const dockClosedH = document.getElementById("controlDock")
-    .getBoundingClientRect().height;
-
-  const expandedH = controlExpanded.scrollHeight;
-  const openH = dockClosedH + expandedH;
-
-  controlPane.style.setProperty("--dock-open-height", `${openH}px`);
-  console.log(openH);
 }
 
 function refreshSourcePixels(now, force = false) {
@@ -378,12 +368,6 @@ function setMediaSize(w, h) {
   mediaWidth = w;
   mediaHeight = h;
   fitCanvas();
-  requestAnimationFrame(fitCanvas); // settle after layout
-}
-
-function desiredControlHeightPx() {
-  const maxH = parseFloat(getComputedStyle(controlPane).maxHeight); // computed -> px
-  return Math.min(controlPane.scrollHeight, maxH);
 }
 
 function fitCanvas() {
@@ -650,16 +634,33 @@ function loadInitial() {
 
 loadInitial();
 
-//  Listeners
+function syncRelaxButton(next) {
+  relaxEnabled = !!next;
+  if (relaxEnabled) startLoop();
+  else stopLoop(); // if you have it; otherwise implement it
+  relaxButton.appearance = relaxEnabled ? "accent" : "filled";
+  relaxButton.setAttribute("aria-pressed", String(relaxEnabled));
+}
 
+function syncControlsButton() {
+  const open = app.classList.contains("controls-open");
+
+  editButton.appearance = open ? "accent" : "filled";
+  // editIcon.setAttribute("name", open ? "angle-up" : "angle-down");
+  editButton.setAttribute(
+    "aria-label",
+    open ? "Collapse options" : "Open options"
+  );
+}
+
+
+//  Listeners
 relaxButton?.addEventListener("click", () => {
-  relaxEnabled = !relaxEnabled;
-  startLoop();
+  syncRelaxButton(!relaxEnabled);
 });
 
-canvas?.addEventListener("click", () => {
-  relaxEnabled = !relaxEnabled;
-  startLoop();
+canvasStage?.addEventListener("click", () => {
+  syncRelaxButton(!relaxEnabled);
 });
 
 mediaUploadDialog?.addEventListener("change", (e) => {
@@ -781,13 +782,14 @@ videoEl?.addEventListener("ended", syncVideoUI);
 
 // The dreaded controlPane (scroll/swipe to open/close)
 function openControls() {
-  computeOpenHeights();
   app.classList.add("controls-open");
+  syncControlsButton();
   requestAnimationFrame(fitCanvas);
 }
 
 function closeControls() {
   app.classList.remove("controls-open");
+  syncControlsButton();
   requestAnimationFrame(fitCanvas);
 }
 
@@ -845,14 +847,6 @@ canvasStage.addEventListener(
 );
 
 // Resize the stage
-window.addEventListener("resize", () => {
-  if (app.classList.contains("controls-open")) computeOpenHeights();
-});
 new ResizeObserver(() => {
-  fitCanvas();
   requestAnimationFrame(fitCanvas);
 }).observe(controlPane);
-new ResizeObserver(() => {
-  fitCanvas();
-  requestAnimationFrame(fitCanvas);
-}).observe(titlePane);
