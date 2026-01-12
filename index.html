@@ -43,6 +43,23 @@
             aria-label="Play/Pause">
             <wa-icon id="relaxIcon" name="play"></wa-icon>
           </wa-button>
+
+          <wa-button id="videoButton" size="small" appearance="filled"
+            aria-label="Play/Pause"><wa-icon id="videoIcon"
+              name="play"></wa-icon></wa-button>
+
+          <div id="videoControls" class="videoControls" style="width:200px;">
+            <wa-button-group>
+              <wa-button id="playVideoButton" size="small">
+                <wa-icon name="play"></wa-icon>
+              </wa-button>
+              <wa-button id="pauseVideoButton" size="small">
+                <wa-icon name="pause"></wa-icon>
+              </wa-button>
+            </wa-button-group>
+
+          </div>
+
         </div>
 
         <div id="controlCarousel">
@@ -60,7 +77,7 @@
                 id="numPointsSlider"
                 label="Point Count"
                 min="1000"
-                max="10000"
+                max="30000"
                 value="2000"
                 step="1000">
               </wa-slider>
@@ -105,7 +122,6 @@
                 <wa-option value="sizeNone" label="Nothing">Nothing</wa-option>
               </wa-select>
             </div>
-
             <div class="controlCard">
               <wa-select id="relaxSelect" size="medium" label="Relax to">
                 <wa-option value="relaxDark" label="Dark Areas"
@@ -115,16 +131,34 @@
               </wa-select>
             </div>
 
+            <div class="controlCard" style="width:200px;">
+              <div class="colorPickers">
+                <wa-color-picker id="backgroundColorBtn" label="Canvas"
+                  value="#FFFFFF" size="small"
+                  swatches="#000; #fff"></wa-color-picker>
+                <wa-color-picker id="pointColorBtn" label="Points"
+                  value="#000000" size="small"
+                  swatches="#000; #fff"></wa-color-picker>
+                <wa-color-picker id="lineColorBtn" label="Lines"
+                  value="#000000" size="small"
+                  swatches="#000; #fff"></wa-color-picker>
+              </div>
+            </div>
+
+            <div class="controlCard" style="width:120px">
+              <wa-slider with-tooltip
+                id="speedSlider"
+                label="Speed"
+                min="0"
+                max="1"
+                value="0.3"
+                step="0.01"></wa-slider>
+
+            </div>
+
           </div>
         </div>
       </div>
-    </div>
-
-    <div id="relaxationControls">
-
-      <wa-button appearance="filled" id="relaxBtn" size="small">
-        <wa-icon name="play"></wa-icon>
-      </wa-button>
     </div>
 
     <div class="hiddenfornow">
@@ -132,61 +166,11 @@
       <wa-drawer id="optionsDrawer" placement="bottom" style="display:none;">
         <div class="options">
 
-          <div class="spacer"></div>
-
-          <div class="checks">
-            <wa-switch checked id="circToggle">Points</wa-switch>
-            <wa-switch id="polyToggle">Cells</wa-switch>
-            <wa-switch id="colorToggle">Colors</wa-switch>
-          </div>
-
-          <wa-select id="relaxSelect" size="medium">
-            <wa-option value="relaxDark" label="Relax to Dark Areas"
-              selected>Relax to Dark Areas</wa-option>
-            <wa-option value="relaxLight" label="Relax to Light Areas">Relax
-              to
-              Light Areas</wa-option>
-          </wa-select>
-
-          <wa-details summary="Base Colors">
-            <div class="colorPickers">
-              <wa-color-picker id="backgroundColorBtn" label="Canvas"
-                value="#FFFFFF" size="medium"
-                swatches="#000; #fff"></wa-color-picker>
-              <wa-color-picker id="pointColorBtn" label="Points"
-                value="#000000" size="medium"
-                swatches="#000; #fff"></wa-color-picker>
-              <wa-color-picker id="lineColorBtn" label="Lines"
-                value="#000000" size="medium"
-                swatches="#000; #fff"></wa-color-picker>
-            </div>
-          </wa-details>
-
-          <wa-slider with-tooltip
-            id="speedSlider"
-            label="Relaxation Speed"
-            min="0"
-            max="1"
-            value="0.3"
-            step="0.01"></wa-slider>
-
           <wa-button appearance="filled" id="btn-save-json"
             type="button">Save</wa-button>
 
         </div>
       </wa-drawer>
-
-      <div id="videoControls" class="videoControls" style="display: none">
-        <wa-button-group>
-          <wa-button id="btn-video-play" size="small">
-            <wa-icon name="play"></wa-icon>
-          </wa-button>
-          <wa-button id="btn-video-pause" size="small">
-            <wa-icon name="pause"></wa-icon>
-          </wa-button>
-        </wa-button-group>
-        <wa-switch id="videoLoopToggle" checked>Loop</wa-switch>
-      </div>
     </div>
 
     <div class="behindTheVeil">

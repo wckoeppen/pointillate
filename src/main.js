@@ -41,8 +41,8 @@ const speedSlider = document.getElementById("speedSlider");
 
 const videoEl = document.getElementById("video");
 const videoControls = document.getElementById("videoControls");
-const playBtn = document.getElementById("btn-video-play");
-const pauseBtn = document.getElementById("btn-video-pause");
+const playVideoButton = document.getElementById("playVideoButton");
+const pauseVideoButton = document.getElementById("pauseVideoButton");
 const loopToggle = document.getElementById("videoLoopToggle");
 
 const backgroundColorBtn = document.getElementById("backgroundColorBtn");
@@ -110,8 +110,8 @@ function syncVideoUI() {
   const isPaused = videoEl.paused;
 
   // Optional: visually “accent” whichever state is active
-  if (playBtn) playBtn.appearance = isPaused ? "filled" : "accent";
-  if (pauseBtn) pauseBtn.appearance = isPaused ? "accent" : "filled";
+  if (playVideoButton) playVideoButton.appearance = isPaused ? "filled" : "accent";
+  if (pauseVideoButton) pauseVideoButton.appearance = isPaused ? "accent" : "filled";
 
   if (loopToggle) loopToggle.checked = !!videoEl.loop;
 }
@@ -548,9 +548,10 @@ function handleVideoUpload(file) {
   video.src = url;
   video.muted = true;
   video.playsInline = true;
-
+  videoEl.loop = true;
+  
   showVideoControls(true);
-  videoEl.loop = true; // or default from UI
+
   syncVideoUI();
 
   video.onloadedmetadata = () => {
@@ -641,7 +642,7 @@ function syncRelaxButton(next) {
   if (relaxEnabled) startLoop();
   else stopLoop(); // if you have it; otherwise implement it
   relaxButton.appearance = relaxEnabled ? "accent" : "filled";
-  relaxButton.name = relaxEnabled ? "play" : "stop";
+  relaxIcon.setAttribute("name", relaxEnabled ? "pause" : "play")
   relaxButton.setAttribute("aria-pressed", String(relaxEnabled));
 }
 
@@ -755,7 +756,7 @@ seedSelect.addEventListener("change", (event) => {
 });
 
 // Video listeners
-playBtn?.addEventListener("click", async () => {
+playVideoButton?.addEventListener("click", async () => {
   try {
     await videoEl.play();
   } catch (err) {
@@ -766,7 +767,7 @@ playBtn?.addEventListener("click", async () => {
   syncVideoUI();
 });
 
-pauseBtn?.addEventListener("click", () => {
+pauseVideoButton?.addEventListener("click", () => {
   videoEl.pause();
   if (!relaxEnabled) stopLoop();
   syncVideoUI();

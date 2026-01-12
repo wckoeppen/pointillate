@@ -1,7 +1,7 @@
 :root {
   --title-height: 3rem;
   --dock-height: 55px;
-  --dock-width: 300px;
+  --dock-width: 400px;
   --dock-open-height: 185px;
   --card-gap: 12px;
   --card-width: 180px;
@@ -80,7 +80,7 @@ body {
 #controlDock {
   height: var(--dock-height);
   display: grid;
-  grid-template-columns: repeat(4, var(--dock-height));
+  grid-template-columns: repeat(5, var(--dock-height));
   justify-content: space-between;
   align-items: center;
   max-width: var(--dock-width);
@@ -200,6 +200,33 @@ wa-select::part(label) {
   text-align: center;
 }
 
+.colorPickers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.colorPickers > wa-color-picker {
+  justify-self: center;
+}
+
+.colorPickers wa-color-picker::part(label) {
+  text-align: center;
+  white-space: normal;
+}
+
+.colorPickers wa-color-picker::part(trigger) {
+  margin-inline: auto;
+}
+
+#videoControls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+
 /* 
 wa-drawer {
   --size: 400px;
@@ -264,50 +291,12 @@ wa-details::part(header) {
   min-width: 0;
 }
 
-#videoControls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  display: none;
-}
-
-#relaxControls {
-  flex: 1 1 auto;
-}
 
 #speedSlider {
   flex: 1 1 240px;
   min-width: 140px;
 }
 
-#relaxBtn {
-  flex: 0 0 auto;
-}
-
-.checks {
-  display: flex;
-  gap: 1.2rem;
-}
-
-.colorPickers {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.colorPickers > wa-color-picker {
-  justify-self: center;
-}
-
-.colorPickers wa-color-picker::part(label) {
-  text-align: center;
-  white-space: normal;
-}
-
-.colorPickers wa-color-picker::part(trigger) {
-  margin-inline: auto;
-}
 
 
 @keyframes rotation {
