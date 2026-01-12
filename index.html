@@ -44,28 +44,73 @@
         <div id="controlCarousel">
           <div class="controlTrack">
 
-            <div class="controlCard">
+            <div class="controlCard" style="width:120px">
+              <div class="checks">
+                <wa-switch checked id="circToggle">Points</wa-switch>
+                <wa-switch id="polyToggle">Cells</wa-switch>
+                <wa-switch id="colorToggle">Colors</wa-switch>
+              </div>
+            </div>
+            <div class="controlCard" style="width:120px">
               <wa-slider with-tooltip
                 id="numPointsSlider"
-                label="Number of Points"
+                label="Points"
                 min="1000"
                 max="10000"
                 value="2000"
                 step="1000">
               </wa-slider>
             </div>
-
-            <div class="controlCard">
+            <div class="controlCard" style="width:120px">
               <wa-slider range with-tooltip
                 id="radiusRange"
-                label="Point Radius"
+                label="Size"
                 min="0"
-                max="20"
+                max="10"
                 value="1.5"
                 min-value="1"
                 max-value="4"
                 step="0.1"></wa-slider>
+              <wa-slider with-tooltip
+                id="radiusSlider"
+                label="Size"
+                min="0"
+                max="10"
+                value="2"
+                step="0.1"
+                style="display:none;">
+              </wa-slider>
             </div>
+            <div class="controlCard">
+              <wa-select id="seedSelect" size="medium" label="Start in">
+                <wa-option value="seedDark" icon-placement="start"
+                  label="Dark Areas" selected>Dark
+                  Areas</wa-option>
+                <wa-option value="seedLight" icon-placement="start"
+                  label="Light Areas">Light Areas</wa-option>
+                <wa-option value="seedRandom" icon-placement="start"
+                  label="Randomly">All Over</wa-option>
+              </wa-select>
+            </div>
+            <div class="controlCard">
+              <wa-select id="sizeSelect" size="medium" label="Size by">
+                <wa-option value="sizeDark" label="Darkness"
+                  selected>Darkness</wa-option>
+                <wa-option value="sizeLight"
+                  label="Lightness">Lightness</wa-option>
+                <wa-option value="sizeNone" label="Nothing">Nothing</wa-option>
+              </wa-select>
+            </div>
+
+            <div class="controlCard">
+              <wa-select id="relaxSelect" size="medium" label="Relax to">
+                <wa-option value="relaxDark" label="Dark Areas"
+                  selected>Dark Areas</wa-option>
+                <wa-option value="relaxLight" label="Light Areas">Light
+                  Areas</wa-option>
+              </wa-select>
+            </div>
+
           </div>
         </div>
       </div>
@@ -80,18 +125,6 @@
 
     <div class="hiddenfornow">
 
-      <div class="controlCard">
-        <wa-slider with-tooltip
-          id="radiusSlider"
-          label="Point Radius"
-          min="0"
-          max="20"
-          value="2"
-          step="0.1"
-          style="display:none;">
-        </wa-slider>
-      </div>
-
       <wa-drawer id="optionsDrawer" placement="bottom" style="display:none;">
         <div class="options">
 
@@ -102,26 +135,6 @@
             <wa-switch id="polyToggle">Cells</wa-switch>
             <wa-switch id="colorToggle">Colors</wa-switch>
           </div>
-
-          <wa-select id="seedSelect" size="medium">
-            <wa-option value="seedDark" icon-placement="start"
-              label="Seed in Dark Areas" selected>Seed in Dark
-              Areas</wa-option>
-            <wa-option value="seedLight" icon-placement="start"
-              label="Seed in Light Areas">Seed in Light Areas</wa-option>
-            <wa-option value="seedRandom" icon-placement="start"
-              label="Seed Randomly">Seed Randomly</wa-option>
-          </wa-select>
-
-          <wa-select id="sizeSelect" size="medium">
-            <wa-option value="sizeDark" label="Size by Darkness"
-              selected>Size by Darkness</wa-option>
-            <wa-option value="sizeLight" label="Size by Lightness">Size by
-              Lightness</wa-option>
-            <wa-option value="sizeNone" label="One Size Fits All">One Size
-              Fits
-              All</wa-option>
-          </wa-select>
 
           <wa-select id="relaxSelect" size="medium">
             <wa-option value="relaxDark" label="Relax to Dark Areas"
