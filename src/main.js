@@ -22,8 +22,9 @@ const canvas = document.getElementById("canvas");
 
 const mediaUploadDialog = document.getElementById("mediaUploadDialog");
 const uploadButton = document.getElementById("uploadButton");
+const resetButton = document.getElementById("resetButton");
 const editButton = document.getElementById("editButton");
-const editIcon = document.getElementById("editIcon");
+// const editIcon = document.getElementById("editIcon");
 
 const seedSelect = document.getElementById("seedSelect");
 const sizeSelect = document.getElementById("sizeSelect");
@@ -49,6 +50,7 @@ const pointColorBtn = document.getElementById("pointColorBtn");
 const lineColorBtn = document.getElementById("lineColorBtn");
 
 const relaxButton = document.getElementById("relaxButton");
+const relaxIcon = document.getElementById("relaxIcon")
 
 await customElements.whenDefined("wa-drawer");
 
@@ -639,6 +641,7 @@ function syncRelaxButton(next) {
   if (relaxEnabled) startLoop();
   else stopLoop(); // if you have it; otherwise implement it
   relaxButton.appearance = relaxEnabled ? "accent" : "filled";
+  relaxButton.name = relaxEnabled ? "play" : "stop";
   relaxButton.setAttribute("aria-pressed", String(relaxEnabled));
 }
 
@@ -652,7 +655,6 @@ function syncControlsButton() {
     open ? "Collapse options" : "Open options"
   );
 }
-
 
 //  Listeners
 relaxButton?.addEventListener("click", () => {
@@ -801,6 +803,14 @@ uploadButton.addEventListener("click", () => {
 editButton.addEventListener("click", () => {
   if (app.classList.contains("controls-open")) closeControls();
   else openControls();
+});
+
+resetButton?.addEventListener("click", () => {
+  relaxEnabled = false;
+  syncRelaxButton(relaxEnabled);
+  seedPoints();
+  getVoronoi();
+  renderFrame();
 });
 
 canvasStage.addEventListener(
