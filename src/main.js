@@ -17,7 +17,6 @@ const app = document.getElementById("app");
 const titlePane = document.getElementById("titlePane");
 const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
-const canvasVisual = document.getElementById("canvasVisual");
 const controlExpanded = document.getElementById("controlExpanded");
 const canvas = document.getElementById("canvas");
 
@@ -128,6 +127,7 @@ function computeOpenHeights() {
   const openH = dockClosedH + expandedH;
 
   controlPane.style.setProperty("--dock-open-height", `${openH}px`);
+  console.log(openH);
 }
 
 function refreshSourcePixels(now, force = false) {

@@ -67,7 +67,7 @@ body {
 }
 
 #app.controls-open #controlPane {
-  height: var(--dock-open-height);
+  height: 180px;
 }
 
 #controlDock {
