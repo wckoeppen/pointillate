@@ -24,35 +24,31 @@ const mediaUploadDialog = document.getElementById("mediaUploadDialog");
 const uploadButton = document.getElementById("uploadButton");
 const resetButton = document.getElementById("resetButton");
 const editButton = document.getElementById("editButton");
-// const editIcon = document.getElementById("editIcon");
+
+const circToggle = document.getElementById("circToggle");
+const polyToggle = document.getElementById("polyToggle");
+const colorToggle = document.getElementById("colorToggle");
 
 const seedSelect = document.getElementById("seedSelect");
 const sizeSelect = document.getElementById("sizeSelect");
 const relaxSelect = document.getElementById("relaxSelect");
 
-const colorToggle = document.getElementById("colorToggle");
-const polyToggle = document.getElementById("polyToggle");
-const circToggle = document.getElementById("circToggle");
+
 
 const radiusRange = document.getElementById("radiusRange");
 const radiusSlider = document.getElementById("radiusSlider");
 const numPointsSlider = document.getElementById("numPointsSlider");
 const speedSlider = document.getElementById("speedSlider");
 
-const videoEl = document.getElementById("video");
-const videoControls = document.getElementById("videoControls");
-const playVideoButton = document.getElementById("playVideoButton");
-const pauseVideoButton = document.getElementById("pauseVideoButton");
-const loopToggle = document.getElementById("videoLoopToggle");
-
 const backgroundColorBtn = document.getElementById("backgroundColorBtn");
 const pointColorBtn = document.getElementById("pointColorBtn");
 const lineColorBtn = document.getElementById("lineColorBtn");
 
 const relaxButton = document.getElementById("relaxButton");
-const relaxIcon = document.getElementById("relaxIcon")
+const relaxIcon = document.getElementById("relaxIcon");
 
-await customElements.whenDefined("wa-drawer");
+const videoButton = document.getElementById("videoButton");
+const videoEl = document.getElementById("video");
 
 // State
 let currentPoints = [];
@@ -71,15 +67,17 @@ let numPoints = numPointsSlider?.value || 1000;
 let minRadius = radiusRange?.minValue || 1;
 let maxRadius = radiusRange?.maxValue || 4;
 let uniformRadius = radiusSlider?.value || 1;
-let speed = speedSlider.value || 0.5;
+
+let relaxSpeed = speedSlider?.value || 0.5;
+let speedStore = relaxSpeed;
 
 let seedPreference = "dark"; // "dark" | "light" | "none"
 let sizePreference = "dark"; // "dark" | "light" | "none"
 let relaxPreference = "dark"; // "dark" | "light"
 
-// let seedToDarkPixels = true;
 let relaxEnabled = false;
 let isRunning = false;
+let videoPlaying = false;
 let backgroundColor = backgroundColorBtn?.value || "#fff";
 let pointColor = pointColorBtn?.value || "#000";
 let lineColor = lineColorBtn?.value || "#000";
@@ -91,29 +89,11 @@ let lastVideoSample = 0;
 const VIDEO_SAMPLE_HZ = 15;
 const VIDEO_SAMPLE_INTERVAL = 1000 / VIDEO_SAMPLE_HZ;
 
-function px(n) {
-  return `${Math.max(0, Math.floor(n))}px`;
-}
-
 function revokeCurrentMediaUrl() {
   if (currentMediaUrl) {
     URL.revokeObjectURL(currentMediaUrl);
     currentMediaUrl = null;
   }
-}
-
-function showVideoControls(show) {
-  videoControls.style.display = show ? "" : "none";
-}
-
-function syncVideoUI() {
-  const isPaused = videoEl.paused;
-
-  // Optional: visually “accent” whichever state is active
-  if (playVideoButton) playVideoButton.appearance = isPaused ? "filled" : "accent";
-  if (pauseVideoButton) pauseVideoButton.appearance = isPaused ? "accent" : "filled";
-
-  if (loopToggle) loopToggle.checked = !!videoEl.loop;
 }
 
 function computeWorkingSize(mediaW, mediaH, maxW = 960) {
@@ -135,26 +115,50 @@ function refreshSourcePixels(now, force = false) {
   lastVideoSample = now != null ? now : performance.now();
 }
 
-function loadVideoAndStart(video) {
-  stopLoop();
-
+function enterVideoMode(video) {
   sourceMode = "video";
   activeVideo = video;
   lastVideoSample = 0;
+  relaxEnabled = true;
 
+  speedStore = relaxSpeed;
+  relaxSpeed = 1;
+
+  if (speedSlider) {
+    speedSlider.value = 1;
+    speedSlider.disabled = true;
+  }
+
+  videoPlaying = false;
+  video.pause();
+
+  syncPrimaryButtonUI();
+  updateLoopRunning();
+}
+
+function sampleCurrentVideoFrame() {
+  if (!activeVideo) return;
+
+  const w = imgCanvas.width;
+  const h = imgCanvas.height;
+
+  imgCtx.drawImage(activeVideo, 0, 0, w, h);
+  imageData = imgCtx.getImageData(0, 0, w, h).data;
+}
+
+function loadVideoAndStart(video) {
+  stopLoop();
+
+  enterVideoMode(video);
   setMediaSize(video.videoWidth, video.videoHeight);
 
   const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
-
   imgCanvas.width = w;
   imgCanvas.height = h;
   canvas.width = w;
   canvas.height = h;
 
-  // Prime pixels from the first frame
-  imgCtx.drawImage(video, 0, 0, w, h);
-  imageData = imgCtx.getImageData(0, 0, w, h).data;
-
+  sampleCurrentVideoFrame();
   seedPoints();
   getVoronoi();
   renderFrame();
@@ -289,7 +293,7 @@ function relaxPoints() {
   }
 
   for (let i = 0; i < n; i++) {
-    currentPoints[i] = lerp(currentPoints[i], targetPoints[i], speed);
+    currentPoints[i] = lerp(currentPoints[i], targetPoints[i], relaxSpeed);
   }
 
   delaunay = Delaunay.from(currentPoints);
@@ -471,12 +475,29 @@ function stopLoop() {
 }
 
 function tick(now) {
-  refreshSourcePixels(now);
+  const isVideo = sourceMode === "video";
+  if (isVideo) {
+    if (videoPlaying) refreshSourcePixels(now);
+  } else {
+  }
 
   if (relaxEnabled) relaxPoints();
   renderFrame();
 
   if (isRunning) animationFrameId = requestAnimationFrame(tick);
+}
+
+function shouldRunLoop() {
+  // Video mode: run only while video is playing
+  if (sourceMode === "video") return videoPlaying;
+
+  // Image mode: run only while relaxation is enabled
+  return relaxEnabled;
+}
+
+function updateLoopRunning() {
+  if (shouldRunLoop()) startLoop();
+  else stopLoop();
 }
 
 //  Image loading / initialization
@@ -516,18 +537,32 @@ function loadImageAndStart(img) {
   seedPoints();
   getVoronoi();
   renderFrame();
-  startLoop();
 }
 
 // Handlers
 
+function enterImageMode() {
+  sourceMode = "image";
+  videoPlaying = false;
+  activeVideo = null;
+
+  relaxSpeed = speedStore;
+  if (speedSlider) {
+    speedSlider.value = relaxSpeed;
+    speedSlider.disabled = false;
+  }
+
+  syncPrimaryButtonUI();
+  updateLoopRunning();
+}
+
 function handleImageUpload(file) {
-  showVideoControls(false);
   const img = new Image();
   const url = URL.createObjectURL(file);
 
   img.onload = () => {
     revokeCurrentMediaUrl();
+    enterImageMode();
     loadImageAndStart(img);
   };
 
@@ -549,10 +584,6 @@ function handleVideoUpload(file) {
   video.muted = true;
   video.playsInline = true;
   videoEl.loop = true;
-  
-  showVideoControls(true);
-
-  syncVideoUI();
 
   video.onloadedmetadata = () => {
     loadVideoAndStart(video);
@@ -637,34 +668,109 @@ function loadInitial() {
 
 loadInitial();
 
-function syncRelaxButton(next) {
+function setRelaxEnabled(next) {
+  // In video mode, relaxation is forced ON
+  if (sourceMode === "video") next = true;
+
   relaxEnabled = !!next;
-  if (relaxEnabled) startLoop();
-  else stopLoop(); // if you have it; otherwise implement it
-  relaxButton.appearance = relaxEnabled ? "accent" : "filled";
-  relaxIcon.setAttribute("name", relaxEnabled ? "pause" : "play")
-  relaxButton.setAttribute("aria-pressed", String(relaxEnabled));
+  syncPrimaryButtonUI();
+  updateLoopRunning();
+}
+
+function setVideoPlaying(next) {
+  videoPlaying = !!next;
+
+  if (activeVideo) {
+    if (videoPlaying) activeVideo.play();
+    else activeVideo.pause();
+  }
+
+  syncPrimaryButtonUI();
+  updateLoopRunning();
+}
+
+function syncPlayPauseButton() {
+  const isVideo = sourceMode === "video";
+  const on = isVideo ? videoPlaying : relaxEnabled;
+
+  relaxButton.appearance = on ? "accent" : "filled";
+  relaxIcon.setAttribute("name", on ? "pause" : "play");
+  relaxButton.setAttribute("aria-pressed", String(on));
+
+  relaxButton.setAttribute(
+    "aria-label",
+    isVideo
+      ? on
+        ? "Pause video"
+        : "Play video"
+      : on
+      ? "Pause relaxation"
+      : "Start relaxation"
+  );
+}
+
+function syncPrimaryButtonUI() {
+  const isVideo = sourceMode === "video";
+  const on = isVideo ? videoPlaying : relaxEnabled;
+
+  relaxButton.appearance = on ? "accent" : "filled";
+  relaxIcon.setAttribute("name", on ? "pause" : "play");
+  relaxButton.setAttribute("aria-pressed", String(on));
+  relaxButton.setAttribute(
+    "aria-label",
+    isVideo
+      ? on
+        ? "Pause video"
+        : "Play video"
+      : on
+      ? "Pause relaxation"
+      : "Start relaxation"
+  );
 }
 
 function syncControlsButton() {
   const open = app.classList.contains("controls-open");
 
   editButton.appearance = open ? "accent" : "filled";
-  // editIcon.setAttribute("name", open ? "angle-up" : "angle-down");
   editButton.setAttribute(
     "aria-label",
     open ? "Collapse options" : "Open options"
   );
 }
 
-//  Listeners
-relaxButton?.addEventListener("click", () => {
-  syncRelaxButton(!relaxEnabled);
-});
+function togglePrimary() {
+  if (sourceMode === "video") setVideoPlaying(!videoPlaying);
+  else setRelaxEnabled(!relaxEnabled);
+}
 
-canvasStage?.addEventListener("click", () => {
-  syncRelaxButton(!relaxEnabled);
-});
+function resetScene() {
+  if (sourceMode === "video") {
+    videoPlaying = false;
+    activeVideo?.pause?.();
+    stopLoop();
+
+    sampleCurrentVideoFrame();
+
+    seedPoints();
+    getVoronoi();
+    renderFrame();
+
+    relaxEnabled = true;
+
+    syncPrimaryButtonUI();
+    updateLoopRunning();
+    return;
+  }
+
+  // Image mode behavior
+  setRelaxEnabled(false);
+  seedPoints();
+  getVoronoi();
+  renderFrame();
+}
+
+relaxButton?.addEventListener("click", togglePrimary);
+canvasStage?.addEventListener("click", togglePrimary);
 
 mediaUploadDialog?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];
@@ -687,7 +793,10 @@ numPointsSlider?.addEventListener("input", () => {
 });
 
 speedSlider?.addEventListener("input", () => {
-  speed = speedSlider.value;
+  if (sourceMode === "video") return;
+
+  relaxSpeed = speedSlider.value;
+  speedStore = relaxSpeed;
   getVoronoi();
   renderFrame();
 });
@@ -756,7 +865,7 @@ seedSelect.addEventListener("change", (event) => {
 });
 
 // Video listeners
-playVideoButton?.addEventListener("click", async () => {
+videoButton?.addEventListener("click", async () => {
   try {
     await videoEl.play();
   } catch (err) {
@@ -766,22 +875,6 @@ playVideoButton?.addEventListener("click", async () => {
   startLoop();
   syncVideoUI();
 });
-
-pauseVideoButton?.addEventListener("click", () => {
-  videoEl.pause();
-  if (!relaxEnabled) stopLoop();
-  syncVideoUI();
-});
-
-loopToggle?.addEventListener("change", () => {
-  videoEl.loop = loopToggle.checked;
-  syncVideoUI();
-});
-
-// Keep UI synced if playback state changes externally
-videoEl?.addEventListener("play", syncVideoUI);
-videoEl?.addEventListener("pause", syncVideoUI);
-videoEl?.addEventListener("ended", syncVideoUI);
 
 // The dreaded controlPane (scroll/swipe to open/close)
 function openControls() {
@@ -806,13 +899,7 @@ editButton.addEventListener("click", () => {
   else openControls();
 });
 
-resetButton?.addEventListener("click", () => {
-  relaxEnabled = false;
-  syncRelaxButton(relaxEnabled);
-  seedPoints();
-  getVoronoi();
-  renderFrame();
-});
+resetButton?.addEventListener("click", resetScene);
 
 canvasStage.addEventListener(
   "wheel",
@@ -861,3 +948,8 @@ canvasStage.addEventListener(
 new ResizeObserver(() => {
   requestAnimationFrame(fitCanvas);
 }).observe(controlPane);
+
+
+circToggle?.addEventListener("change", renderFrame);
+polyToggle?.addEventListener("change", renderFrame);
+colorToggle?.addEventListener("change", renderFrame);

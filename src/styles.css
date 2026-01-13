@@ -1,7 +1,8 @@
 :root {
   --title-height: 3rem;
   --dock-height: 55px;
-  --dock-width: 400px;
+  --dock-width: 300px;
+  --dock-buttons: 4;
   --dock-open-height: 185px;
   --card-gap: 12px;
   --card-width: 180px;
@@ -80,7 +81,7 @@ body {
 #controlDock {
   height: var(--dock-height);
   display: grid;
-  grid-template-columns: repeat(5, var(--dock-height));
+  grid-template-columns: repeat(var(--dock-buttons), var(--dock-height));
   justify-content: space-between;
   align-items: center;
   max-width: var(--dock-width);
