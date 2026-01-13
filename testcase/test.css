@@ -41,10 +41,10 @@ body {
 
 #app {
   position: relative;
-
   height: 100vh;
   display: grid;
-  grid-template-rows: var(--title-height) 1fr auto;
+  grid-template-rows: var(--title-height) auto auto;
+  align-content: start;
 }
 
 #titlePane {
@@ -55,13 +55,14 @@ body {
 
 #canvasStage {
   display: grid;
-  place-items: center;
+  justify-items: center;
+  align-items: start;
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 #controlPane {
   position: relative;
-
   height: var(--dock-height);
   overflow: hidden;
   transition: height 0.2s ease;
@@ -84,6 +85,7 @@ body {
   background: inherit;
 }
 
+
 #controlCarousel {
   position: absolute;
   left: 0;
@@ -99,20 +101,6 @@ body {
   border-top: 1px solid #f0f0f0;
 }
 
-.carouselPad {
-  min-width: 100%;
-  padding: var(--carousel-pad-y) var(--carousel-pad-x);
-  box-sizing: border-box;
-}
-
-.controlTrack {
-  display: inline-block;
-  width: fit-content;
-  margin: 0 auto;
-  white-space: nowrap;
-}
-
-
 .controlCard {
   display: inline-block;
   vertical-align: top;
@@ -126,10 +114,4 @@ body {
   transition: opacity 160ms ease, transform 500ms ease-in-out;
   opacity: 1;
   transform: translateX(0);
-}
-
-#loader {
-  position: absolute;
-  inset: 0;
-  /* whatever centering you want */
 }

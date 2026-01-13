@@ -1,4 +1,3 @@
-import "./styles.css";
 import { Delaunay } from "d3-delaunay";
 
 import "@awesome.me/webawesome/dist/styles/webawesome.css";

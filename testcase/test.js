@@ -21,8 +21,11 @@ function setMediaSize(w, h) {
 function fitCanvas() {
   if (!mediaWidth || !mediaHeight) return;
 
+  const titleH = titlePane.getBoundingClientRect().height;
+  const controlH = controlPane.getBoundingClientRect().height;
+  const availH = Math.max(0, window.innerHeight - titleH - controlH);
   const availW = canvasStage.clientWidth;
-  const availH = canvasStage.clientHeight;
+
   const scale = Math.min(availW / mediaWidth, availH / mediaHeight);
 
   const cssW = Math.floor(mediaWidth * scale);
@@ -30,6 +33,7 @@ function fitCanvas() {
 
   canvas.style.width = `${cssW}px`;
   canvas.style.height = `${cssH}px`;
+  canvasStage.style.height = `${cssH}px`;
 }
 
 let fitScheduled = false;
@@ -76,42 +80,7 @@ function closeControls() {
   requestAnimationFrame(fitCanvas);
 }
 
-
-// function centerControlCarousel() {
-//   const scroller = document.getElementById("controlCarousel");
-//   const track = scroller.querySelector(".controlTrack");
-//   if (!scroller || !track) return;
-
-//   const overflow = track.scrollWidth - scroller.clientWidth;
-//   if (overflow > 0) {
-//     scroller.scrollLeft = overflow / 2;
-//   } else {
-//     scroller.scrollLeft = 0;
-//   }
-// }
-
-function centerCardInCarousel(cardEl) {
-  const scroller = document.getElementById("controlCarousel");
-  if (!scroller || !cardEl) return;
-
-  const scrollerRect = scroller.getBoundingClientRect();
-  const cardRect = cardEl.getBoundingClientRect();
-
-  const cardCenter =
-    (cardRect.left - scrollerRect.left) + scroller.scrollLeft + (cardRect.width / 2);
-
-  const targetScrollLeft = cardCenter - (scroller.clientWidth / 2);
-
-  scroller.scrollTo({
-    left: targetScrollLeft,
-    behavior: "smooth",
-  });
-}
-
 optionsButton.addEventListener("click", () => {
   if (app.classList.contains("controls-open")) closeControls();
   else openControls();
 });
-
-const speedCard = document.getElementById("cardToCenter")?.closest(".controlCard");
-centerCardInCarousel(speedCard);
