@@ -33,8 +33,6 @@ const seedSelect = document.getElementById("seedSelect");
 const sizeSelect = document.getElementById("sizeSelect");
 const relaxSelect = document.getElementById("relaxSelect");
 
-
-
 const radiusRange = document.getElementById("radiusRange");
 const radiusSlider = document.getElementById("radiusSlider");
 const numPointsSlider = document.getElementById("numPointsSlider");
@@ -146,7 +144,7 @@ function sampleCurrentVideoFrame() {
   imageData = imgCtx.getImageData(0, 0, w, h).data;
 }
 
-function loadVideoAndStart(video) {
+function loadVideo(video) {
   stopLoop();
 
   enterVideoMode(video);
@@ -502,8 +500,7 @@ function updateLoopRunning() {
 
 //  Image loading / initialization
 
-function loadImageAndStart(img) {
-  stopLoop();
+function loadImage(img) {
 
   sourceMode = "image";
   activeVideo = null;
@@ -515,7 +512,6 @@ function loadImageAndStart(img) {
   }
 
   setMediaSize(img.naturalWidth, img.naturalHeight);
-  // Show UI (clear inline overrides so CSS governs layout)
   let drawWidth = img.naturalWidth;
   let drawHeight = img.naturalHeight;
 
@@ -545,6 +541,7 @@ function enterImageMode() {
   sourceMode = "image";
   videoPlaying = false;
   activeVideo = null;
+  relaxEnabled = false;
 
   relaxSpeed = speedStore;
   if (speedSlider) {
@@ -557,13 +554,14 @@ function enterImageMode() {
 }
 
 function handleImageUpload(file) {
+  stopLoop();
   const img = new Image();
   const url = URL.createObjectURL(file);
 
   img.onload = () => {
     revokeCurrentMediaUrl();
     enterImageMode();
-    loadImageAndStart(img);
+    loadImage(img);
   };
 
   img.onerror = () => {
@@ -585,8 +583,21 @@ function handleVideoUpload(file) {
   video.playsInline = true;
   videoEl.loop = true;
 
-  video.onloadedmetadata = () => {
-    loadVideoAndStart(video);
+  video.onloadedmetadata = async () => {
+    // need to wait for some real data
+    if (video.readyState < 2) {
+      await new Promise((res) =>
+        video.addEventListener("loadeddata", res, { once: true })
+      );
+    }
+
+    if (video.requestVideoFrameCallback) {
+      await new Promise((res) => video.requestVideoFrameCallback(() => res()));
+    } else {
+      await new Promise((res) => requestAnimationFrame(res));
+    }
+
+    loadVideo(video);
   };
 
   video.onerror = () => {
@@ -660,7 +671,7 @@ function loadInitial() {
 
     wireSaveButton();
 
-    loadImageAndStart(img);
+    loadImage(img);
     app.classList.remove("loading");
     app.classList.add("ready");
   };
@@ -687,26 +698,6 @@ function setVideoPlaying(next) {
 
   syncPrimaryButtonUI();
   updateLoopRunning();
-}
-
-function syncPlayPauseButton() {
-  const isVideo = sourceMode === "video";
-  const on = isVideo ? videoPlaying : relaxEnabled;
-
-  relaxButton.appearance = on ? "accent" : "filled";
-  relaxIcon.setAttribute("name", on ? "pause" : "play");
-  relaxButton.setAttribute("aria-pressed", String(on));
-
-  relaxButton.setAttribute(
-    "aria-label",
-    isVideo
-      ? on
-        ? "Pause video"
-        : "Play video"
-      : on
-      ? "Pause relaxation"
-      : "Start relaxation"
-  );
 }
 
 function syncPrimaryButtonUI() {
@@ -948,7 +939,6 @@ canvasStage.addEventListener(
 new ResizeObserver(() => {
   requestAnimationFrame(fitCanvas);
 }).observe(controlPane);
-
 
 circToggle?.addEventListener("change", renderFrame);
 polyToggle?.addEventListener("change", renderFrame);
