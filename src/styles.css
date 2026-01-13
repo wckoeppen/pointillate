@@ -1,14 +1,17 @@
 :root {
-  --title-height: 3rem;
-  --dock-height: 55px;
-  --dock-width: 300px;
+  --title-height: 4rem;
+  --dock-height: 60px;
   --dock-buttons: 4;
-  --dock-open-height: 185px;
+  --dock-open-height: 195px;
   --card-gap: 12px;
   --card-width: 180px;
   --card-height: 100px;
   --carousel-pad-x: 12px;
   --carousel-pad-y: 10px;
+  --control-accent: #7ea3e5;
+  --control-background: #f0f0f0
+  /* --control-color: #ed8e0f; */
+  /* --control-color: #999; */
 }
 
 *,
@@ -27,9 +30,9 @@
 } */
 
 h1 {
-  font-family: "Helvetica", sans-serif;
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-family: "Arial", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 200;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #606060;
@@ -82,14 +85,17 @@ body {
   height: var(--dock-height);
   display: grid;
   grid-template-columns: repeat(var(--dock-buttons), var(--dock-height));
-  justify-content: space-between;
+  justify-content: center;
+  column-gap: 10px;
   align-items: center;
-  max-width: var(--dock-width);
   margin: 0 auto;
-
   position: relative;
   z-index: 2;
   background: inherit;
+}
+
+#controlDock > wa-button {
+  justify-self: center;
 }
 
 #controlCarousel {
@@ -116,7 +122,36 @@ body {
   margin-right: var(--card-gap);
   padding: 12px;
   border-radius: 0.25rem;
-  background: #f0f0f0;
+  background: var(--control-background);
+  transition: opacity 160ms ease, transform 500ms ease-in-out;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.controlCard.controlCard--center {
+  position: relative;
+}
+
+.cardCenter {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  text-align: center;
+}
+
+.sliderWidth {
+  width: 120px;
+}
+
+.pickerWidth {
+  width: 210px;
+}
+
+.saveButtonCard {
+  width: 54px;
+  background-color: #fff;
 }
 
 #mediaUpload {
@@ -158,12 +193,16 @@ wa-button[appearance="accent"]::part(base) {
   background-color: #999;
 }
 
+wa-button[appearance="filled"]:not(:hover)::part(base) {
+  background-color: var(--control-background);
+}
+
 wa-slider {
   padding-bottom: 20px;
   padding-top: 3px;
 }
 wa-slider::part(indicator) {
-  background-color: #7ea3e5;
+  background-color: var(--control-accent);
 }
 wa-slider::part(track) {
   margin-inline: 6px;
@@ -174,7 +213,7 @@ wa-slider::part(label) {
   margin-bottom: 16px;
 }
 wa-slider::part(thumb) {
-  background-color: #7ea3e5;
+  background-color: var(--control-accent);
   border: 1.5px solid #fff;
 }
 
@@ -184,7 +223,7 @@ wa-switch::part(control) {
 }
 
 wa-switch:state(checked)::part(control) {
-  background-color: #7ea3e5;
+  background-color: var(--control-accent);
 }
 
 wa-switch:state(checked)::part(thumb) {
@@ -227,45 +266,6 @@ wa-select::part(label) {
   min-width: 0;
 }
 
-
-/* 
-wa-drawer {
-  --size: 400px;
-}
-
-wa-drawer::part(dialog)::backdrop {
-  background: rgba(0, 0, 0, 0);
-}
-
-wa-drawer::part(dialog) {
-  background: rgba(255, 255, 255, 0.9);
-}
-
-wa-drawer .options {
-  padding: 1rem;
-}
-
-wa-drawer .options > * {
-  margin-bottom: 10px;
-}
-  */
-
-/*
-
-#optionsDrawer > * {
-  max-width: 100%;
-}
-
-.spacer {
-  height: 5px;
-}
-
-
-
-
-
-
-
 wa-details::part(base) {
   border-color: #ddd;
   border-radius: 6px;
@@ -273,32 +273,7 @@ wa-details::part(base) {
 
 wa-details::part(header) {
   padding: 7px 12px;
-} */
-/* 
-#runControls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-top: 1px solid #ccc;
-  background: #fff;
-  display: none;
 }
-
-#relaxControls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
-
-#speedSlider {
-  flex: 1 1 240px;
-  min-width: 140px;
-}
-
-
 
 @keyframes rotation {
   0% {

@@ -10,7 +10,7 @@ import "@awesome.me/webawesome/dist/components/slider/slider.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
 import "@awesome.me/webawesome/dist/components/switch/switch.js";
-import "@awesome.me/webawesome/dist/components/drawer/drawer.js";
+import "@awesome.me/webawesome/dist/components/dropdown/dropdown.js";
 
 // DOM refs
 
@@ -23,10 +23,10 @@ const canvas = document.getElementById("canvas");
 const mediaUploadDialog = document.getElementById("mediaUploadDialog");
 const uploadButton = document.getElementById("uploadButton");
 const resetButton = document.getElementById("resetButton");
-const editButton = document.getElementById("editButton");
+const optionsButton = document.getElementById("optionsButton");
 
-const circToggle = document.getElementById("circToggle");
-const polyToggle = document.getElementById("polyToggle");
+const pointToggle = document.getElementById("pointToggle");
+const cellToggle = document.getElementById("cellToggle");
 const colorToggle = document.getElementById("colorToggle");
 
 const seedSelect = document.getElementById("seedSelect");
@@ -42,11 +42,13 @@ const backgroundColorBtn = document.getElementById("backgroundColorBtn");
 const pointColorBtn = document.getElementById("pointColorBtn");
 const lineColorBtn = document.getElementById("lineColorBtn");
 
-const relaxButton = document.getElementById("relaxButton");
-const relaxIcon = document.getElementById("relaxIcon");
+const runButton = document.getElementById("runButton");
+const runIcon = document.getElementById("runIcon");
 
 const videoButton = document.getElementById("videoButton");
 const videoEl = document.getElementById("video");
+
+const saveDropdown = document.getElementById("saveDropdown");
 
 // State
 let currentPoints = [];
@@ -306,8 +308,8 @@ function renderFrame() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const showColor = colorToggle?.checked ?? false;
-  const showPolygons = polyToggle?.checked ?? false;
-  const showPoints = circToggle?.checked ?? true;
+  const showPolygons = cellToggle?.checked ?? false;
+  const showPoints = pointToggle?.checked ?? true;
   const w = canvas.width;
   const h = canvas.height;
 
@@ -501,7 +503,6 @@ function updateLoopRunning() {
 //  Image loading / initialization
 
 function loadImage(img) {
-
   sourceMode = "image";
   activeVideo = null;
   lastVideoSample = 0;
@@ -621,42 +622,59 @@ function downloadJson(filename, data) {
   URL.revokeObjectURL(url);
 }
 
-function wireSaveButton() {
-  const saveBtn = document.getElementById("btn-save-json");
-  if (!saveBtn) return;
+function saveJSON() {
+  if (!imgCtx || !imageData || currentPoints.length === 0) return;
 
-  saveBtn.addEventListener("click", () => {
-    if (!imgCtx || !imageData || currentPoints.length === 0) return;
+  const w = canvas.width;
+  const h = canvas.height;
+  const data = imgCtx.getImageData(0, 0, w, h).data;
 
-    const w = canvas.width;
-    const h = canvas.height;
-    const data = imgCtx.getImageData(0, 0, w, h).data;
+  const exported = currentPoints.map((p, i) => {
+    const x = p[0];
+    const y = p[1];
 
-    const exported = currentPoints.map((p, i) => {
-      const x = p[0];
-      const y = p[1];
+    const weight = getWeightAtPoint(data, w, h, x, y);
+    const color = getColorStringAtPoint(data, w, h, x, y);
 
-      const weight = getWeightAtPoint(data, w, h, x, y);
-      const color = getColorStringAtPoint(data, w, h, x, y);
+    return { i, x, y, weight, color };
+  });
 
-      return {
-        i: i,
-        x: x,
-        y: y,
-        weight,
-        color,
-      };
-    });
-
-    downloadJson("stipple-points.json", {
-      createdAt: new Date().toISOString(),
-      width: w,
-      height: h,
-      pointCount: exported.length,
-      points: exported,
-    });
+  downloadJson("stipple-points.json", {
+    createdAt: new Date().toISOString(),
+    width: w,
+    height: h,
+    pointCount: exported.length,
+    points: exported,
   });
 }
+
+function savePNG() {
+  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  const filename = `stipple-${ts}.png`;
+
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, "image/png");
+}
+
+saveDropdown?.addEventListener("wa-select", (e) => {
+  const value = e.detail.item.value;
+
+  if (value === "json") {
+    console.log("saving");
+    saveJSON();
+  } else if (value === "png") {
+    savePNG();
+  }
+});
 
 function loadInitial() {
   const img = new Image();
@@ -668,8 +686,6 @@ function loadInitial() {
       numPointsSlider?.updateComplete,
       speedSlider?.updateComplete,
     ]);
-
-    wireSaveButton();
 
     loadImage(img);
     app.classList.remove("loading");
@@ -704,10 +720,10 @@ function syncPrimaryButtonUI() {
   const isVideo = sourceMode === "video";
   const on = isVideo ? videoPlaying : relaxEnabled;
 
-  relaxButton.appearance = on ? "accent" : "filled";
-  relaxIcon.setAttribute("name", on ? "pause" : "play");
-  relaxButton.setAttribute("aria-pressed", String(on));
-  relaxButton.setAttribute(
+  runButton.appearance = on ? "accent" : "filled";
+  runIcon.setAttribute("name", on ? "pause" : "play");
+  runButton.setAttribute("aria-pressed", String(on));
+  runButton.setAttribute(
     "aria-label",
     isVideo
       ? on
@@ -722,8 +738,8 @@ function syncPrimaryButtonUI() {
 function syncControlsButton() {
   const open = app.classList.contains("controls-open");
 
-  editButton.appearance = open ? "accent" : "filled";
-  editButton.setAttribute(
+  optionsButton.appearance = open ? "accent" : "filled";
+  optionsButton.setAttribute(
     "aria-label",
     open ? "Collapse options" : "Open options"
   );
@@ -760,7 +776,7 @@ function resetScene() {
   renderFrame();
 }
 
-relaxButton?.addEventListener("click", togglePrimary);
+runButton?.addEventListener("click", togglePrimary);
 canvasStage?.addEventListener("click", togglePrimary);
 
 mediaUploadDialog?.addEventListener("change", (e) => {
@@ -885,7 +901,7 @@ uploadButton.addEventListener("click", () => {
   mediaUploadDialog.click();
 });
 
-editButton.addEventListener("click", () => {
+optionsButton.addEventListener("click", () => {
   if (app.classList.contains("controls-open")) closeControls();
   else openControls();
 });
@@ -935,11 +951,19 @@ canvasStage.addEventListener(
   { passive: true }
 );
 
-// Resize the stage
-new ResizeObserver(() => {
-  requestAnimationFrame(fitCanvas);
-}).observe(controlPane);
-
-circToggle?.addEventListener("change", renderFrame);
-polyToggle?.addEventListener("change", renderFrame);
+pointToggle?.addEventListener("change", renderFrame);
+cellToggle?.addEventListener("change", renderFrame);
 colorToggle?.addEventListener("change", renderFrame);
+
+// Resize the canvas if we open/close controls or resize, but don't do it too often
+let fitScheduled = false;
+function scheduleFitCanvas() {
+  if (fitScheduled) return;
+  fitScheduled = true;
+  requestAnimationFrame(() => {
+    fitScheduled = false;
+    fitCanvas();
+  });
+}
+new ResizeObserver(scheduleFitCanvas).observe(controlPane);
+window.addEventListener("resize", scheduleFitCanvas);
