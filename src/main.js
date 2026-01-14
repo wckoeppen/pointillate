@@ -91,7 +91,21 @@ let lastVideoSample = 0;
 const VIDEO_SAMPLE_HZ = 15;
 const VIDEO_SAMPLE_INTERVAL = 1000 / VIDEO_SAMPLE_HZ;
 
-function revokeCurrentMediaUrl() {
+function cleanupActiveMedia() {
+  // Stop any video decode/network work immediately
+  if (videoEl) {
+    videoEl.pause();
+    videoEl.removeAttribute("src"); // important: detach from blob URL
+    videoEl.load(); // forces the element to reset
+    videoEl.onloadedmetadata = null;
+    videoEl.onerror = null;
+  }
+
+  activeVideo = null;
+  videoPlaying = false;
+  lastVideoSample = 0;
+
+  // Now it's safe to revoke the previous blob URL
   if (currentMediaUrl) {
     URL.revokeObjectURL(currentMediaUrl);
     currentMediaUrl = null;
@@ -118,6 +132,7 @@ function refreshSourcePixels(now, force = false) {
 }
 
 function enterVideoMode(video) {
+  cleanupActiveMedia();
   sourceMode = "video";
   activeVideo = video;
   lastVideoSample = 0;
@@ -550,6 +565,7 @@ function loadImage(img) {
 // Handlers
 
 function enterImageMode() {
+  cleanupActiveMedia();
   sourceMode = "image";
   videoPlaying = false;
   activeVideo = null;
@@ -567,17 +583,21 @@ function enterImageMode() {
 
 function handleImageUpload(file) {
   stopLoop();
+  cleanupActiveMedia();
+
   const img = new Image();
   const url = URL.createObjectURL(file);
 
   img.onload = () => {
-    revokeCurrentMediaUrl();
     enterImageMode();
     loadImage(img);
+    URL.revokeObjectURL(url);
+    if (currentMediaUrl === url) currentMediaUrl = null;
   };
 
   img.onerror = () => {
-    revokeCurrentMediaUrl();
+    URL.revokeObjectURL(url);
+    if (currentMediaUrl === url) currentMediaUrl = null;
     alert("Failed to load image.");
   };
 
@@ -585,36 +605,45 @@ function handleImageUpload(file) {
 }
 
 function handleVideoUpload(file) {
-  revokeCurrentMediaUrl();
+  stopLoop();
+  cleanupActiveMedia();
+
   const url = URL.createObjectURL(file);
   currentMediaUrl = url;
 
-  const video = document.getElementById("video");
-  video.src = url;
-  video.muted = true;
-  video.playsInline = true;
+  videoEl.src = url;
+  videoEl.muted = true;
+  videoEl.playsInline = true;
   videoEl.loop = true;
 
-  video.onloadedmetadata = async () => {
+  const thisUrl = url;
+
+  videoEl.onloadedmetadata = async () => {
+    if (videoEl.src !== thisUrl) return;
+
     // need to wait for some real data
-    if (video.readyState < 2) {
+    if (videoEl.readyState < 2) {
       await new Promise((res) =>
-        video.addEventListener("loadeddata", res, { once: true })
+        videoEl.addEventListener("loadeddata", res, { once: true })
       );
+      if (videoEl.src !== thisUrl) return; // stale
     }
 
-    if (video.requestVideoFrameCallback) {
-      await new Promise((res) => video.requestVideoFrameCallback(() => res()));
-    } else {
-      await new Promise((res) => requestAnimationFrame(res));
+    if (videoEl.requestVideoFrameCallback) {
+      await new Promise((res) =>
+        videoEl.requestVideoFrameCallback(() => res())
+      );
+      if (videoEl.src !== thisUrl) return; // stale
     }
 
-    loadVideo(video);
+    loadVideo(videoEl);
   };
 
-  video.onerror = () => {
-    revokeCurrentMediaUrl();
-    alert("Failed to load video.");
+  videoEl.onerror = () => {
+    if (videoEl.src === thisUrl) {
+      cleanupActiveMedia();
+      alert("Failed to load video.");
+    }
   };
 }
 
