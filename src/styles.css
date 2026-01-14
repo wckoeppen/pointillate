@@ -9,7 +9,8 @@
   --carousel-pad-x: 12px;
   --carousel-pad-y: 12px;
   --control-accent: #7ea3e5;
-  --control-background: #f0f0f0
+  --control-background: #f0f0f0;
+  --stage-background: #fff;
   /* --control-color: #ed8e0f; */
   /* --control-color: #999; */
 }
@@ -66,6 +67,7 @@ body {
   display: grid;
   place-items: center;
   overflow: hidden;
+  background-color: var(--stage-background);
 }
 
 #controlPane {
@@ -114,13 +116,18 @@ body {
   min-width: 100%;
   padding: var(--carousel-pad-y) var(--carousel-pad-x);
   box-sizing: border-box;
+
+  display: flex;
+  justify-content: flex-start; /* important: never “force-center” overflow */
 }
 
 .controlTrack {
-  display: inline-block;
-  width: fit-content;
-  margin: 0 auto;
+  display: inline-flex;
+  width: max-content;
   white-space: nowrap;
+
+  margin-left: auto; /* centers only when there is extra space */
+  margin-right: auto; /* otherwise collapses to 0 and stays left-aligned */
 }
 
 .controlCard {
@@ -294,25 +301,16 @@ wa-details::part(header) {
   }
 }
 
-/*
-@media (max-width: 768px) {
-  body {
-    overflow: auto;
+@media (orientation: landscape) and (max-width: 900px) {
+  h1 {
+    font-size: 1rem;
   }
 
-  #app {
-    height: auto;
-    grid-template-columns: 1fr;
-    padding: 1rem;
+  :root {
+    --title-height: 2em;
+    --carousel-pad-y: 8px;
+    --card-gap: 8px;
+    --dock-height: 55px;
+    --dock-open-height: 180px;
   }
-
-  #displayPane {
-    max-height: calc(100vh - var(--nav-h) - 2rem);
-  }
-
-  #optionPane {
-    width: 100%;
-    max-width: clamp(280px, 90vw, var(--controls-w));
-    margin-inline: auto;
-  }
-} */
+}

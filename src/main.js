@@ -14,13 +14,12 @@ import "@awesome.me/webawesome/dist/components/dropdown/dropdown.js";
 // DOM refs
 
 const app = document.getElementById("app");
-const titlePane = document.getElementById("titlePane");
 const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
 const canvas = document.getElementById("canvas");
 
 const controlCarousel = document.getElementById("controlCarousel");
-const cardToCenter = document.getElementById("cardToCenter");
+const cardToStart = document.getElementById("cardToStart");
 
 const mediaUploadDialog = document.getElementById("mediaUploadDialog");
 const uploadButton = document.getElementById("uploadButton");
@@ -634,7 +633,7 @@ function handleVideoUpload(file) {
   videoEl.onloadedmetadata = async () => {
     if (videoEl.src !== thisUrl) return;
 
-    // need to wait for some real data
+    // first frame of videos can be black
     if (videoEl.readyState < 2) {
       await new Promise((res) =>
         videoEl.addEventListener("loadeddata", res, { once: true })
@@ -747,7 +746,7 @@ function loadInitial() {
     // Wait two frames
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        centerCardInCarousel(cardToCenter);
+        scrollToCardInCarousel(cardToStart);
       });
     });
   };
@@ -836,19 +835,17 @@ function resetScene() {
   renderFrame();
 }
 
-function centerCardInCarousel(cardToCenter) {
-  if (!controlCarousel || !cardToCenter) return;
+function scrollToCardInCarousel(card) {
+  if (!controlCarousel || !card) return;
 
-  const scrollerRect = controlCarousel.getBoundingClientRect();
-  const cardRect = cardToCenter.getBoundingClientRect();
+  const rootStyles = getComputedStyle(document.documentElement);
+  const cardGap = parseFloat(rootStyles.getPropertyValue("--card-gap")) || 0;
 
-  const cardCenter =
-    cardRect.left -
-    scrollerRect.left +
-    controlCarousel.scrollLeft +
-    cardRect.width / 2;
+  const carouselRect = controlCarousel.getBoundingClientRect();
+  const cardRect = card.getBoundingClientRect();
 
-  const targetScrollLeft = cardCenter - controlCarousel.clientWidth / 2;
+  const targetScrollLeft =
+    controlCarousel.scrollLeft + (cardRect.left - carouselRect.left) - cardGap;
 
   controlCarousel.scrollTo({
     left: targetScrollLeft,
@@ -926,6 +923,12 @@ sizeSelect.addEventListener("change", (event) => {
 // Color button listeners
 backgroundColorBtn.addEventListener("input", () => {
   backgroundColor = backgroundColorBtn.value;
+
+  document.documentElement.style.setProperty(
+    "--stage-background",
+    backgroundColor
+  );
+
   renderFrame();
 });
 pointColorBtn.addEventListener("input", () => {
