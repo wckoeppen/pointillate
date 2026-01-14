@@ -19,6 +19,9 @@ const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
 const canvas = document.getElementById("canvas");
 
+const controlCarousel = document.getElementById("controlCarousel");
+const cardToCenter = document.getElementById("cardToCenter");
+
 const mediaUploadDialog = document.getElementById("mediaUploadDialog");
 const uploadButton = document.getElementById("uploadButton");
 const resetButton = document.getElementById("resetButton");
@@ -375,14 +378,12 @@ function setMediaSize(w, h) {
   fitCanvas();
 }
 
+// Resize the canvas if we open/close controls or resize, but don't do it too often
 function fitCanvas() {
   if (!mediaWidth || !mediaHeight) return;
 
-  const titleH = titlePane.getBoundingClientRect().height;
-  const controlH = controlPane.getBoundingClientRect().height;
-  const availH = Math.max(0, window.innerHeight - titleH - controlH);
   const availW = canvasStage.clientWidth;
-
+  const availH = canvasStage.clientHeight;
   const scale = Math.min(availW / mediaWidth, availH / mediaHeight);
 
   const cssW = Math.floor(mediaWidth * scale);
@@ -390,8 +391,19 @@ function fitCanvas() {
 
   canvas.style.width = `${cssW}px`;
   canvas.style.height = `${cssH}px`;
-  canvasStage.style.height = `${cssH}px`;
 }
+
+let fitScheduled = false;
+function scheduleFitCanvas() {
+  if (fitScheduled) return;
+  fitScheduled = true;
+  requestAnimationFrame(() => {
+    fitScheduled = false;
+    fitCanvas();
+  });
+}
+new ResizeObserver(scheduleFitCanvas).observe(controlPane);
+window.addEventListener("resize", scheduleFitCanvas);
 
 // Controls
 function setSeedPreference(next) {
@@ -668,7 +680,6 @@ saveDropdown?.addEventListener("wa-select", (e) => {
   const value = e.detail.item.value;
 
   if (value === "json") {
-    console.log("saving");
     saveJSON();
   } else if (value === "png") {
     savePNG();
@@ -687,8 +698,16 @@ function loadInitial() {
     ]);
 
     loadImage(img);
+
     app.classList.remove("loading");
     app.classList.add("ready");
+
+    // Wait two frames
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        centerCardInCarousel(cardToCenter);
+      });
+    });
   };
 }
 
@@ -773,6 +792,26 @@ function resetScene() {
   seedPoints();
   getVoronoi();
   renderFrame();
+}
+
+function centerCardInCarousel(cardToCenter) {
+  if (!controlCarousel || !cardToCenter) return;
+
+  const scrollerRect = controlCarousel.getBoundingClientRect();
+  const cardRect = cardToCenter.getBoundingClientRect();
+
+  const cardCenter =
+    cardRect.left -
+    scrollerRect.left +
+    controlCarousel.scrollLeft +
+    cardRect.width / 2;
+
+  const targetScrollLeft = cardCenter - controlCarousel.clientWidth / 2;
+
+  controlCarousel.scrollTo({
+    left: targetScrollLeft,
+    behavior: "instant",
+  });
 }
 
 runButton?.addEventListener("click", togglePrimary);
@@ -953,16 +992,3 @@ canvasStage.addEventListener(
 pointToggle?.addEventListener("change", renderFrame);
 cellToggle?.addEventListener("change", renderFrame);
 colorToggle?.addEventListener("change", renderFrame);
-
-// Resize the canvas if we open/close controls or resize, but don't do it too often
-let fitScheduled = false;
-function scheduleFitCanvas() {
-  if (fitScheduled) return;
-  fitScheduled = true;
-  requestAnimationFrame(() => {
-    fitScheduled = false;
-    fitCanvas();
-  });
-}
-new ResizeObserver(scheduleFitCanvas).observe(controlPane);
-window.addEventListener("resize", scheduleFitCanvas);

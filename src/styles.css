@@ -52,7 +52,7 @@ body {
   position: relative;
   height: 100vh;
   display: grid;
-  grid-template-rows: var(--title-height) auto auto;
+  grid-template-rows: var(--title-height) 1fr auto;
   align-content: start;
 }
 
@@ -64,10 +64,8 @@ body {
 
 #canvasStage {
   display: grid;
-  justify-items: center;
-  align-items: start;
+  place-items: center;
   overflow: hidden;
-  touch-action: pan-y;
 }
 
 #controlPane {
@@ -107,10 +105,22 @@ body {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   height: calc(var(--dock-open-height) - var(--dock-height));
-  padding: var(--carousel-pad-y) var(--carousel-pad-x);
   touch-action: pan-x;
   white-space: nowrap;
   border-top: 1px solid #f0f0f0;
+}
+
+.carouselPad {
+  min-width: 100%;
+  padding: var(--carousel-pad-y) var(--carousel-pad-x);
+  box-sizing: border-box;
+}
+
+.controlTrack {
+  display: inline-block;
+  width: fit-content;
+  margin: 0 auto;
+  white-space: nowrap;
 }
 
 .controlCard {
