@@ -120,7 +120,7 @@ function computeWorkingSize(mediaW, mediaH, maxW = 960) {
 
 function refreshSourcePixels(now, force = false) {
   if (sourceMode !== "video" || !activeVideo) return;
-
+  if (canvas.width <= 0 || canvas.height <= 0) return;
   if (!force && now != null && now - lastVideoSample < VIDEO_SAMPLE_INTERVAL)
     return;
 
@@ -131,8 +131,18 @@ function refreshSourcePixels(now, force = false) {
   lastVideoSample = now != null ? now : performance.now();
 }
 
+async function waitForVideoDimensions(video, timeoutMs = 2000) {
+  const start = performance.now();
+
+  if (video.videoWidth > 0 && video.videoHeight > 0) return true;
+  while (performance.now() - start < timeoutMs) {
+    await new Promise((res) => requestAnimationFrame(res));
+    if (video.videoWidth > 0 && video.videoHeight > 0) return true;
+  }
+  return false;
+}
+
 function enterVideoMode(video) {
-  cleanupActiveMedia();
   sourceMode = "video";
   activeVideo = video;
   lastVideoSample = 0;
@@ -158,6 +168,7 @@ function sampleCurrentVideoFrame() {
 
   const w = imgCanvas.width;
   const h = imgCanvas.height;
+  if (w <= 0 || h <= 0) return;
 
   imgCtx.drawImage(activeVideo, 0, 0, w, h);
   imageData = imgCtx.getImageData(0, 0, w, h).data;
@@ -176,6 +187,7 @@ function loadVideo(video) {
   canvas.height = h;
 
   sampleCurrentVideoFrame();
+  if (!imageData) return;
   seedPoints();
   getVoronoi();
   renderFrame();
@@ -225,6 +237,8 @@ const toneResponse = {
 };
 
 function seedPoints() {
+  if (!imageData || canvas.width <= 0 || canvas.height <= 0) return;
+
   const acceptanceFn = toneResponse[seedPreference];
   currentPoints = [];
 
@@ -565,7 +579,6 @@ function loadImage(img) {
 // Handlers
 
 function enterImageMode() {
-  cleanupActiveMedia();
   sourceMode = "image";
   videoPlaying = false;
   activeVideo = null;
