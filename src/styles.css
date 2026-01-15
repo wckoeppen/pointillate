@@ -301,16 +301,21 @@ wa-details::part(header) {
   }
 }
 
-@media (orientation: landscape) and (max-width: 900px) {
+@media (max-height: 600px) {
   h1 {
     font-size: 1rem;
   }
-
   :root {
     --title-height: 2em;
     --carousel-pad-y: 8px;
     --card-gap: 8px;
     --dock-height: 55px;
     --dock-open-height: 180px;
+  }
+}
+
+@media (max-width: 760px) {
+  #controlDock {
+    column-gap: 0;
   }
 }

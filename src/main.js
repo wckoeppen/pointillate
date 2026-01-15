@@ -1,18 +1,15 @@
 import { Delaunay } from "d3-delaunay";
 
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
-import "@awesome.me/webawesome/dist/components/details/details.js";
 import "@awesome.me/webawesome/dist/components/select/select.js";
 import "@awesome.me/webawesome/dist/components/option/option.js";
 import "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 import "@awesome.me/webawesome/dist/components/slider/slider.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
-import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
 import "@awesome.me/webawesome/dist/components/switch/switch.js";
 import "@awesome.me/webawesome/dist/components/dropdown/dropdown.js";
 
 // DOM refs
-
 const app = document.getElementById("app");
 const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
@@ -90,109 +87,13 @@ let lastVideoSample = 0;
 const VIDEO_SAMPLE_HZ = 15;
 const VIDEO_SAMPLE_INTERVAL = 1000 / VIDEO_SAMPLE_HZ;
 
-function cleanupActiveMedia() {
-  // Stop any video decode/network work immediately
-  if (videoEl) {
-    videoEl.pause();
-    videoEl.removeAttribute("src"); // important: detach from blob URL
-    videoEl.load(); // forces the element to reset
-    videoEl.onloadedmetadata = null;
-    videoEl.onerror = null;
-  }
-
-  activeVideo = null;
-  videoPlaying = false;
-  lastVideoSample = 0;
-
-  // Now it's safe to revoke the previous blob URL
-  if (currentMediaUrl) {
-    URL.revokeObjectURL(currentMediaUrl);
-    currentMediaUrl = null;
-  }
-}
+// Utility / helpers
 
 function computeWorkingSize(mediaW, mediaH, maxW = 960) {
   if (mediaW <= maxW) return { w: mediaW, h: mediaH };
   const scale = maxW / mediaW;
   return { w: Math.round(mediaW * scale), h: Math.round(mediaH * scale) };
 }
-
-function refreshSourcePixels(now, force = false) {
-  if (sourceMode !== "video" || !activeVideo) return;
-  if (canvas.width <= 0 || canvas.height <= 0) return;
-  if (!force && now != null && now - lastVideoSample < VIDEO_SAMPLE_INTERVAL)
-    return;
-
-  // Draw current video frame into the same buffer canvas used for images
-  imgCtx.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
-  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-
-  lastVideoSample = now != null ? now : performance.now();
-}
-
-async function waitForVideoDimensions(video, timeoutMs = 2000) {
-  const start = performance.now();
-
-  if (video.videoWidth > 0 && video.videoHeight > 0) return true;
-  while (performance.now() - start < timeoutMs) {
-    await new Promise((res) => requestAnimationFrame(res));
-    if (video.videoWidth > 0 && video.videoHeight > 0) return true;
-  }
-  return false;
-}
-
-function enterVideoMode(video) {
-  sourceMode = "video";
-  activeVideo = video;
-  lastVideoSample = 0;
-  relaxEnabled = true;
-
-  speedStore = relaxSpeed;
-  relaxSpeed = 1;
-
-  if (speedSlider) {
-    speedSlider.value = 1;
-    speedSlider.disabled = true;
-  }
-
-  videoPlaying = false;
-  video.pause();
-
-  syncPrimaryButtonUI();
-  updateLoopRunning();
-}
-
-function sampleCurrentVideoFrame() {
-  if (!activeVideo) return;
-
-  const w = imgCanvas.width;
-  const h = imgCanvas.height;
-  if (w <= 0 || h <= 0) return;
-
-  imgCtx.drawImage(activeVideo, 0, 0, w, h);
-  imageData = imgCtx.getImageData(0, 0, w, h).data;
-}
-
-function loadVideo(video) {
-  stopLoop();
-
-  enterVideoMode(video);
-  setMediaSize(video.videoWidth, video.videoHeight);
-
-  const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
-  imgCanvas.width = w;
-  imgCanvas.height = h;
-  canvas.width = w;
-  canvas.height = h;
-
-  sampleCurrentVideoFrame();
-  if (!imageData) return;
-  seedPoints();
-  getVoronoi();
-  renderFrame();
-}
-
-// Image sampling helpers
 
 function getBrightness(imageDataArr, width, height, x, y) {
   const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
@@ -228,47 +129,11 @@ function getColorStringAtPoint(imageDataArr, w, h, x, y) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-// Do we target darks, lights, or give everything equal weight?
 const toneResponse = {
   dark: (b) => 1 - b / 255,
   light: (b) => b / 255,
   none: () => 1,
 };
-
-function seedPoints() {
-  if (!imageData || canvas.width <= 0 || canvas.height <= 0) return;
-
-  const acceptanceFn = toneResponse[seedPreference];
-  currentPoints = [];
-
-  while (currentPoints.length < numPoints) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-
-    if (seedPreference === "none") {
-      currentPoints.push([x, y]);
-      continue;
-    }
-
-    const brightness = getBrightness(
-      imageData,
-      canvas.width,
-      canvas.height,
-      x,
-      y
-    );
-
-    const p = acceptanceFn(brightness);
-    if (Math.random() < p) {
-      currentPoints.push([x, y]);
-    }
-  }
-}
-
-function getVoronoi() {
-  delaunay = Delaunay.from(currentPoints);
-  voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]);
-}
 
 function lerp(start, end, inc) {
   return [
@@ -284,6 +149,150 @@ function drawPoint(drawCtx, x, y, color = "black", radius = 1) {
   drawCtx.fill();
 }
 
+// Media / image handling
+
+function cleanupActiveMedia() {
+  // Stop any video decode/network work immediately
+  if (videoEl) {
+    videoEl.pause();
+    videoEl.removeAttribute("src");
+    videoEl.load();
+    videoEl.onloadedmetadata = null;
+    videoEl.onerror = null;
+  }
+
+  activeVideo = null;
+  videoPlaying = false;
+  lastVideoSample = 0;
+
+  if (currentMediaUrl) {
+    URL.revokeObjectURL(currentMediaUrl);
+    currentMediaUrl = null;
+  }
+}
+
+function refreshSourcePixels(now, force = false) {
+  if (sourceMode !== "video" || !activeVideo) return;
+  if (canvas.width <= 0 || canvas.height <= 0) return;
+  if (!force && now != null && now - lastVideoSample < VIDEO_SAMPLE_INTERVAL)
+    return;
+
+  imgCtx.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
+  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+  lastVideoSample = now != null ? now : performance.now();
+}
+
+function sampleCurrentVideoFrame() {
+  if (!activeVideo) return;
+
+  const w = imgCanvas.width;
+  const h = imgCanvas.height;
+  if (w <= 0 || h <= 0) return;
+
+  imgCtx.drawImage(activeVideo, 0, 0, w, h);
+  imageData = imgCtx.getImageData(0, 0, w, h).data;
+}
+
+function loadImage(img) {
+  sourceMode = "image";
+  activeVideo = null;
+  lastVideoSample = 0;
+
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+
+  setMediaSize(img.naturalWidth, img.naturalHeight);
+  let drawWidth = img.naturalWidth;
+  let drawHeight = img.naturalHeight;
+
+  // resize large images?
+  if (img.width > 960) {
+    const scale = 960 / img.width;
+    drawWidth = 960;
+    drawHeight = img.height * scale;
+  }
+
+  imgCanvas.width = drawWidth;
+  imgCanvas.height = drawHeight;
+  canvas.width = drawWidth;
+  canvas.height = drawHeight;
+
+  imgCtx.drawImage(img, 0, 0, drawWidth, drawHeight);
+
+  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+  seedPoints();
+  getVoronoi();
+  renderFrame();
+}
+
+function loadVideo(video) {
+  stopLoop();
+
+  enterVideoMode(video);
+  setMediaSize(video.videoWidth, video.videoHeight);
+
+  const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
+  imgCanvas.width = w;
+  imgCanvas.height = h;
+  canvas.width = w;
+  canvas.height = h;
+
+  sampleCurrentVideoFrame();
+  if (!imageData) return;
+  seedPoints();
+  getVoronoi();
+  renderFrame();
+}
+
+// Seeding / relaxation / voronoi
+
+function seedPoints() {
+  if (!imageData || canvas.width <= 0 || canvas.height <= 0) return;
+
+  const acceptanceFn = toneResponse[seedPreference];
+  currentPoints = [];
+
+  const maxAttempts = Math.max(1000, numPoints * 20);
+  let attempts = 0;
+
+  while (currentPoints.length < numPoints && attempts < maxAttempts) {
+    attempts++;
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+
+    if (seedPreference === "none") {
+      currentPoints.push([x, y]);
+      continue;
+    }
+
+    const brightness = getBrightness(
+      imageData,
+      canvas.width,
+      canvas.height,
+      x,
+      y
+    );
+    const p = acceptanceFn(brightness);
+    if (Math.random() < p) currentPoints.push([x, y]);
+  }
+
+  // If we ran out of attempts, fill the remaining points randomly.
+  while (currentPoints.length < numPoints) {
+    currentPoints.push([
+      Math.random() * canvas.width,
+      Math.random() * canvas.height,
+    ]);
+  }
+}
+
+function getVoronoi() {
+  delaunay = Delaunay.from(currentPoints);
+  voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]);
+}
+
 function relaxPoints() {
   const weightFunction = toneResponse[relaxPreference];
   const n = currentPoints.length;
@@ -291,20 +300,23 @@ function relaxPoints() {
   for (let i = 0; i < n; i++) targetPoints[i] = [0, 0];
   const targetWeights = new Array(n).fill(0);
 
-  let delaunayIndex = 0;
+  const data = imageData;
+  const wCanvas = canvas.width;
+  const hCanvas = canvas.height;
 
-  for (let x = 0; x < canvas.width; x++) {
-    for (let y = 0; y < canvas.height; y++) {
-      const idx = (y * canvas.width + x) * 4;
-      const r = imageData[idx];
-      const g = imageData[idx + 1];
-      const b = imageData[idx + 2];
+  let delaunayIndex = 0;
+  for (let y = 0; y < hCanvas; y++) {
+    const rowBase = y * wCanvas * 4;
+    for (let x = 0; x < wCanvas; x++) {
+      const idx = rowBase + x * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
 
       const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      const w = weightFunction(brightness);
 
-      let w = weightFunction(brightness);
-
-      // nearest site index in currentPoints
+      // nearest site index in currentPoints (use previous index as hint)
       delaunayIndex = delaunay.find(x, y, delaunayIndex);
 
       targetPoints[delaunayIndex][0] += x * w;
@@ -318,7 +330,7 @@ function relaxPoints() {
       targetPoints[i][0] /= targetWeights[i];
       targetPoints[i][1] /= targetWeights[i];
     } else {
-      targetPoints[i] = [...currentPoints[i]];
+      targetPoints[i] = [currentPoints[i][0], currentPoints[i][1]];
     }
   }
 
@@ -327,10 +339,11 @@ function relaxPoints() {
   }
 
   delaunay = Delaunay.from(currentPoints);
-  voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]);
+  voronoi = delaunay.voronoi([0, 0, wCanvas, hCanvas]);
 }
 
-// Render
+// Rendering
+
 function renderFrame() {
   if (!imgCtx || !imageData) return;
 
@@ -342,9 +355,9 @@ function renderFrame() {
   const showPoints = pointToggle?.checked ?? true;
   const w = canvas.width;
   const h = canvas.height;
+  const data = imageData;
 
   if (showPoints) {
-    // ctx.globalAlpha = 0.9;
     const useUniform = sizePreference === "none";
     const sizeFn = toneResponse[sizePreference];
     let radiusSpan = maxRadius - minRadius;
@@ -355,7 +368,7 @@ function renderFrame() {
       const radius = useUniform
         ? uniformRadius
         : (() => {
-            const brightness = getBrightness(imageData, w, h, x, y);
+            const brightness = getBrightness(data, w, h, x, y);
             const t = sizeFn(brightness);
             const curved = t * t;
             return minRadius + curved * radiusSpan;
@@ -363,7 +376,7 @@ function renderFrame() {
 
       let color = pointColor;
       if (showColor) {
-        const { r, g, b } = getColor(imageData, w, h, x, y);
+        const { r, g, b } = getColor(data, w, h, x, y);
         color = `rgb(${r}, ${g}, ${b})`;
       }
 
@@ -382,13 +395,7 @@ function renderFrame() {
 
       if (showColor) {
         const [x, y] = currentPoints[i];
-        const { r, g, b } = getColor(
-          imageData,
-          canvas.width,
-          canvas.height,
-          x,
-          y
-        );
+        const { r, g, b } = getColor(data, w, h, x, y);
         ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         ctx.fill();
       } else {
@@ -399,14 +406,14 @@ function renderFrame() {
   }
 }
 
-// Control the layout
+// Canvas sizing helpers
+
 function setMediaSize(w, h) {
   mediaWidth = w;
   mediaHeight = h;
   fitCanvas();
 }
 
-// Resize the canvas if we open/close controls or resize, but don't do it too often
 function fitCanvas() {
   if (!mediaWidth || !mediaHeight) return;
 
@@ -433,16 +440,8 @@ function scheduleFitCanvas() {
 new ResizeObserver(scheduleFitCanvas).observe(controlPane);
 window.addEventListener("resize", scheduleFitCanvas);
 
-// Controls
-function setSeedPreference(next) {
-  seedPreference = next;
+// UI sync / controls helpers
 
-  seedPoints();
-  getVoronoi();
-  renderFrame();
-}
-
-// Always keep radiusRange.maxValue and radiusSlider.value in sync
 function syncRadiusValuesUI() {
   if (sizePreference === "none") {
     uniformRadius = radiusSlider.value;
@@ -480,6 +479,43 @@ function syncRadiusUI() {
   radiusRange.style.display = "";
 }
 
+function syncPrimaryButtonUI() {
+  const isVideo = sourceMode === "video";
+  const on = isVideo ? videoPlaying : relaxEnabled;
+
+  runButton.appearance = on ? "accent" : "filled";
+  runIcon.setAttribute("name", on ? "pause" : "play");
+  runButton.setAttribute("aria-pressed", String(on));
+  runButton.setAttribute(
+    "aria-label",
+    isVideo
+      ? on
+        ? "Pause video"
+        : "Play video"
+      : on
+      ? "Pause relaxation"
+      : "Start relaxation"
+  );
+}
+
+function syncControlsButton() {
+  const open = app.classList.contains("controls-open");
+
+  optionsButton.appearance = open ? "accent" : "filled";
+  optionsButton.setAttribute(
+    "aria-label",
+    open ? "Collapse options" : "Open options"
+  );
+}
+
+function setSeedPreference(next) {
+  seedPreference = next;
+
+  seedPoints();
+  getVoronoi();
+  renderFrame();
+}
+
 function setSizePreference(next) {
   if (next === sizePreference) return;
   sizePreference = next;
@@ -497,7 +533,37 @@ function setRelaxPreference(next) {
   renderFrame();
 }
 
-//  Lifecycle
+function setRelaxEnabled(next) {
+  // In video mode, relaxation is forced ON
+  if (sourceMode === "video") next = true;
+
+  relaxEnabled = !!next;
+  syncPrimaryButtonUI();
+  updateLoopRunning();
+}
+
+function setVideoPlaying(next) {
+  videoPlaying = !!next;
+
+  if (activeVideo) {
+    if (videoPlaying) activeVideo.play();
+    else activeVideo.pause();
+  }
+
+  syncPrimaryButtonUI();
+  updateLoopRunning();
+}
+
+function togglePrimary() {
+  if (sourceMode === "video") setVideoPlaying(!videoPlaying);
+  else setRelaxEnabled(!relaxEnabled);
+}
+
+function syncVideoUI() {
+  // placeholder if additional video UI sync is needed
+}
+
+// Lifecycle / loop
 
 function startLoop() {
   if (animationFrameId != null) return;
@@ -518,6 +584,7 @@ function tick(now) {
   if (isVideo) {
     if (videoPlaying) refreshSourcePixels(now);
   } else {
+    // image-mode periodic tasks (none currently)
   }
 
   if (relaxEnabled) relaxPoints();
@@ -539,125 +606,7 @@ function updateLoopRunning() {
   else stopLoop();
 }
 
-//  Image loading / initialization
-
-function loadImage(img) {
-  sourceMode = "image";
-  activeVideo = null;
-  lastVideoSample = 0;
-
-  if (animationFrameId !== null) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-  }
-
-  setMediaSize(img.naturalWidth, img.naturalHeight);
-  let drawWidth = img.naturalWidth;
-  let drawHeight = img.naturalHeight;
-
-  // resize large images?
-  if (img.width > 960) {
-    const scale = 960 / img.width;
-    drawWidth = 960;
-    drawHeight = img.height * scale;
-  }
-
-  imgCanvas.width = drawWidth;
-  imgCanvas.height = drawHeight;
-  canvas.width = drawWidth;
-  canvas.height = drawHeight;
-
-  imgCtx.drawImage(img, 0, 0, drawWidth, drawHeight);
-
-  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-  seedPoints();
-  getVoronoi();
-  renderFrame();
-}
-
-// Handlers
-
-function enterImageMode() {
-  sourceMode = "image";
-  videoPlaying = false;
-  activeVideo = null;
-  relaxEnabled = false;
-
-  relaxSpeed = speedStore;
-  if (speedSlider) {
-    speedSlider.value = relaxSpeed;
-    speedSlider.disabled = false;
-  }
-
-  syncPrimaryButtonUI();
-  updateLoopRunning();
-}
-
-function handleImageUpload(file) {
-  stopLoop();
-  cleanupActiveMedia();
-
-  const img = new Image();
-  const url = URL.createObjectURL(file);
-
-  img.onload = () => {
-    enterImageMode();
-    loadImage(img);
-    URL.revokeObjectURL(url);
-    if (currentMediaUrl === url) currentMediaUrl = null;
-  };
-
-  img.onerror = () => {
-    URL.revokeObjectURL(url);
-    if (currentMediaUrl === url) currentMediaUrl = null;
-    alert("Failed to load image.");
-  };
-
-  img.src = url;
-}
-
-function handleVideoUpload(file) {
-  stopLoop();
-  cleanupActiveMedia();
-
-  const url = URL.createObjectURL(file);
-  currentMediaUrl = url;
-
-  videoEl.src = url;
-  videoEl.muted = true;
-  videoEl.playsInline = true;
-  videoEl.loop = true;
-
-  const thisUrl = url;
-
-  videoEl.onloadedmetadata = async () => {
-    if (videoEl.src !== thisUrl) return;
-
-    // first frame of videos can be black
-    if (videoEl.readyState < 2) {
-      await new Promise((res) =>
-        videoEl.addEventListener("loadeddata", res, { once: true })
-      );
-      if (videoEl.src !== thisUrl) return; // stale
-    }
-
-    if (videoEl.requestVideoFrameCallback) {
-      await new Promise((res) =>
-        videoEl.requestVideoFrameCallback(() => res())
-      );
-      if (videoEl.src !== thisUrl) return; // stale
-    }
-
-    loadVideo(videoEl);
-  };
-
-  videoEl.onerror = () => {
-    if (videoEl.src === thisUrl) {
-      cleanupActiveMedia();
-      alert("Failed to load video.");
-    }
-  };
-}
+// Save / export
 
 function downloadJson(filename, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -717,96 +666,44 @@ function savePNG() {
   }, "image/png");
 }
 
-saveDropdown?.addEventListener("wa-select", (e) => {
-  const value = e.detail.item.value;
+// Controls / handlers
 
-  if (value === "json") {
-    saveJSON();
-  } else if (value === "png") {
-    savePNG();
+function enterVideoMode(video) {
+  const prevMode = sourceMode;
+  sourceMode = "video";
+  activeVideo = video;
+  lastVideoSample = 0;
+  relaxEnabled = true;
+
+  if (prevMode !== "video") speedStore = relaxSpeed;
+  relaxSpeed = 1;
+
+  if (speedSlider) {
+    speedSlider.value = 1;
+    speedSlider.disabled = true;
   }
-});
 
-function loadInitial() {
-  const img = new Image();
-  img.src = `${import.meta.env.BASE_URL}test-photo-small.jpg`;
-
-  img.onload = async () => {
-    await Promise.all([
-      radiusRange?.updateComplete,
-      numPointsSlider?.updateComplete,
-      speedSlider?.updateComplete,
-    ]);
-
-    loadImage(img);
-
-    app.classList.remove("loading");
-    app.classList.add("ready");
-
-    // Wait two frames
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        scrollToCardInCarousel(cardToStart);
-      });
-    });
-  };
-}
-
-loadInitial();
-
-function setRelaxEnabled(next) {
-  // In video mode, relaxation is forced ON
-  if (sourceMode === "video") next = true;
-
-  relaxEnabled = !!next;
-  syncPrimaryButtonUI();
-  updateLoopRunning();
-}
-
-function setVideoPlaying(next) {
-  videoPlaying = !!next;
-
-  if (activeVideo) {
-    if (videoPlaying) activeVideo.play();
-    else activeVideo.pause();
-  }
+  videoPlaying = false;
+  video.pause();
 
   syncPrimaryButtonUI();
   updateLoopRunning();
 }
 
-function syncPrimaryButtonUI() {
-  const isVideo = sourceMode === "video";
-  const on = isVideo ? videoPlaying : relaxEnabled;
+function enterImageMode() {
+  sourceMode = "image";
+  videoPlaying = false;
+  activeVideo = null;
+  relaxEnabled = false;
 
-  runButton.appearance = on ? "accent" : "filled";
-  runIcon.setAttribute("name", on ? "pause" : "play");
-  runButton.setAttribute("aria-pressed", String(on));
-  runButton.setAttribute(
-    "aria-label",
-    isVideo
-      ? on
-        ? "Pause video"
-        : "Play video"
-      : on
-      ? "Pause relaxation"
-      : "Start relaxation"
-  );
-}
+  relaxSpeed = speedStore;
+  if (speedSlider) {
+    speedSlider.value = relaxSpeed;
+    speedSlider.disabled = false;
+  }
 
-function syncControlsButton() {
-  const open = app.classList.contains("controls-open");
-
-  optionsButton.appearance = open ? "accent" : "filled";
-  optionsButton.setAttribute(
-    "aria-label",
-    open ? "Collapse options" : "Open options"
-  );
-}
-
-function togglePrimary() {
-  if (sourceMode === "video") setVideoPlaying(!videoPlaying);
-  else setRelaxEnabled(!relaxEnabled);
+  syncPrimaryButtonUI();
+  updateLoopRunning();
 }
 
 function resetScene() {
@@ -852,6 +749,8 @@ function scrollToCardInCarousel(card) {
     behavior: "instant",
   });
 }
+
+// Event listeners
 
 runButton?.addEventListener("click", togglePrimary);
 canvasStage?.addEventListener("click", togglePrimary);
@@ -920,7 +819,6 @@ sizeSelect.addEventListener("change", (event) => {
   }
 });
 
-// Color button listeners
 backgroundColorBtn.addEventListener("input", () => {
   backgroundColor = backgroundColorBtn.value;
 
@@ -954,7 +852,6 @@ seedSelect.addEventListener("change", (event) => {
   }
 });
 
-// Video listeners
 videoButton?.addEventListener("click", async () => {
   try {
     await videoEl.play();
@@ -1037,3 +934,109 @@ canvasStage.addEventListener(
 pointToggle?.addEventListener("change", renderFrame);
 cellToggle?.addEventListener("change", renderFrame);
 colorToggle?.addEventListener("change", renderFrame);
+
+saveDropdown?.addEventListener("wa-select", (e) => {
+  const value = e.detail.item.value;
+
+  if (value === "json") {
+    saveJSON();
+  } else if (value === "png") {
+    savePNG();
+  }
+});
+
+// File upload handlers
+function handleImageUpload(file) {
+  stopLoop();
+  cleanupActiveMedia();
+
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+
+  img.onload = () => {
+    enterImageMode();
+    loadImage(img);
+    URL.revokeObjectURL(url);
+    if (currentMediaUrl === url) currentMediaUrl = null;
+  };
+
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+    if (currentMediaUrl === url) currentMediaUrl = null;
+    alert("Failed to load image.");
+  };
+
+  img.src = url;
+}
+
+function handleVideoUpload(file) {
+  stopLoop();
+  cleanupActiveMedia();
+
+  const url = URL.createObjectURL(file);
+  currentMediaUrl = url;
+
+  videoEl.src = url;
+  videoEl.muted = true;
+  videoEl.playsInline = true;
+  videoEl.loop = true;
+
+  const thisUrl = url;
+
+  videoEl.onloadedmetadata = async () => {
+    if (videoEl.src !== thisUrl) return;
+
+    // first frame of videos can be black
+    if (videoEl.readyState < 2) {
+      await new Promise((res) =>
+        videoEl.addEventListener("loadeddata", res, { once: true })
+      );
+      if (videoEl.src !== thisUrl) return; // stale
+    }
+
+    if (videoEl.requestVideoFrameCallback) {
+      await new Promise((res) =>
+        videoEl.requestVideoFrameCallback(() => res())
+      );
+      if (videoEl.src !== thisUrl) return; // stale
+    }
+
+    loadVideo(videoEl);
+  };
+
+  videoEl.onerror = () => {
+    if (videoEl.src === thisUrl) {
+      cleanupActiveMedia();
+      alert("Failed to load video.");
+    }
+  };
+}
+
+// Initialization
+
+function loadInitial() {
+  const img = new Image();
+  img.src = `${import.meta.env.BASE_URL}test-photo-small.jpg`;
+
+  img.onload = async () => {
+    await Promise.all([
+      radiusRange?.updateComplete,
+      numPointsSlider?.updateComplete,
+      speedSlider?.updateComplete,
+    ]);
+
+    loadImage(img);
+
+    app.classList.remove("loading");
+    app.classList.add("ready");
+
+    // Wait two frames
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToCardInCarousel(cardToStart);
+      });
+    });
+  };
+}
+
+loadInitial();
