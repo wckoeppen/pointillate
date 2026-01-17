@@ -643,18 +643,18 @@ function saveJSON() {
     return { i, x, y, weight, color };
   });
 
-  downloadJson("stipple-points.json", {
+  downloadJson("seed-points.json", {
     createdAt: new Date().toISOString(),
     width: w,
     height: h,
-    pointCount: exported.length,
-    points: exported,
+    seedCount: exported.length,
+    seeds: exported,
   });
 }
 
 function savePNG() {
   const ts = new Date().toISOString().replace(/[:.]/g, "-");
-  const filename = `stipple-${ts}.png`;
+  const filename = `pointillated-${ts}.png`;
 
   canvas.toBlob((blob) => {
     if (!blob) return;
@@ -947,7 +947,7 @@ saveDropdown?.addEventListener("wa-select", (e) => {
   }
 });
 
-// File upload handlers
+// File handlers
 function handleImageUpload(file) {
   stopLoop();
   cleanupActiveMedia();
@@ -1015,10 +1015,9 @@ function handleVideoUpload(file) {
 }
 
 // Initialization
-
-function loadInitial() {
+function setup() {
   const img = new Image();
-  img.src = `${import.meta.env.BASE_URL}test-photo-small.jpg`;
+  img.src = `${import.meta.env.BASE_URL}example-1.jpg`;
 
   img.onload = async () => {
     await Promise.all([
@@ -1026,13 +1025,12 @@ function loadInitial() {
       numPointsSlider?.updateComplete,
       speedSlider?.updateComplete,
     ]);
-
     loadImage(img);
 
     app.classList.remove("loading");
     app.classList.add("ready");
 
-    // Wait two frames
+    // Wait two paints
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         scrollToCardInCarousel(cardToStart);
@@ -1041,4 +1039,4 @@ function loadInitial() {
   };
 }
 
-loadInitial();
+setup();
