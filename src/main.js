@@ -14,7 +14,6 @@ const app = document.getElementById("app");
 const controlPane = document.getElementById("controlPane");
 const canvasStage = document.getElementById("canvasStage");
 const canvas = document.getElementById("canvas");
-
 const controlCarousel = document.getElementById("controlCarousel");
 const cardToStart = document.getElementById("cardToStart");
 
@@ -56,13 +55,14 @@ let currentPoints = [];
 let delaunay;
 let voronoi;
 let animationFrameId = null;
-let imgCanvas = document.createElement("canvas"); // this is for the image data
-const ctx = canvas.getContext("2d", { willReadFrequently: true });
-const imgCtx = imgCanvas.getContext("2d", { willReadFrequently: true });
-let imageData;
+let referenceCanvas = document.createElement("canvas"); // hidden, sample from here
+const referenceContext = referenceCanvas.getContext("2d", { willReadFrequently: true }); // interface
+let referenceData;
+const canvasContext = canvas.getContext("2d", { willReadFrequently: true }); // visible interface
 let sourceMode = "image"; // "image" | "video"
 let mediaWidth = 0;
 let mediaHeight = 0;
+let selectedFile = "example-1.jpg";
 
 let numPoints = numPointsSlider?.value || 1000;
 let minRadius = radiusRange?.minValue || 1;
@@ -87,7 +87,7 @@ let lineColor = lineColorBtn?.value || "#000";
 let activeVideo = null;
 let currentMediaUrl = null;
 let lastVideoSample = 0;
-const VIDEO_SAMPLE_HZ = 15;
+const VIDEO_SAMPLE_HZ = 24;
 const VIDEO_SAMPLE_INTERVAL = 1000 / VIDEO_SAMPLE_HZ;
 
 // Utility / helpers
@@ -98,37 +98,37 @@ function computeWorkingSize(mediaW, mediaH, maxW = 960) {
   return { w: Math.round(mediaW * scale), h: Math.round(mediaH * scale) };
 }
 
-function getBrightness(imageDataArr, width, height, x, y) {
+function getBrightness(data, width, height, x, y) {
   const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
   const iy = Math.max(0, Math.min(height - 1, Math.floor(y)));
   const idx = (iy * width + ix) * 4;
 
   return (
-    0.2126 * imageDataArr[idx] +
-    0.7152 * imageDataArr[idx + 1] +
-    0.0722 * imageDataArr[idx + 2]
+    0.2126 * data[idx] +
+    0.7152 * data[idx + 1] +
+    0.0722 * data[idx + 2]
   );
 }
 
-function getColor(imageDataArr, width, height, x, y) {
+function getColor(data, width, height, x, y) {
   const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
   const iy = Math.max(0, Math.min(height - 1, Math.floor(y)));
   const idx = (iy * width + ix) * 4;
 
-  const r = imageDataArr[idx];
-  const g = imageDataArr[idx + 1];
-  const b = imageDataArr[idx + 2];
+  const r = data[idx];
+  const g = data[idx + 1];
+  const b = data[idx + 2];
 
   return { r, g, b };
 }
 
-function getWeightAtPoint(imageDataArr, w, h, x, y) {
-  const brightness = getBrightness(imageDataArr, w, h, x, y); // 0..255
+function getWeightAtPoint(data, w, h, x, y) {
+  const brightness = getBrightness(data, w, h, x, y); // 0..255
   return 1 - brightness / 255; // 0..1 darkness
 }
 
-function getColorStringAtPoint(imageDataArr, w, h, x, y) {
-  const { r, g, b } = getColor(imageDataArr, w, h, x, y);
+function getColorStringAtPoint(data, w, h, x, y) {
+  const { r, g, b } = getColor(data, w, h, x, y);
   return `rgb(${r}, ${g}, ${b})`;
 }
 
@@ -145,11 +145,11 @@ function lerp(start, end, inc) {
   ];
 }
 
-function drawPoint(drawCtx, x, y, color = "black", radius = 1) {
-  drawCtx.fillStyle = color;
-  drawCtx.beginPath();
-  drawCtx.arc(x, y, radius, 0, Math.PI * 2);
-  drawCtx.fill();
+function drawPoint(drawcanvasContext, x, y, color = "black", radius = 1) {
+  drawcanvasContext.fillStyle = color;
+  drawcanvasContext.beginPath();
+  drawcanvasContext.arc(x, y, radius, 0, Math.PI * 2);
+  drawcanvasContext.fill();
 }
 
 // Media / image handling
@@ -180,8 +180,8 @@ function refreshSourcePixels(now, force = false) {
   if (!force && now != null && now - lastVideoSample < VIDEO_SAMPLE_INTERVAL)
     return;
 
-  imgCtx.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
-  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+  referenceContext.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
+  referenceData = referenceContext.getImageData(0, 0, canvas.width, canvas.height).data;
 
   lastVideoSample = now != null ? now : performance.now();
 }
@@ -189,12 +189,12 @@ function refreshSourcePixels(now, force = false) {
 function sampleCurrentVideoFrame() {
   if (!activeVideo) return;
 
-  const w = imgCanvas.width;
-  const h = imgCanvas.height;
+  const w = referenceCanvas.width;
+  const h = referenceCanvas.height;
   if (w <= 0 || h <= 0) return;
 
-  imgCtx.drawImage(activeVideo, 0, 0, w, h);
-  imageData = imgCtx.getImageData(0, 0, w, h).data;
+  referenceContext.drawImage(activeVideo, 0, 0, w, h);
+  referenceData = referenceContext.getImageData(0, 0, w, h).data;
 }
 
 function loadImage(img) {
@@ -218,14 +218,14 @@ function loadImage(img) {
     drawHeight = img.height * scale;
   }
 
-  imgCanvas.width = drawWidth;
-  imgCanvas.height = drawHeight;
+  referenceCanvas.width = drawWidth;
+  referenceCanvas.height = drawHeight;
   canvas.width = drawWidth;
   canvas.height = drawHeight;
 
-  imgCtx.drawImage(img, 0, 0, drawWidth, drawHeight);
+  referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
 
-  imageData = imgCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+  referenceData = referenceContext.getImageData(0, 0, canvas.width, canvas.height).data;
   seedPoints();
   getVoronoi();
   renderFrame();
@@ -238,13 +238,13 @@ function loadVideo(video) {
   setMediaSize(video.videoWidth, video.videoHeight);
 
   const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
-  imgCanvas.width = w;
-  imgCanvas.height = h;
+  referenceCanvas.width = w;
+  referenceCanvas.height = h;
   canvas.width = w;
   canvas.height = h;
 
   sampleCurrentVideoFrame();
-  if (!imageData) return;
+  if (!referenceData) return;
   seedPoints();
   getVoronoi();
   renderFrame();
@@ -253,7 +253,7 @@ function loadVideo(video) {
 // Seeding / relaxation / voronoi
 
 function seedPoints() {
-  if (!imageData || canvas.width <= 0 || canvas.height <= 0) return;
+  if (!referenceData || canvas.width <= 0 || canvas.height <= 0) return;
 
   const acceptanceFn = toneResponse[seedPreference];
   currentPoints = [];
@@ -272,7 +272,7 @@ function seedPoints() {
     }
 
     const brightness = getBrightness(
-      imageData,
+      referenceData,
       canvas.width,
       canvas.height,
       x,
@@ -303,7 +303,7 @@ function relaxPoints() {
   for (let i = 0; i < n; i++) targetPoints[i] = [0, 0];
   const targetWeights = new Array(n).fill(0);
 
-  const data = imageData;
+  const data = referenceData;
   const wCanvas = canvas.width;
   const hCanvas = canvas.height;
 
@@ -348,17 +348,17 @@ function relaxPoints() {
 // Rendering
 
 function renderFrame() {
-  if (!imgCtx || !imageData) return;
+  if (!referenceContext || !referenceData) return;
 
-  ctx.fillStyle = backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  canvasContext.fillStyle = backgroundColor;
+  canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
   const showColor = colorToggle?.checked ?? false;
   const showPolygons = cellToggle?.checked ?? false;
   const showPoints = pointToggle?.checked ?? true;
   const w = canvas.width;
   const h = canvas.height;
-  const data = imageData;
+  const data = referenceData;
 
   if (showPoints) {
     const useUniform = sizePreference === "none";
@@ -383,7 +383,7 @@ function renderFrame() {
         color = `rgb(${r}, ${g}, ${b})`;
       }
 
-      drawPoint(ctx, x, y, color, radius);
+      drawPoint(canvasContext, x, y, color, radius);
     }
   }
 
@@ -391,19 +391,19 @@ function renderFrame() {
     const cells = Array.from(voronoi.cellPolygons());
     for (let i = 0; i < cells.length; i++) {
       const poly = cells[i];
-      ctx.beginPath();
-      ctx.moveTo(poly[0][0], poly[0][1]);
-      for (let k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
-      ctx.closePath();
+      canvasContext.beginPath();
+      canvasContext.moveTo(poly[0][0], poly[0][1]);
+      for (let k = 1; k < poly.length; k++) canvasContext.lineTo(poly[k][0], poly[k][1]);
+      canvasContext.closePath();
 
       if (showColor) {
         const [x, y] = currentPoints[i];
         const { r, g, b } = getColor(data, w, h, x, y);
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        ctx.fill();
+        canvasContext.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        canvasContext.fill();
       } else {
-        ctx.strokeStyle = lineColor;
-        ctx.stroke();
+        canvasContext.strokeStyle = lineColor;
+        canvasContext.stroke();
       }
     }
   }
@@ -586,10 +586,7 @@ function tick(now) {
   const isVideo = sourceMode === "video";
   if (isVideo) {
     if (videoPlaying) refreshSourcePixels(now);
-  } else {
-    // image-mode periodic tasks (none currently)
   }
-
   if (relaxEnabled) relaxPoints();
   renderFrame();
 
@@ -611,8 +608,14 @@ function updateLoopRunning() {
 
 // Save / export
 
-function downloadJson(filename, data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
+function getBasename(filename) {
+  return filename.lastIndexOf(".") !== -1
+        ? selectedFile.slice(0, selectedFile.lastIndexOf("."))
+        : selectedFile;
+}
+
+function downloadJson(filename, metadata) {
+  const blob = new Blob([JSON.stringify(metadata, null, 2)], {
     type: "application/json",
   });
   const url = URL.createObjectURL(blob);
@@ -627,11 +630,12 @@ function downloadJson(filename, data) {
 }
 
 function saveJSON() {
-  if (!imgCtx || !imageData || currentPoints.length === 0) return;
+  if (!referenceContext || !referenceData || currentPoints.length === 0) return;
 
+  const filename = `${getBasename(selectedFile)}-pointillated.json`;
   const w = canvas.width;
   const h = canvas.height;
-  const data = imgCtx.getImageData(0, 0, w, h).data;
+  const data = referenceContext.getImageData(0, 0, w, h).data;
 
   const exported = currentPoints.map((p, i) => {
     const x = p[0];
@@ -643,18 +647,21 @@ function saveJSON() {
     return { i, x, y, weight, color };
   });
 
-  downloadJson("seed-points.json", {
-    createdAt: new Date().toISOString(),
+
+  const metadata = {
+    created: new Date().toISOString(),
+    originalFile: selectedFile,
     width: w,
     height: h,
     seedCount: exported.length,
     seeds: exported,
-  });
+  }
+  downloadJson(filename, metadata);
 }
 
 function savePNG() {
-  const ts = new Date().toISOString().replace(/[:.]/g, "-");
-  const filename = `pointillated-${ts}.png`;
+
+  const filename = `${getBasename(selectedFile)}-pointillated.png`;
 
   canvas.toBlob((blob) => {
     if (!blob) return;
@@ -783,11 +790,12 @@ controlCarousel?.addEventListener("focusin", (e) => {
   openControls();
 });
 
-
 mediaUploadDialog?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];
   if (!file) return;
 
+  selectedFile = file.name;
+  console.log();
   if (file.type.startsWith("image/")) {
     handleImageUpload(file);
   } else if (file.type.startsWith("video/")) {
@@ -824,11 +832,11 @@ radiusSlider?.addEventListener("input", () => {
 });
 
 relaxSelect.addEventListener("change", () => {
-  setRelaxPreference(relaxSelect.value)
+  setRelaxPreference(relaxSelect.value);
 });
 
 sizeSelect.addEventListener("change", () => {
-  setSizePreference(sizeSelect.value)
+  setSizePreference(sizeSelect.value);
 });
 
 backgroundColorBtn.addEventListener("input", () => {
@@ -851,7 +859,7 @@ lineColorBtn.addEventListener("input", () => {
 });
 
 seedSelect.addEventListener("change", () => {
-  setSeedPreference(seedSelect.value)
+  setSeedPreference(seedSelect.value);
 });
 
 videoButton?.addEventListener("click", async () => {
@@ -1017,7 +1025,7 @@ function handleVideoUpload(file) {
 // Initialization
 function setup() {
   const img = new Image();
-  img.src = `${import.meta.env.BASE_URL}example-1.jpg`;
+  img.src = `${import.meta.env.BASE_URL}${selectedFile}`;
 
   img.onload = async () => {
     await Promise.all([
