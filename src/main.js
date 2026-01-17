@@ -72,9 +72,9 @@ let uniformRadius = radiusSlider?.value || 1;
 let relaxSpeed = speedSlider?.value || 0.5;
 let speedStore = relaxSpeed;
 
-let seedPreference = "dark"; // "dark" | "light" | "none"
-let sizePreference = "dark"; // "dark" | "light" | "none"
-let relaxPreference = "dark"; // "dark" | "light"
+let seedPreference = seedSelect?.value || "none"; // "dark" | "light" | "none"
+let sizePreference = sizeSelect?.value || "dark"; // "dark" | "light" | "none"
+let relaxPreference = relaxSelect?.value || "dark"; // "dark" | "light"
 
 let relaxEnabled = false;
 let isRunning = false;
@@ -783,11 +783,6 @@ controlCarousel?.addEventListener("focusin", (e) => {
   openControls();
 });
 
-// If focus goes into the carousel
-// controlCarousel?.addEventListener("focusout", (e) => {
-//   closeControls();
-// });
-
 
 mediaUploadDialog?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];
@@ -828,29 +823,12 @@ radiusSlider?.addEventListener("input", () => {
   renderFrame();
 });
 
-relaxSelect.addEventListener("change", (event) => {
-  switch (event.target.value) {
-    case "relaxDark":
-      setRelaxPreference("dark");
-      break;
-    case "relaxLight":
-      setRelaxPreference("light");
-      break;
-  }
+relaxSelect.addEventListener("change", () => {
+  setRelaxPreference(relaxSelect.value)
 });
 
-sizeSelect.addEventListener("change", (event) => {
-  switch (event.target.value) {
-    case "sizeDark":
-      setSizePreference("dark");
-      break;
-    case "sizeLight":
-      setSizePreference("light");
-      break;
-    case "sizeNone":
-      setSizePreference("none");
-      break;
-  }
+sizeSelect.addEventListener("change", () => {
+  setSizePreference(sizeSelect.value)
 });
 
 backgroundColorBtn.addEventListener("input", () => {
@@ -872,18 +850,8 @@ lineColorBtn.addEventListener("input", () => {
   renderFrame();
 });
 
-seedSelect.addEventListener("change", (event) => {
-  switch (event.target.value) {
-    case "seedDark":
-      setSeedPreference("dark");
-      break;
-    case "seedLight":
-      setSeedPreference("light");
-      break;
-    case "seedRandom":
-      setSeedPreference("none");
-      break;
-  }
+seedSelect.addEventListener("change", () => {
+  setSeedPreference(seedSelect.value)
 });
 
 videoButton?.addEventListener("click", async () => {

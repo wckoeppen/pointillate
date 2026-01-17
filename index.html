@@ -62,7 +62,7 @@
                     placement="left" hoist
                     value="#FFFFFF" size="small"
                     swatches="#000; #fff"></wa-color-picker>
-                  <wa-color-picker id="pointColorBtn" label="Points"
+                  <wa-color-picker id="pointColorBtn" label="Seeds"
                     value="#000000" size="small"
                     swatches="#000; #fff"></wa-color-picker>
                   <wa-color-picker id="lineColorBtn" label="Lines"
@@ -73,7 +73,7 @@
 
               <div class="controlCard sliderWidth" id="cardToStart">
                 <div class="checks">
-                  <wa-switch checked id="pointToggle">Points</wa-switch>
+                  <wa-switch checked id="pointToggle">Seeds</wa-switch>
                   <wa-switch id="cellToggle">Cells</wa-switch>
                   <wa-switch id="colorToggle">Colors</wa-switch>
                 </div>
@@ -81,7 +81,7 @@
               <div class="controlCard sliderWidth">
                 <wa-slider with-tooltip
                   id="numPointsSlider"
-                  label="Point Count"
+                  label="Seed Count"
                   min="1000"
                   max="30000"
                   value="2000"
@@ -91,39 +91,39 @@
 
               <div class="controlCard">
                 <wa-select id="seedSelect" size="medium" label="Start from">
-                  <wa-option value="seedDark" icon-placement="start"
-                    label="Dark Areas" selected>Dark
+                  <wa-option value="dark" icon-placement="start"
+                    label="Dark Areas">Dark
                     Areas</wa-option>
-                  <wa-option value="seedLight" icon-placement="start"
+                  <wa-option value="light" icon-placement="start"
                     label="Light Areas">Light Areas</wa-option>
-                  <wa-option value="seedRandom" icon-placement="start"
-                    label="All Over">All Over</wa-option>
+                  <wa-option value="none" icon-placement="start"
+                    label="All Over" selected>All Over</wa-option>
                 </wa-select>
               </div>
 
               <div class="controlCard">
-                <wa-select id="relaxSelect" size="medium" label="Relax to">
-                  <wa-option value="relaxDark" label="Dark Areas"
+                <wa-select id="relaxSelect" size="medium" label="Gravitate to">
+                  <wa-option value="dark" label="Dark Areas"
                     selected>Dark Areas</wa-option>
-                  <wa-option value="relaxLight" label="Light Areas">Light
+                  <wa-option value="light" label="Light Areas">Light
                     Areas</wa-option>
                 </wa-select>
               </div>
 
               <div class="controlCard">
                 <wa-select id="sizeSelect" size="medium" label="Size by">
-                  <wa-option value="sizeDark" label="Darkness"
+                  <wa-option value="dark" label="Darkness"
                     selected>Darkness</wa-option>
-                  <wa-option value="sizeLight"
+                  <wa-option value="light"
                     label="Lightness">Lightness</wa-option>
-                  <wa-option value="sizeNone"
+                  <wa-option value="none"
                     label="Nothing">Nothing</wa-option>
                 </wa-select>
               </div>
               <div class="controlCard sliderWidth">
                 <wa-slider range with-tooltip
                   id="radiusRange"
-                  label="Point Size"
+                  label="Seed Size"
                   min="0"
                   max="10"
                   value="1.5"
@@ -132,7 +132,7 @@
                   step="0.1"></wa-slider>
                 <wa-slider with-tooltip
                   id="radiusSlider"
-                  label="Point Size"
+                  label="Seed Size"
                   min="0"
                   max="10"
                   value="2"
@@ -200,6 +200,7 @@
           <ul>
           <li>Edit your photo before adding it as a reference (e.g., background removal)</li>
           <li>Images with a high-contrast subject work best</li>
+          <li>Most settings can be applied mid-stream</li>
           <li>Try slowing the speed down a lot (e.g., 0.05)</li>
           </ul>
           <h3>Acknowledgements</h3>
