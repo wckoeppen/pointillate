@@ -784,9 +784,9 @@ controlCarousel?.addEventListener("focusin", (e) => {
 });
 
 // If focus goes into the carousel
-controlCarousel?.addEventListener("focusout", (e) => {
-  closeControls();
-});
+// controlCarousel?.addEventListener("focusout", (e) => {
+//   closeControls();
+// });
 
 
 mediaUploadDialog?.addEventListener("change", (e) => {
