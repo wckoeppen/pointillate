@@ -47,6 +47,9 @@ const videoButton = document.getElementById("videoButton");
 const videoEl = document.getElementById("video");
 
 const saveDropdown = document.getElementById("saveDropdown");
+const infoButton = document.getElementById("infoButton");
+const infoOverlay = document.getElementById("infoOverlay");
+const closeInfo = document.getElementById("closeInfo");
 
 // State
 let currentPoints = [];
@@ -754,6 +757,37 @@ function scrollToCardInCarousel(card) {
 
 runButton?.addEventListener("click", togglePrimary);
 canvasStage?.addEventListener("click", togglePrimary);
+
+// Overlay
+function openInfo() {
+  infoOverlay.hidden = false;
+}
+
+function closeInfoOverlay() {
+  infoOverlay.hidden = true;
+}
+
+infoButton.addEventListener("click", openInfo);
+closeInfo.addEventListener("click", closeInfoOverlay);
+
+infoOverlay.addEventListener("click", (e) => {
+  if (e.target === infoOverlay) closeInfoOverlay();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !infoOverlay.hidden) closeInfoOverlay();
+});
+
+// If focus goes into the carousel
+controlCarousel?.addEventListener("focusin", (e) => {
+  openControls();
+});
+
+// If focus goes into the carousel
+controlCarousel?.addEventListener("focusout", (e) => {
+  closeControls();
+});
+
 
 mediaUploadDialog?.addEventListener("change", (e) => {
   const file = e.target?.files?.[0];

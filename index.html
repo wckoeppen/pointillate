@@ -11,7 +11,7 @@
   <body>
     <div id="app" class="loading">
       <div id="titlePane">
-        <h1>Pointillate</h1>
+        <h1 class="title">Pointillate</h1>
       </div>
       <!-- <div id="loader" class="loader"></div> -->
 
@@ -23,6 +23,11 @@
 
       <div id="controlPane">
         <div id="controlDock">
+
+          <wa-button id="infoButton" size="small" appearance="filled"
+            aria-label="About">
+            <wa-icon name="info"></wa-icon>
+          </wa-button>
 
           <wa-button id="optionsButton" size="small" appearance="filled"
             aria-label="Edit options">
@@ -164,6 +169,82 @@
       </div>
     </div>
 
+    <div id="infoOverlay" class="info-overlay">
+      <div class="info-panel-outer">
+        <div class="info-panel-inner">
+          <wa-button id="closeInfo" size="medium" appearance="plain"
+            aria-label="Close">
+            <wa-icon name="close"></wa-icon>
+          </wa-button>
+          <h1>Pointillate</h1>
+          <p class="byline">Interactive by <a
+              href="http://www.willkoeppen.com/datavis">Will
+              Koeppen</a></p>
+          <p>Artists have used distributed dots for shading since at least <a
+              href="https://en.wikipedia.org/wiki/Stipple_engraving">1510
+              AD</a>.
+            In the late 1800s, the <a
+              href="https://en.wikipedia.org/wiki/Pointillism">Pointillism</a>
+            movement shed lines altogether and used only dots (of paint).
+            Computer scientists like <a
+              href="https://kops.uni-konstanz.de/server/api/core/bitstreams/357c2128-47cb-44bf-ac9d-734cdf9012a6/content">Deussen
+              et al. (2000)</a> and <a
+              href="https://www.cs.ubc.ca/labs/imager/tr/2002/secord2002b/secord.2002b.pdf">Secord
+              (2002)</a> explored algorithms to replicate those techniques.</p>
+          <p>As a lover of art and animation, I'm very interested in the
+            idea of visual sufficiency. How little of something can you show and
+            have people recognize what it is? Will 10,000 circles suffice over 4
+            million pixels? This project allows us to play with
+            that idea, and others.</p>
+
+          <h2>How this works</h2>
+          <p>First, we seed the canvas. We throw particles at random, but we
+            only allow them to "stick" to dark or light areas of the reference
+            image.</p>
+
+          <p>Next, the particles are allowed to relax using
+            <a
+              href="https://en.wikipedia.org/wiki/Lloyd%27s_algorithm">Lloyd&#39;s
+              Algorithm</a>. This step iteratively calculates a <a
+              href="Voronoi_diagram">Voronoi diagram</a> with the points, and it
+            moves each one towards the center of mass within of its own cell.
+            Generally speaking, this looks like particles move away from being
+            on top of each other and whatever has weight.</p>
+          <p> But what has weight? We can redefine it. Typically these
+            algorithms would seed</p>
+
+          <p>For images, the movement you see is the particles shifting towards
+            a
+            new equilibrium that&#39;s dictated by whatever we consider to have
+            weight — either brightness or darkness. But equilibrium is fleeting,
+            because once the particles have moved, we must recalculate the
+            Voronoi
+            cells, which changes the weight distribution within the cell, and
+            then
+            the particles must move again, and on and on.</p>
+          <p>For video, each frame is rendered with one relaxation iteration.
+            The
+            relaxation still works pretty well though, because each video frame
+            is, for the most part, very similar to the previous one.</p>
+          <p>This application allows you to pointillate your own images and/or
+            videos. You can add additional points, change where seeds are
+            placed,
+            decide what parts of the image should have gravity, scale the point
+            size with their weight, etc. Selecting colors fills either the
+            circle
+            or the cell with the color immediately underneath the moving Voronoi
+            cell centroid, which can have some interesting effects.</p>
+          <p>Acknowledgements: Daniel Shiffman&#39;s <a
+              href="https://thecodingtrain.com/challenges/181-image-stippling">Coding
+              Train Challenge #181</a> is was an excellent resource, and <a
+              href="https://github.com/smallwhale1/voronoi-stippling/tree/main">Sophie
+              Zhang</a>&#39;s response to the challange was an inspiring seed
+            for
+            my own iteration.</p>
+        </div>
+      </div>
+    </div>
+
     <div class="behindTheVeil">
       <video id="video" playsinline muted
         style="display: none"></video>
@@ -172,7 +253,8 @@
         aria-label="Upload image or video"
         id="mediaUploadDialog"
         accept="image/*,video/*,.mp4,.mov,.webm"
-        hidden />
+        hidden
+        tabindex="-1" />
     </div>
 
   </body>

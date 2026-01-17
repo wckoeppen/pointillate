@@ -1,7 +1,7 @@
 :root {
   --title-height: 4rem;
   --dock-height: 60px;
-  --dock-buttons: 4;
+  --dock-buttons: 5;
   --dock-open-height: 195px;
   --card-gap: 12px;
   --card-width: 180px;
@@ -30,13 +30,57 @@
   border: 1px dashed pink;
 } */
 
-h1 {
+.title {
   font-family: "Arial", sans-serif;
   font-size: 1.5rem;
   font-weight: 200;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #606060;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    position: relative;
+    color: #222;
+    margin: 0 auto;
+    max-width: 900px;
+    padding: 0 20px;
+}
+
+h1 {
+    font: normal normal 600 28px Georgia, TimesNewRoman, serif;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+h2 {
+  font: normal normal 600 24px Georgia, TimesNewRoman, serif;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+h3 {
+  font: normal normal 200 24px Helvetica, Verdana, Arial, sans-serif;
+}
+
+.byline {
+  font: italic normal 200 15px Helvetica, Verdana, Arial, sans-serif;
+  margin: 0 auto 1.5em auto;
+}
+
+p {
+    font: normal normal 100 19px/1.6em Georgia, TimesNewRoman, serif;
+    color: #333;
+    max-width: 900px;
+    margin: 1em auto;
+    padding: 0 20px;
+}
+
+a {
+  text-decoration: none;
+  -webkit-transition: ease all 0.25s;
+  transition: ease all 0.25s;
+  color: #279fcd;
 }
 
 html,
@@ -290,6 +334,42 @@ wa-details::part(base) {
 
 wa-details::part(header) {
   padding: 7px 12px;
+}
+
+.info-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.55);
+  display: none;
+  place-items: center;
+  padding: 32px;
+}
+
+.info-panel-outer {
+  display: flex;
+  position: relative;
+  width: min(720px, 100%);
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  padding: 8px 0;
+}
+
+.info-panel-inner {
+  overflow: auto;
+  padding: 16px 40px 16px 20px;
+}
+
+#closeInfo {
+  position: absolute;
+  top: 8px;
+  right: 24px;
+}
+
+.info-overlay:not([hidden]) {
+  display: grid;
 }
 
 @keyframes rotation {
