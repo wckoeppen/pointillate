@@ -56,13 +56,17 @@ let delaunay;
 let voronoi;
 let animationFrameId = null;
 let referenceCanvas = document.createElement("canvas"); // hidden, sample from here
-const referenceContext = referenceCanvas.getContext("2d", { willReadFrequently: true }); // interface
+const referenceContext = referenceCanvas.getContext("2d", {
+  willReadFrequently: true,
+});
+
 let referenceData;
 const canvasContext = canvas.getContext("2d", { willReadFrequently: true }); // visible interface
 let sourceMode = "image"; // "image" | "video"
 let mediaWidth = 0;
 let mediaHeight = 0;
 let selectedFile = "example-1.jpg";
+const blurPixels = 1;
 
 let numPoints = numPointsSlider?.value || 1000;
 let minRadius = radiusRange?.minValue || 1;
@@ -91,7 +95,6 @@ const VIDEO_SAMPLE_HZ = 24;
 const VIDEO_SAMPLE_INTERVAL = 1000 / VIDEO_SAMPLE_HZ;
 
 // Utility / helpers
-
 function computeWorkingSize(mediaW, mediaH, maxW = 960) {
   if (mediaW <= maxW) return { w: mediaW, h: mediaH };
   const scale = maxW / mediaW;
@@ -103,11 +106,7 @@ function getBrightness(data, width, height, x, y) {
   const iy = Math.max(0, Math.min(height - 1, Math.floor(y)));
   const idx = (iy * width + ix) * 4;
 
-  return (
-    0.2126 * data[idx] +
-    0.7152 * data[idx + 1] +
-    0.0722 * data[idx + 2]
-  );
+  return 0.2126 * data[idx] + 0.7152 * data[idx + 1] + 0.0722 * data[idx + 2];
 }
 
 function getColor(data, width, height, x, y) {
@@ -181,7 +180,12 @@ function refreshSourcePixels(now, force = false) {
     return;
 
   referenceContext.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
-  referenceData = referenceContext.getImageData(0, 0, canvas.width, canvas.height).data;
+  referenceData = referenceContext.getImageData(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  ).data;
 
   lastVideoSample = now != null ? now : performance.now();
 }
@@ -220,12 +224,21 @@ function loadImage(img) {
 
   referenceCanvas.width = drawWidth;
   referenceCanvas.height = drawHeight;
+
+  if (blurPixels > 0) {
+    referenceContext.filter = `blur(${blurPixels}px)`;
+  }
   canvas.width = drawWidth;
   canvas.height = drawHeight;
 
   referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
 
-  referenceData = referenceContext.getImageData(0, 0, canvas.width, canvas.height).data;
+  referenceData = referenceContext.getImageData(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  ).data;
   seedPoints();
   getVoronoi();
   renderFrame();
@@ -240,6 +253,10 @@ function loadVideo(video) {
   const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
   referenceCanvas.width = w;
   referenceCanvas.height = h;
+  if (blurPixels > 0) {
+    referenceContext.filter = `blur(${blurPixels}px)`;
+  }
+
   canvas.width = w;
   canvas.height = h;
 
@@ -393,7 +410,8 @@ function renderFrame() {
       const poly = cells[i];
       canvasContext.beginPath();
       canvasContext.moveTo(poly[0][0], poly[0][1]);
-      for (let k = 1; k < poly.length; k++) canvasContext.lineTo(poly[k][0], poly[k][1]);
+      for (let k = 1; k < poly.length; k++)
+        canvasContext.lineTo(poly[k][0], poly[k][1]);
       canvasContext.closePath();
 
       if (showColor) {
@@ -610,8 +628,8 @@ function updateLoopRunning() {
 
 function getBasename(filename) {
   return filename.lastIndexOf(".") !== -1
-        ? selectedFile.slice(0, selectedFile.lastIndexOf("."))
-        : selectedFile;
+    ? selectedFile.slice(0, selectedFile.lastIndexOf("."))
+    : selectedFile;
 }
 
 function downloadJson(filename, metadata) {
@@ -647,7 +665,6 @@ function saveJSON() {
     return { i, x, y, weight, color };
   });
 
-
   const metadata = {
     created: new Date().toISOString(),
     originalFile: selectedFile,
@@ -655,12 +672,11 @@ function saveJSON() {
     height: h,
     seedCount: exported.length,
     seeds: exported,
-  }
+  };
   downloadJson(filename, metadata);
 }
 
 function savePNG() {
-
   const filename = `${getBasename(selectedFile)}-pointillated.png`;
 
   canvas.toBlob((blob) => {

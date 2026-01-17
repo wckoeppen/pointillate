@@ -35,7 +35,6 @@
   font-size: 1.5rem;
   font-weight: 200;
   letter-spacing: 2px;
-  text-transform: uppercase;
   color: #606060;
 }
 
@@ -417,7 +416,7 @@ p {
 }
 
 @media (max-height: 600px) {
-  h1 {
+  .title {
     font-size: 1rem;
   }
   :root {
@@ -434,9 +433,9 @@ p {
     column-gap: 0;
   }
 
-  /* .info-overlay Headline */
+  /*  Headline */
   h1 {
-    font: normal normal 600 24px Georgia, TimesNewRoman, serif;
+    font: normal normal 600 12px Georgia, TimesNewRoman, serif;
     margin-bottom: 6px;
   }
 

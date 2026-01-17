@@ -11,7 +11,7 @@
   <body>
     <div id="app" class="loading">
       <div id="titlePane">
-        <h1 class="title">Pointillate</h1>
+        <h1 class="title">POINTILLATE</h1>
       </div>
       <!-- <div id="loader" class="loader"></div> -->
 
@@ -177,7 +177,7 @@
             <wa-icon name="close"></wa-icon>
           </wa-button>
           <h1>Pointillate</h1>
-          <p>By <a href="http://www.willkoeppen.com/datavis">Will Koeppen</a></p>
+          <p class="byline">By <a href="http://www.willkoeppen.com/datavis">Will Koeppen</a></p>
           <p>This app uses a reference image to seed a canvas using randomized exclusion sampling. Seeds are iteratively moved to new positions by using Lloyd's algorithm with a density function based on the reference.</p>
           <h3>Background</h3>
           <p>Artists have used distributed dots (stippling) for shading since at least <a href="https://en.wikipedia.org/wiki/Stipple_engraving">1510 AD</a>. In the late 1800s, the <a href="https://en.wikipedia.org/wiki/Pointillism">Pointillism</a> movement shed lines altogether and used only dots to create forms.</p>
@@ -193,8 +193,8 @@
           <p>Following the vanilla Lloyd's Algorithm to its mathematical conclusion would lead all of our seeds to be exactly equidistant from each other. Well ordered, but not very interesting if they should be representing an image. Instead, we want seeds to be relaxed, but still grouped (weighted) towards certain areas of the canvas.</p>
           <p>What has weight? For humans, we might gravitate towards the fireplace in a cold room, the kitchen at a party, or around a piano player in Grand Central Station. For this project we use a reference image, and we can choose if the dark or the light pixels should have gravity to attract our seeds.</p>
           <h3>Play</h3>
-          <p>The goal of the “Weighted Voronoi Stippling” of Secord (2002) was to quickly render an image with dots. That's achieved by seeding a white canvas with black seeds only in dark areas and then let them relax over those dark areas. Modern computers can crank out thousands of moves in a few seconds and we actually have to slow it down in order to visualize it.</p>
-          <p>But maybe our goal is the journey instead of the destination. We can seed the canvas in light areas, but give gravity to the dark areas of the image. Or vice versa. We can change the size of the seeds to reflect the weight. Instead of the seeds we can show the boundaries between the seeds (cells). We can color the seeds based on the image beneath.</p>
+          <p>The goal of the “Weighted Voronoi Stippling” of Secord (2002) was to quickly render an image with dots. To do that, use uniformly-sized seeds on a white canvas, start in dark areas, and let the seeds relax over them.</p>
+          <p>But maybe our goal is the journey rather than the destination. We can seed the canvas in light areas, but gravitate towards dark areas of the image. Or vice versa. We can change the size of the seeds to reflect the weight. Instead of the seeds we can show the boundaries between the seeds (cells). We can swap the colors of the seeds and the canvas, or color the seeds based on the reference image.</p>
           <p>The seeding and relaxation are non-deterministic, so your animation will be different every single time.</p>
           <h3>Tips</h3>
           <ul>
