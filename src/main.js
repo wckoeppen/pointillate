@@ -72,7 +72,7 @@ let uniformRadius = radiusSlider?.value || 1;
 let relaxSpeed = speedSlider?.value || 0.5;
 let speedStore = relaxSpeed;
 
-let seedPreference = seedSelect?.value || "none"; // "dark" | "light" | "none"
+let seedPreference = seedSelect?.value || "dark"; // "dark" | "light" | "none"
 let sizePreference = sizeSelect?.value || "dark"; // "dark" | "light" | "none"
 let relaxPreference = relaxSelect?.value || "dark"; // "dark" | "light"
 
