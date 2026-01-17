@@ -65,7 +65,7 @@ const canvasContext = canvas.getContext("2d", { willReadFrequently: true }); // 
 let sourceMode = "image"; // "image" | "video"
 let mediaWidth = 0;
 let mediaHeight = 0;
-let selectedFile = "example-1.jpg";
+let selectedFile = "example.jpg";
 const blurPixels = 1;
 
 let numPoints = numPointsSlider?.value || 1000;
@@ -76,7 +76,7 @@ let uniformRadius = radiusSlider?.value || 1;
 let relaxSpeed = speedSlider?.value || 0.5;
 let speedStore = relaxSpeed;
 
-let seedPreference = seedSelect?.value || "dark"; // "dark" | "light" | "none"
+let seedPreference = seedSelect?.value || "none"; // "dark" | "light" | "none"
 let sizePreference = sizeSelect?.value || "dark"; // "dark" | "light" | "none"
 let relaxPreference = relaxSelect?.value || "dark"; // "dark" | "light"
 
@@ -1041,7 +1041,7 @@ function handleVideoUpload(file) {
 // Initialization
 function setup() {
   const img = new Image();
-  img.src = `${import.meta.env.BASE_URL}${selectedFile}`;
+  img.src = selectedFile;
 
   img.onload = async () => {
     await Promise.all([
