@@ -39,20 +39,40 @@
   color: #606060;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    position: relative;
-    color: #222;
-    margin: 0 auto;
-    max-width: 900px;
-    padding: 0 20px;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  position: relative;
+  color: #222;
+  margin: 0 auto;
+  max-width: 900px;
+  padding: 0 20px;
 }
 
+/* .info-overlay Headline */
 h1 {
-    font: normal normal 600 28px Georgia, TimesNewRoman, serif;
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
+  font: normal normal 600 28px Georgia, TimesNewRoman, serif;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
 }
 
+/* Kicker */
+.kicker {
+  font: normal normal 400 20px/1.25em Georgia, TimesNewRoman, serif;
+  margin: 0 auto 0.7em auto;
+  color: #666;
+}
+
+/* Byline */
+.byline {
+  font: italic normal 200 15px Helvetica, Verdana, Arial, sans-serif;
+  margin: 0 auto 1.5em auto;
+}
+
+/* Internal Story Headers */
 h2 {
   font: normal normal 600 24px Georgia, TimesNewRoman, serif;
   margin-bottom: 8px;
@@ -60,20 +80,13 @@ h2 {
 }
 
 h3 {
+  margin-top: 1.6em;
   font: normal normal 200 24px Helvetica, Verdana, Arial, sans-serif;
 }
 
 .byline {
   font: italic normal 200 15px Helvetica, Verdana, Arial, sans-serif;
   margin: 0 auto 1.5em auto;
-}
-
-p {
-    font: normal normal 100 19px/1.6em Georgia, TimesNewRoman, serif;
-    color: #333;
-    max-width: 900px;
-    margin: 1em auto;
-    padding: 0 20px;
 }
 
 a {
@@ -372,6 +385,28 @@ wa-details::part(header) {
   display: grid;
 }
 
+p {
+  font: normal normal 100 19px/1.6em Georgia, TimesNewRoman, serif;
+  color: #333;
+  max-width: 900px;
+  margin: 1em auto;
+  padding: 0 20px;
+}
+
+.info-overlay ul,
+.info-overlay ol {
+  font: normal normal 100 19px/1.6em Georgia, TimesNewRoman, serif;
+  color: #333;
+  max-width: 844px;
+  margin: 1em auto;
+  padding: 0 20px 0 76px;
+}
+
+.info-overlay ul li,
+.info-overlay ol li {
+  margin-bottom: 0.5em;
+}
+
 @keyframes rotation {
   0% {
     transform: rotate(0deg);
@@ -394,8 +429,46 @@ wa-details::part(header) {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 650px) {
   #controlDock {
     column-gap: 0;
+  }
+
+  /* .info-overlay Headline */
+  h1 {
+    font: normal normal 600 24px Georgia, TimesNewRoman, serif;
+    margin-bottom: 6px;
+  }
+
+  /* Kicker */
+  .kicker {
+    font: normal normal 400 18px/1.25em Georgia, TimesNewRoman, serif;
+  }
+
+  /* Byline */
+  .byline {
+    font: italic normal 200 14px Helvetica, Verdana, Arial, sans-serif;
+  }
+
+  /* Internal Story Headers */
+  h2 {
+    font: normal normal 600 20px Georgia, TimesNewRoman, serif;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  h3 {
+    font: normal normal 200 20px Helvetica, Verdana, Arial, sans-serif;
+  }
+
+  .info-overlay p,
+  .info-overlay ol,
+  .info-overlay ul {
+    font: normal normal 100 16px/1.6em Georgia, TimesNewRoman, serif;
+  }
+
+  .info-overlay ol:not(.thumbnails),
+  .info-overlay ul {
+    padding: 0 20px 0 44px;
   }
 }
