@@ -406,14 +406,11 @@ p {
   position: fixed;
   top: 0;
   left: -9999px;
-
   width: 1px;
   height: 1px;
-
   opacity: 0;
   pointer-events: none;
 
-  /* IMPORTANT: do NOT use display:none */
 }
 
 @keyframes rotation {
