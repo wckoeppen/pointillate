@@ -1058,7 +1058,6 @@ function setup() {
       });
     });
   };
-  console.log("ready 9")
 }
 
 setup();
