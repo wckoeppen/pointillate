@@ -1,8 +1,9 @@
 :root {
   --title-height: 4rem;
-  --dock-height: 60px;
+  --dock-height: 80px;
   --dock-buttons: 5;
-  --dock-open-height: 195px;
+  --dock-open-height: 215px;
+  --dock-button-width: 60px;
   --card-gap: 12px;
   --card-width: 180px;
   --card-height: 100px;
@@ -140,7 +141,7 @@ body {
 #controlDock {
   height: var(--dock-height);
   display: grid;
-  grid-template-columns: repeat(var(--dock-buttons), var(--dock-height));
+  grid-template-columns: repeat(var(--dock-buttons), var(--dock-button-width));
   justify-content: center;
   column-gap: 10px;
   align-items: center;
@@ -410,7 +411,6 @@ p {
   height: 1px;
   opacity: 0;
   pointer-events: none;
-
 }
 
 @keyframes rotation {
