@@ -1,5 +1,3 @@
 import { defineConfig } from "vite";
 
-export default defineConfig({
-  base: "/pointillate/",
-});
+export default defineConfig({});
