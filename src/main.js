@@ -733,38 +733,6 @@ function enterImageMode() {
   updateLoopRunning();
 }
 
-function attachVideoDebug(videoEl) {
-  const evs = [
-    "loadstart",
-    "loadedmetadata",
-    "loadeddata",
-    "durationchange",
-    "canplay",
-    "canplaythrough",
-    "stalled",
-    "suspend",
-    "waiting",
-    "error",
-  ];
-
-  evs.forEach((ev) => {
-    videoEl.addEventListener(ev, () => {
-      const err = videoEl.error
-        ? { code: videoEl.error.code, message: videoEl.error.message }
-        : null;
-
-      console.log(`[video] ${ev}`, {
-        readyState: videoEl.readyState,
-        networkState: videoEl.networkState,
-        videoWidth: videoEl.videoWidth,
-        videoHeight: videoEl.videoHeight,
-        currentTime: videoEl.currentTime,
-        duration: videoEl.duration,
-        error: err,
-      });
-    });
-  });
-}
 
 function resetScene() {
   if (sourceMode === "video") {
@@ -846,7 +814,6 @@ mediaUploadDialog?.addEventListener("change", (e) => {
   if (!file) return;
 
   selectedFile = file.name;
-  console.log(selectedFile);
   if (file.type.startsWith("image/")) {
     handleImageUpload(file);
   } else if (file.type.startsWith("video/")) {
@@ -1072,7 +1039,6 @@ function handleVideoUpload(file) {
   const thisUrl = url;
 
   if (!videoEl.__debugAttached) {
-    attachVideoDebug(videoEl);
     videoEl.__debugAttached = true;
   }
 
@@ -1091,7 +1057,6 @@ function handleVideoUpload(file) {
       if (videoEl.src !== thisUrl) return;
     }
 
-    console.log("wait for prime");
     await primeIOSVideoForCanvas(videoEl);
 
     loadVideo(videoEl);
@@ -1134,7 +1099,6 @@ function setup() {
       });
     });
   };
-  console.log("ready 8");
 }
 
 setup();
