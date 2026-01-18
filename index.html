@@ -177,48 +177,103 @@
             <wa-icon name="close"></wa-icon>
           </wa-button>
           <h1>Pointillate</h1>
-          <p class="byline">By <a href="http://www.willkoeppen.com/datavis">Will Koeppen</a></p>
-          <p>This app uses a reference image to seed a canvas using randomized exclusion sampling. Seeds are iteratively moved to new positions by using Lloyd's algorithm with a density function based on the reference.</p>
+          <p class="byline">By <a href="http://www.willkoeppen.com/datavis">Will
+              Koeppen</a></p>
+          <p>This app uses a reference image to seed a canvas using randomized
+            exclusion sampling. Seeds are iteratively moved to new positions by
+            using Lloyd's algorithm with a density function based on the
+            reference.</p>
           <h3>Background</h3>
-          <p>Artists have used distributed dots (stippling) for shading since at least <a href="https://en.wikipedia.org/wiki/Stipple_engraving">1510 AD</a>. In the late 1800s, the <a href="https://en.wikipedia.org/wiki/Pointillism">Pointillism</a> movement shed lines altogether and used only dots to create forms.</p>
-          <p>Computer scientists like <a href="https://kops.uni-konstanz.de/server/api/core/bitstreams/357c2128-47cb-44bf-ac9d-734cdf9012a6/content">Deussen et al. (2000)</a> and <a href="https://www.cs.ubc.ca/labs/imager/tr/2002/secord2002b/secord.2002b.pdf">Secord (2002)</a> explored algorithms to apply stippling to digital images. Their goal was to use math and CPU power to represent objects with far fewer well-placed dots than you would need for a full resolution image. </p>
-          <p>As a lover of art and animation, I'm very interested in the idea of visual sufficiency. How little of something can you show and have people recognize what it is? I'm also interested in movement in general and the emotions it can evoke, and this is a way to add movement to static image.</p>
+          <p>Artists have used distributed dots (stippling) for shading since at
+            least <a href="https://en.wikipedia.org/wiki/Stipple_engraving">1510
+              AD</a>. In the late 1800s, the <a
+              href="https://en.wikipedia.org/wiki/Pointillism">Pointillism</a>
+            movement shed lines altogether and used only dots to create
+            forms.</p>
+          <p>Computer scientists like <a
+              href="https://kops.uni-konstanz.de/server/api/core/bitstreams/357c2128-47cb-44bf-ac9d-734cdf9012a6/content">Deussen
+              et al. (2000)</a> and <a
+              href="https://www.cs.ubc.ca/labs/imager/tr/2002/secord2002b/secord.2002b.pdf">Secord
+              (2002)</a> explored algorithms to apply stippling to digital
+            images. Their goal was to use math and CPU power to represent
+            objects with far fewer well-placed dots than you would need for a
+            full resolution image. </p>
+          <p>As a lover of art and animation, I'm very interested in the idea of
+            visual sufficiency. How little of something can you show and have
+            people recognize what it is? I'm also interested in movement in
+            general and the emotions it can evoke, and this is a way to add
+            movement to static image.</p>
           <h3>Seeding the canvas</h3>
           <p>First, we add seeds to a canvas.</p>
-          <p>The analog version of exclusion sampling would be to use a glue stick on the canvas only in areas where we want seeds to stick. Then we count out 10,000 seeds and throw them at the canvas. Some will stick to the gluey areas. We'll pick up the seeds that didn't stick and throw them again and again until they're all hanging on.</p>
+          <p>The analog version of exclusion sampling would be to use a glue
+            stick on the canvas only in areas where we want seeds to stick. Then
+            we count out 10,000 seeds and throw them at the canvas. Some will
+            stick to the gluey areas. We'll pick up the seeds that didn't stick
+            and throw them again and again until they're all hanging on.</p>
           <h3>Relaxation</h3>
-          <p>Since we didn't carefully place the seeds, some will be stuck to the canvas close together, and some areas that had glue will still have gaps. We need them to spread out a little.</p>
-          <p>If you've ever been in a packed subway car when suddenly half of the people get off at a popular stop, you've approximated the movement described by <a href="https://en.wikipedia.org/wiki/Lloyd%27s_algorithm">Lloyd's Algorithm</a>. There's a collective sigh of relief from the remaining riders, and we all take a few steps away from the squished person next to us until we reach a new equilibrium.</p>
+          <p>Since we didn't carefully place the seeds, some will be stuck to
+            the canvas close together, and some areas that had glue will still
+            have gaps. We need them to spread out a little.</p>
+          <p>If you've ever been in a packed subway car when suddenly half of
+            the people get off at a popular stop, you've approximated the
+            movement described by <a
+              href="https://en.wikipedia.org/wiki/Lloyd%27s_algorithm">Lloyd's
+              Algorithm</a>. There's a collective sigh of relief from the
+            remaining riders, and we all take a few steps away from the squished
+            person next to us until we reach a new equilibrium.</p>
           <h3>Weighting</h3>
-          <p>Following the vanilla Lloyd's Algorithm to its mathematical conclusion would lead all of our seeds to be exactly equidistant from each other. Well ordered, but not very interesting if they should be representing an image. Instead, we want seeds to be relaxed, but still grouped (weighted) towards certain areas of the canvas.</p>
-          <p>What has weight? For humans, we might gravitate towards the fireplace in a cold room, the kitchen at a party, or around a piano player in Grand Central Station. For this project we use a reference image, and we can choose if the dark or the light pixels should have gravity to attract our seeds.</p>
+          <p>Following the vanilla Lloyd's Algorithm to its mathematical
+            conclusion would lead all of our seeds to be exactly equidistant
+            from each other. Well ordered, but not very interesting if they
+            should be representing an image. Instead, we want seeds to be
+            relaxed, but still grouped (weighted) towards certain areas of the
+            canvas.</p>
+          <p>What has weight? For humans, we might gravitate towards the
+            fireplace in a cold room, the kitchen at a party, or around a piano
+            player in Grand Central Station. For this project we use a reference
+            image, and we can choose if the dark or the light pixels should have
+            gravity to attract our seeds.</p>
           <h3>Play</h3>
-          <p>The goal of the “Weighted Voronoi Stippling” of Secord (2002) was to quickly render an image with dots. To do that, use uniformly-sized seeds on a white canvas, start in dark areas, and let the seeds relax over them.</p>
-          <p>But maybe our goal is the journey rather than the destination. We can seed the canvas in light areas, but gravitate towards dark areas of the image. Or vice versa. We can change the size of the seeds to reflect the weight. Instead of the seeds we can show the boundaries between the seeds (cells). We can swap the colors of the seeds and the canvas, or color the seeds based on the reference image.</p>
-          <p>The seeding and relaxation are non-deterministic, so your animation will be different every single time.</p>
+          <p>The goal of the “Weighted Voronoi Stippling” of Secord (2002) was
+            to quickly render an image with dots. To do that, use
+            uniformly-sized seeds on a white canvas, start in dark areas, and
+            let the seeds relax over them.</p>
+          <p>But maybe our goal is the journey rather than the destination. We
+            can seed the canvas in light areas, but gravitate towards dark areas
+            of the image. Or vice versa. We can change the size of the seeds to
+            reflect the weight. Instead of the seeds we can show the boundaries
+            between the seeds (cells). We can swap the colors of the seeds and
+            the canvas, or color the seeds based on the reference image.</p>
+          <p>The seeding and relaxation are non-deterministic, so your animation
+            will be different every single time.</p>
           <h3>Tips</h3>
           <ul>
-          <li>Edit your photo before adding it as a reference (e.g., background removal)</li>
-          <li>Images with a high-contrast subject work best</li>
-          <li>Most settings can be applied mid-stream</li>
-          <li>Try slowing the speed down a lot (e.g., 0.05)</li>
+            <li>Edit your photo before adding it as a reference (e.g.,
+              background removal)</li>
+            <li>Images with a high-contrast subject work best</li>
+            <li>Most settings can be applied mid-stream</li>
+            <li>Try slowing the speed down a lot (e.g., 0.05)</li>
           </ul>
           <h3>Acknowledgements</h3>
-          <p>Daniel Shiffman's <a href="https://thecodingtrain.com/challenges/181-image-stippling">Coding Train Challenge #181</a> was an excellent resource and well worth watching. <a href="https://github.com/smallwhale1/voronoi-stippling/tree/main">Sophie Zhang</a>'s response to the challenge was an inspiring seed for my own iteration.</p>
+          <p>Daniel Shiffman's <a
+              href="https://thecodingtrain.com/challenges/181-image-stippling">Coding
+              Train Challenge #181</a> was an excellent resource and well worth
+            watching. <a
+              href="https://github.com/smallwhale1/voronoi-stippling/tree/main">Sophie
+              Zhang</a>'s response to the challenge was an inspiring seed for my
+            own iteration.</p>
 
         </div>
       </div>
     </div>
 
     <div class="behindTheVeil">
-      <video id="video" playsinline muted
-        style="display: none"></video>
+      <video id="video" playsinline muted></video>
       <input
         type="file"
         aria-label="Upload image or video"
         id="mediaUploadDialog"
         accept="image/*,video/*,.mp4,.mov,.webm"
-        hidden
         tabindex="-1" />
     </div>
 

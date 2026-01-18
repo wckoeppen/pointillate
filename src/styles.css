@@ -107,7 +107,7 @@ body {
 
 #app {
   position: relative;
-  height: 100vh;
+  height: 100dvh;
   display: grid;
   grid-template-rows: var(--title-height) 1fr auto;
   align-content: start;
@@ -225,10 +225,6 @@ body {
 .saveButtonCard {
   width: 54px;
   background-color: #fff;
-}
-
-#mediaUpload {
-  display: none !important;
 }
 
 #loader {
@@ -404,6 +400,10 @@ p {
 .info-overlay ul li,
 .info-overlay ol li {
   margin-bottom: 0.5em;
+}
+
+.behindTheVeil {
+  display: none;
 }
 
 @keyframes rotation {
