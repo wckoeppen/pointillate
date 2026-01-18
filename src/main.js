@@ -841,14 +841,16 @@ controlCarousel?.addEventListener("focusin", (e) => {
 });
 
 mediaUploadDialog?.addEventListener("change", (e) => {
-  const file = e.target?.files?.[0];
+  const input = e.currentTarget;
+  const file = input?.files?.[0];
   if (!file) return;
 
   selectedFile = file.name;
-  console.log();
+  console.log(selectedFile);
   if (file.type.startsWith("image/")) {
     handleImageUpload(file);
   } else if (file.type.startsWith("video/")) {
+    console.log("trying video handler");
     handleVideoUpload(file);
   } else {
     alert("Unsupported file type.");
@@ -1028,50 +1030,85 @@ function handleImageUpload(file) {
 
   img.src = url;
 }
+async function primeIOSVideoForCanvas(videoEl) {
+  // Ensure no ancestor interferes with decode/layout on iOS.
+  // This MOVES the element (does not clone it).
+  document.body.appendChild(videoEl);
 
+  // Keep it layout-participating but invisible/offscreen
+  videoEl.muted = true;
+  videoEl.playsInline = true;
+  videoEl.style.position = "fixed";
+  videoEl.style.left = "-9999px";
+  videoEl.style.top = "0";
+  videoEl.style.width = "1px";
+  videoEl.style.height = "1px";
+  videoEl.style.opacity = "0";
+  videoEl.style.pointerEvents = "none";
+  videoEl.style.display = "block";
+
+  try {
+    await videoEl.play();
+
+    if (videoEl.requestVideoFrameCallback) {
+      await new Promise((res) =>
+        videoEl.requestVideoFrameCallback(() => res())
+      );
+    } else {
+      await new Promise((r) => setTimeout(r, 80));
+    }
+
+    videoEl.pause();
+  } catch (e) {
+    console.warn("primeIOSVideoForCanvas play() failed:", e);
+  }
+}
 function handleVideoUpload(file) {
   stopLoop();
   cleanupActiveMedia();
 
   const url = URL.createObjectURL(file);
   currentMediaUrl = url;
+  const thisUrl = url;
 
-  videoEl.src = url;
+  if (!videoEl.__debugAttached) {
+    attachVideoDebug(videoEl);
+    videoEl.__debugAttached = true;
+  }
+
+  videoEl.preload = "metadata";
   videoEl.muted = true;
   videoEl.playsInline = true;
   videoEl.loop = true;
 
-  attachVideoDebug(videoEl);
-
-  const thisUrl = url;
-
-  videoEl.onloadedmetadata = async () => {
+  const onMeta = async () => {
     if (videoEl.src !== thisUrl) return;
 
-    // first frame of videos can be black
     if (videoEl.readyState < 2) {
       await new Promise((res) =>
         videoEl.addEventListener("loadeddata", res, { once: true })
       );
-      if (videoEl.src !== thisUrl) return; // stale
+      if (videoEl.src !== thisUrl) return;
     }
 
-    if (videoEl.requestVideoFrameCallback) {
-      await new Promise((res) =>
-        videoEl.requestVideoFrameCallback(() => res())
-      );
-      if (videoEl.src !== thisUrl) return; // stale
-    }
+    console.log("wait for prime");
+    await primeIOSVideoForCanvas(videoEl);
 
     loadVideo(videoEl);
   };
 
-  videoEl.onerror = () => {
-    if (videoEl.src === thisUrl) {
-      cleanupActiveMedia();
-      alert("Failed to load video.");
-    }
+  const onErr = () => {
+    if (videoEl.src !== thisUrl) return;
+    cleanupActiveMedia();
+    alert("Failed to load video.");
   };
+
+  // One-shot listeners, attached BEFORE src is set
+  videoEl.addEventListener("loadedmetadata", onMeta, { once: true });
+  videoEl.addEventListener("error", onErr, { once: true });
+
+  videoEl.src = url;
+  videoEl.load();
 }
 
 // Initialization
@@ -1097,6 +1134,7 @@ function setup() {
       });
     });
   };
+  console.log("ready 8");
 }
 
 setup();
