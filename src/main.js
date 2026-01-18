@@ -391,7 +391,8 @@ function renderFrame() {
       } else {
         const brightness = getBrightness(data, w, h, x, y);
         const brightnessFraction = sizeFn(brightness);
-        radius = minRadius + (brightnessFraction * brightnessFraction) * radiusSpan;
+        radius =
+          minRadius + brightnessFraction * brightnessFraction * radiusSpan;
       }
 
       let color = pointColor;
@@ -732,6 +733,39 @@ function enterImageMode() {
   updateLoopRunning();
 }
 
+function attachVideoDebug(videoEl) {
+  const evs = [
+    "loadstart",
+    "loadedmetadata",
+    "loadeddata",
+    "durationchange",
+    "canplay",
+    "canplaythrough",
+    "stalled",
+    "suspend",
+    "waiting",
+    "error",
+  ];
+
+  evs.forEach((ev) => {
+    videoEl.addEventListener(ev, () => {
+      const err = videoEl.error
+        ? { code: videoEl.error.code, message: videoEl.error.message }
+        : null;
+
+      console.log(`[video] ${ev}`, {
+        readyState: videoEl.readyState,
+        networkState: videoEl.networkState,
+        videoWidth: videoEl.videoWidth,
+        videoHeight: videoEl.videoHeight,
+        currentTime: videoEl.currentTime,
+        duration: videoEl.duration,
+        error: err,
+      });
+    });
+  });
+}
+
 function resetScene() {
   if (sourceMode === "video") {
     videoPlaying = false;
@@ -1006,6 +1040,8 @@ function handleVideoUpload(file) {
   videoEl.muted = true;
   videoEl.playsInline = true;
   videoEl.loop = true;
+
+  attachVideoDebug(videoEl);
 
   const thisUrl = url;
 
