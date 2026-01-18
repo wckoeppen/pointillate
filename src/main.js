@@ -385,14 +385,14 @@ function renderFrame() {
     for (let idx = 0; idx < currentPoints.length; idx++) {
       const [x, y] = currentPoints[idx];
 
-      const radius = useUniform
-        ? uniformRadius
-        : (() => {
-            const brightness = getBrightness(data, w, h, x, y);
-            const t = sizeFn(brightness);
-            const curved = t * t;
-            return minRadius + curved * radiusSpan;
-          })();
+      let radius;
+      if (useUniform) {
+        radius = uniformRadius;
+      } else {
+        const brightness = getBrightness(data, w, h, x, y);
+        const brightnessFraction = sizeFn(brightness);
+        radius = minRadius + (brightnessFraction * brightnessFraction) * radiusSpan;
+      }
 
       let color = pointColor;
       if (showColor) {
