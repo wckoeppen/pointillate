@@ -249,7 +249,11 @@ function loadVideo(video) {
   enterVideoMode(video);
   setMediaSize(video.videoWidth, video.videoHeight);
 
-  const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, maxWidth);
+  const { w, h } = computeWorkingSize(
+    video.videoWidth,
+    video.videoHeight,
+    maxWidth
+  );
   referenceCanvas.width = w;
   referenceCanvas.height = h;
 
@@ -915,7 +919,7 @@ optionsButton.addEventListener("click", () => {
 
 resetButton?.addEventListener("click", resetScene);
 
-canvasStage.addEventListener(
+app.addEventListener(
   "wheel",
   (e) => {
     if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
@@ -928,7 +932,7 @@ canvasStage.addEventListener(
 let touchStartY = null;
 let touchStartX = null;
 
-canvasStage.addEventListener(
+app.addEventListener(
   "touchstart",
   (e) => {
     if (e.touches.length !== 1) return;
@@ -938,7 +942,7 @@ canvasStage.addEventListener(
   { passive: true }
 );
 
-canvasStage.addEventListener(
+app.addEventListener(
   "touchend",
   (e) => {
     if (touchStartY == null || touchStartX == null) return;
@@ -949,11 +953,10 @@ canvasStage.addEventListener(
 
     if (Math.abs(dy) > Math.abs(dx) * 1.5) {
       if (dy < -50) openControls();
-      if (dy > 50) closeControls();
+      else if (dy > 50) closeControls();
     }
 
-    touchStartY = null;
-    touchStartX = null;
+    touchStartY = touchStartX = null;
   },
   { passive: true }
 );
