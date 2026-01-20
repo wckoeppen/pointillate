@@ -92,8 +92,8 @@ let lineColor = lineColorBtn?.value || "#000";
 let activeVideo = null;
 let currentMediaUrl = null;
 let lastVideoSample = 0;
-const VIDEO_SAMPLE_HZ = 24;
-const VIDEO_SAMPLE_INTERVAL = 1000 / VIDEO_SAMPLE_HZ;
+const videoSampleHz = 24;
+const videoSampleInterval = 1000 / videoSampleHz;
 
 // Utility / helpers
 function computeWorkingSize(mediaW, mediaH, maxW = 960) {
@@ -177,7 +177,7 @@ function cleanupActiveMedia() {
 function refreshSourcePixels(now, force = false) {
   if (sourceMode !== "video" || !activeVideo) return;
   if (canvas.width <= 0 || canvas.height <= 0) return;
-  if (!force && now != null && now - lastVideoSample < VIDEO_SAMPLE_INTERVAL)
+  if (!force && now != null && now - lastVideoSample < videoSampleInterval)
     return;
 
   referenceContext.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
@@ -216,7 +216,6 @@ function loadImage(img) {
   let drawWidth = img.naturalWidth;
   let drawHeight = img.naturalHeight;
 
-  // resize large images?
   const scale = maxWidth / img.width;
   drawWidth = maxWidth;
   drawHeight = img.height * scale;
@@ -243,13 +242,52 @@ function loadImage(img) {
   renderFrame();
 }
 
-function loadVideo(video) {
+// Quickly sample to see if frame is all zeros. 
+function looksBlankRGBA(data, stride = 2000) {
+  if (!data || data.length < 4) return true;
+
+  for (let i = 0; i <= data.length - 4; i += stride) {
+    if (data[i] || data[i + 1] || data[i + 2] || data[i + 3]) return false;
+  }
+  return true;
+}
+
+// waits for a DOM event
+function waitOnce(target, type) {
+  return new Promise((res) =>
+    target.addEventListener(type, res, { once: true })
+  );
+}
+
+// Attempts to wait for a decoded frame
+function waitDecodedFrame(video, timeoutMs = 250) {
+  const tickFallback = new Promise((res) =>
+    requestAnimationFrame(() => requestAnimationFrame(res))
+  );
+
+  if (video.requestVideoFrameCallback) {
+    const rvfc = new Promise((res) =>
+      video.requestVideoFrameCallback(() => res())
+    );
+    const timeout = new Promise((res) => setTimeout(res, timeoutMs));
+
+    return Promise.race([rvfc, tickFallback, timeout]);
+  }
+
+  return tickFallback;
+}
+
+async function loadVideo(video) {
   stopLoop();
 
   enterVideoMode(video);
   setMediaSize(video.videoWidth, video.videoHeight);
 
-  const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, maxWidth);
+  const { w, h } = computeWorkingSize(
+    video.videoWidth,
+    video.videoHeight,
+    maxWidth
+  );
   referenceCanvas.width = w;
   referenceCanvas.height = h;
 
@@ -261,7 +299,25 @@ function loadVideo(video) {
   canvas.height = h;
 
   sampleCurrentVideoFrame();
-  if (!referenceData) return;
+
+  // first calls to the video reference can be blank if we're not playing.
+  // if that's the case, try fast-forwarding and wait. :shrug:
+  if (looksBlankRGBA(referenceData)) {
+    const dur = Number.isFinite(video.duration) ? video.duration : 0;
+    const target = dur > 0 ? Math.min(0.08, Math.max(0, dur - 0.01)) : 0.08;
+
+    try {
+      if (video.currentTime < 0.001) {
+        video.currentTime = target;
+        await waitOnce(video, "seeked");
+        await waitDecodedFrame(video);
+      }
+      sampleCurrentVideoFrame();
+    } catch (e) {
+      console.warn("seek forward for non-blank frame failed:", e);
+    }
+  }
+
   seedPoints();
   getVoronoi();
   renderFrame();
@@ -590,7 +646,7 @@ function syncVideoUI() {
 function startLoop() {
   if (animationFrameId != null) return;
   isRunning = true;
-  animationFrameId = requestAnimationFrame(tick);
+  animationFrameId = requestAnimationFrame(animationStep);
 }
 
 function stopLoop() {
@@ -601,7 +657,7 @@ function stopLoop() {
   }
 }
 
-function tick(now) {
+function animationStep(now) {
   const isVideo = sourceMode === "video";
   if (isVideo) {
     if (videoPlaying) refreshSourcePixels(now);
@@ -609,7 +665,7 @@ function tick(now) {
   if (relaxEnabled) relaxPoints();
   renderFrame();
 
-  if (isRunning) animationFrameId = requestAnimationFrame(tick);
+  if (isRunning) animationFrameId = requestAnimationFrame(animationStep);
 }
 
 function shouldRunLoop() {
@@ -744,8 +800,6 @@ function resetScene() {
     seedPoints();
     getVoronoi();
     renderFrame();
-
-    relaxEnabled = true;
 
     syncPrimaryButtonUI();
     updateLoopRunning();
@@ -1018,7 +1072,7 @@ function handleVideoUpload(file) {
       );
       if (videoEl.src !== thisUrl) return;
     }
-    loadVideo(videoEl);
+    await loadVideo(videoEl);
   };
 
   const onErr = () => {
