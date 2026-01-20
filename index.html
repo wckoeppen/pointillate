@@ -9,7 +9,7 @@
     <title>Pointillate</title>
   </head>
   <body>
-    <div id="app" class="loading">
+    <div id="app" class="loading controls-open">
       <div id="titlePane">
         <h1 class="title">POINTILLATE</h1>
       </div>
@@ -71,13 +71,29 @@
                 </div>
               </div>
 
-              <div class="controlCard sliderWidth" id="cardToStart">
+              <!-- <div class="controlCard sliderWidth" id="cardToStart">
                 <div class="checks">
                   <wa-switch checked id="pointToggle">Seeds</wa-switch>
                   <wa-switch id="cellToggle">Cells</wa-switch>
                   <wa-switch id="colorToggle">Colors</wa-switch>
                 </div>
+              </div> -->
+
+              <div class="controlCard showToggles">
+                <wa-button-group class="topToggles" orientation="vertical">
+                  <wa-button-group class=topToggles orientation="horizontal">
+                    <wa-button appearance="outlined"
+                      id="pointToggle">Seeds</wa-button>
+                    <wa-button appearance="outlined"
+                      id="cellToggle">Cells</wa-button>
+                  </wa-button-group>
+                  <wa-button class="bottomGroup"
+                    appearance="outlined" id="colorToggle">
+                    Colors
+                  </wa-button>
+                </wa-button-group>
               </div>
+
               <div class="controlCard sliderWidth">
                 <wa-slider with-tooltip
                   id="numPointsSlider"

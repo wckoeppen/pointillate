@@ -195,7 +195,7 @@ body {
   white-space: normal;
   margin-right: var(--card-gap);
   padding: 12px;
-  border-radius: 0.25rem;
+  border-radius: 6px;
   background: var(--control-background);
   transition: opacity 160ms ease, transform 500ms ease-in-out;
   opacity: 1;
@@ -309,6 +309,60 @@ wa-select::part(label) {
   display: block;
   text-align: center;
 }
+
+/* Toggles */
+
+.showToggles {
+  padding: 0;
+  width: 151px;
+}
+
+.showToggles wa-button::part(base) {
+  justify-content: center;
+  padding: 0 1em;
+}
+
+wa-button#pointToggle::part(base) {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+wa-button#cellToggle::part(base) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 0;
+}
+
+wa-button#colorToggle::part(base) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 6px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 6px;
+}
+
+/* .topToggles::part(base) {
+  border-radius: 0;
+  overflow: visible;
+}
+
+.topToggles wa-button::part(base) {
+  border-radius: 0;
+}
+
+.topToggles wa-button:first-of-type::part(base) {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.topToggles wa-button:last-of-type::part(base) {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+} */
+
+/* Color Pickers */
 
 .colorPickers {
   display: grid;
@@ -440,9 +494,9 @@ p {
     --title-height: 0;
   }
   .title {
-    display:none;
+    display: none;
   }
-  
+
   #controlDock {
     column-gap: 0;
   }
