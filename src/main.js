@@ -67,6 +67,7 @@ let mediaWidth = 0;
 let mediaHeight = 0;
 let selectedFile = "example.jpg";
 const blurPixels = 1;
+const maxWidth = 1280;
 
 let numPoints = numPointsSlider?.value || 1000;
 let minRadius = radiusRange?.minValue || 1;
@@ -216,11 +217,9 @@ function loadImage(img) {
   let drawHeight = img.naturalHeight;
 
   // resize large images?
-  if (img.width > 960) {
-    const scale = 960 / img.width;
-    drawWidth = 960;
-    drawHeight = img.height * scale;
-  }
+  const scale = maxWidth / img.width;
+  drawWidth = maxWidth;
+  drawHeight = img.height * scale;
 
   referenceCanvas.width = drawWidth;
   referenceCanvas.height = drawHeight;
@@ -250,9 +249,10 @@ function loadVideo(video) {
   enterVideoMode(video);
   setMediaSize(video.videoWidth, video.videoHeight);
 
-  const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, 960);
+  const { w, h } = computeWorkingSize(video.videoWidth, video.videoHeight, maxWidth);
   referenceCanvas.width = w;
   referenceCanvas.height = h;
+
   if (blurPixels > 0) {
     referenceContext.filter = `blur(${blurPixels}px)`;
   }
@@ -732,7 +732,6 @@ function enterImageMode() {
   syncPrimaryButtonUI();
   updateLoopRunning();
 }
-
 
 function resetScene() {
   if (sourceMode === "video") {
