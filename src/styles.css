@@ -436,12 +436,19 @@ p {
 }
 
 @media (max-width: 650px) {
+  :root {
+    --title-height: 0;
+  }
+  .title {
+    display:none;
+  }
+  
   #controlDock {
     column-gap: 0;
   }
 
   /*  Headline */
-  h1 {
+  .info-overlay h1 {
     font: normal normal 600 24px Georgia, TimesNewRoman, serif;
     margin-bottom: 6px;
   }
