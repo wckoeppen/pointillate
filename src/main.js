@@ -1036,6 +1036,8 @@ function syncButtonUI() {
   setOn(seedToggle, isOn(seedToggle, true)); // default ON
   setOn(cellToggle, isOn(cellToggle, false));
   setOn(colorToggle, isOn(colorToggle, false));
+  setOn(fillToggle, isOn(fillToggle, false));
+
 }
 
 syncButtonUI();
@@ -1053,6 +1055,11 @@ cellToggle?.addEventListener("click", () => {
 
 colorToggle?.addEventListener("click", () => {
   toggle(colorToggle, false);
+  renderFrame();
+});
+
+fillToggle?.addEventListener("click", () => {
+  toggle(fillToggle, false);
   renderFrame();
 });
 

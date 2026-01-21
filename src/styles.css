@@ -318,8 +318,8 @@ wa-select::part(label) {
   background: none;
 
   --toggle-radius: 6px;
-  --toggle-seam-x: 3px;
-  --toggle-seam-y: 6px;
+  --toggle-gap-x: 3px;
+  --toggle-gap-y: 6px;
   --toggle-top-row-height: 50px;
 }
 
@@ -329,11 +329,11 @@ wa-select::part(label) {
   grid-template-rows:
     var(--toggle-top-row-height)
     calc(
-      var(--card-height) - var(--toggle-top-row-height) - var(--toggle-seam-y)
+      var(--card-height) - var(--toggle-top-row-height) - var(--toggle-gap-y)
     );
 
-  column-gap: var(--toggle-seam-x);
-  row-gap: var(--toggle-seam-y);
+  column-gap: var(--toggle-gap-x);
+  row-gap: var(--toggle-gap-y);
 
   width: 100%;
   height: 100%;
