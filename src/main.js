@@ -243,7 +243,7 @@ function loadImage(img) {
   renderFrame();
 }
 
-// Quickly sample to see if frame is all zeros. 
+// Quickly sample to see if frame is all zeros.
 function looksBlankRGBA(data, stride = 2000) {
   if (!data || data.length < 4) return true;
 
@@ -427,9 +427,10 @@ function renderFrame() {
   canvasContext.fillStyle = backgroundColor;
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
-  const showColor = colorToggle?.checked ?? false;
-  const showPolygons = cellToggle?.checked ?? false;
-  const showPoints = pointToggle?.checked ?? true;
+  const showColor = isOn(colorToggle, false);
+  const showPolygons = isOn(cellToggle, false);
+  const showPoints = isOn(pointToggle, true);
+
   const w = canvas.width;
   const h = canvas.height;
   const data = referenceData;
@@ -558,7 +559,7 @@ function syncRadiusUI() {
   radiusRange.style.display = "";
 }
 
-function syncPrimaryButtonUI() {
+function syncPlayButtonUI() {
   const isVideo = sourceMode === "video";
   const on = isVideo ? videoPlaying : relaxEnabled;
 
@@ -617,7 +618,7 @@ function setRelaxEnabled(next) {
   if (sourceMode === "video") next = true;
 
   relaxEnabled = !!next;
-  syncPrimaryButtonUI();
+  syncPlayButtonUI();
   updateLoopRunning();
 }
 
@@ -629,7 +630,7 @@ function setVideoPlaying(next) {
     else activeVideo.pause();
   }
 
-  syncPrimaryButtonUI();
+  syncPlayButtonUI();
   updateLoopRunning();
 }
 
@@ -770,7 +771,7 @@ function enterVideoMode(video) {
   videoPlaying = false;
   video.pause();
 
-  syncPrimaryButtonUI();
+  syncPlayButtonUI();
   updateLoopRunning();
 }
 
@@ -786,7 +787,7 @@ function enterImageMode() {
     speedSlider.disabled = false;
   }
 
-  syncPrimaryButtonUI();
+  syncPlayButtonUI();
   updateLoopRunning();
 }
 
@@ -802,7 +803,7 @@ function resetScene() {
     getVoronoi();
     renderFrame();
 
-    syncPrimaryButtonUI();
+    syncPlayButtonUI();
     updateLoopRunning();
     return;
   }
@@ -1013,9 +1014,46 @@ canvasStage.addEventListener(
   { passive: true }
 );
 
-pointToggle?.addEventListener("change", renderFrame);
-cellToggle?.addEventListener("change", renderFrame);
-colorToggle?.addEventListener("change", renderFrame);
+function isOn(btn, defaultValue = false) {
+  if (!btn) return defaultValue;
+  return btn.getAttribute("aria-pressed") === "true";
+}
+
+function setOn(btn, on) {
+  if (!btn) return;
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  btn.setAttribute("appearance", on ? "accent" : "filled");
+}
+
+function toggle(btn, defaultValue = false) {
+  const next = !isOn(btn, defaultValue);
+  setOn(btn, next);
+  return next;
+}
+
+function syncButtonUI() {
+  setOn(pointToggle, isOn(pointToggle, true)); // default ON
+  setOn(cellToggle, isOn(cellToggle, false));
+  setOn(colorToggle, isOn(colorToggle, false));
+}
+
+syncButtonUI();
+
+pointToggle?.addEventListener("click", () => {
+  toggle(pointToggle, true);
+  console.log(pointToggle)
+  renderFrame();
+});
+
+cellToggle?.addEventListener("click", () => {
+  toggle(cellToggle, false);
+  renderFrame();
+});
+
+colorToggle?.addEventListener("click", () => {
+  toggle(colorToggle, false);
+  renderFrame();
+});
 
 saveDropdown?.addEventListener("wa-select", (e) => {
   const value = e.detail.item.value;
@@ -1092,10 +1130,7 @@ function handleVideoUpload(file) {
 // ========================================
 // Toggles
 
-
-
 // ========================================
-
 
 // Initialization
 function setup() {

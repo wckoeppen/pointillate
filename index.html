@@ -80,16 +80,18 @@
               </div> -->
 
               <div class="controlCard showToggles" id="cardToStart">
-                <wa-button-group class="topToggles" orientation="vertical">
-                  <wa-button-group class=topToggles orientation="horizontal">
+                <wa-button-group class="togglesStack" orientation="vertical">
+                  <wa-button-group class="togglesRow" orientation="horizontal">
                     <wa-button appearance="filled"
-                      id="pointToggle">Seeds</wa-button>
+                      id="pointToggle" aria-pressed="true">Seeds</wa-button>
                     <wa-button appearance="filled"
-                      id="cellToggle">Cells</wa-button>
+                      id="colorToggle" aria-pressed="false">Colors</wa-button>
+
                   </wa-button-group>
-                  <wa-button class="bottomGroup"
-                    appearance="filled" id="colorToggle">
-                    Colors
+
+                  <wa-button class="togglesBottom" appearance="filled"
+                    aria-pressed="false" id="cellToggle">
+                    Cells
                   </wa-button>
                 </wa-button-group>
               </div>
