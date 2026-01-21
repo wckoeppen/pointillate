@@ -26,6 +26,7 @@ const optionsButton = document.getElementById("optionsButton");
 const seedToggle = document.getElementById("seedToggle");
 const cellToggle = document.getElementById("cellToggle");
 const colorToggle = document.getElementById("colorToggle");
+const fillToggle = document.getElementById("fillToggle");
 
 const seedSelect = document.getElementById("seedSelect");
 const sizeSelect = document.getElementById("sizeSelect");
