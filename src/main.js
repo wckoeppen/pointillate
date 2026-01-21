@@ -1036,6 +1036,17 @@ function setOn(btn, on) {
   btn.setAttribute("appearance", on ? "accent" : "filled");
 }
 
+function setDisabled(btn, disabled) {
+  console.log("disabling")
+  if (!btn) return;
+  if (disabled) {
+    btn.setAttribute("disabled", "");
+    setOn(btn, false); // force off when disabled
+  } else {
+    btn.removeAttribute("disabled");
+  }
+}
+
 function toggle(btn, defaultValue = false) {
   const next = !isOn(btn, defaultValue);
   setOn(btn, next);
@@ -1043,17 +1054,23 @@ function toggle(btn, defaultValue = false) {
 }
 
 function syncButtonUI() {
-  setOn(seedToggle, isOn(seedToggle, true)); // default ON
+  const seedsOn = isOn(seedToggle, true);
+
+  setOn(seedToggle, seedsOn);
   setOn(cellToggle, isOn(cellToggle, false));
-  setOn(colorToggle, isOn(colorToggle, false));
   setOn(fillToggle, isOn(fillToggle, false));
+
+  setDisabled(colorToggle, !seedsOn);
+  if (seedsOn) {
+    setOn(colorToggle, isOn(colorToggle, false));
+  }
 }
 
 syncButtonUI();
 
 seedToggle?.addEventListener("click", () => {
   toggle(seedToggle, true);
-  console.log(seedToggle);
+  syncButtonUI(); 
   renderFrame();
 });
 
