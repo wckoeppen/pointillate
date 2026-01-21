@@ -316,11 +316,10 @@ wa-select::part(label) {
   width: 180px;
   height: var(--card-height);
   background: none;
-
   --toggle-radius: 6px;
-  --toggle-gap-x: 3px;
+  --toggle-gap-x: 2px;
   --toggle-gap-y: 6px;
-  --toggle-top-row-height: 50px;
+  --toggle-top-row-height: 60px;
 }
 
 .showToggles .togglesGrid {

@@ -437,25 +437,32 @@ function renderFrame() {
   const h = canvas.height;
   const data = referenceData;
 
-  if (cellsOn && voronoi) {
+  if (voronoi && (cellsOn || fillsOn)) {
     const cells = Array.from(voronoi.cellPolygons());
+
+    if (cellsOn) {
+      canvasContext.strokeStyle = lineColor;
+    }
+
     for (let i = 0; i < cells.length; i++) {
       const poly = cells[i];
+      if (!poly || poly.length === 0) continue;
+
       canvasContext.beginPath();
       canvasContext.moveTo(poly[0][0], poly[0][1]);
-      for (let k = 1; k < poly.length; k++)
+      for (let k = 1; k < poly.length; k++) {
         canvasContext.lineTo(poly[k][0], poly[k][1]);
+      }
       canvasContext.closePath();
 
       if (fillsOn) {
         const [x, y] = currentPoints[i];
         const { r, g, b } = getColor(data, w, h, x, y);
-        canvasContext.strokeStyle = lineColor;
-        canvasContext.stroke();
         canvasContext.fillStyle = `rgb(${r}, ${g}, ${b})`;
         canvasContext.fill();
-      } else {
-        canvasContext.strokeStyle = lineColor;
+      }
+
+      if (cellsOn) {
         canvasContext.stroke();
       }
     }
@@ -1040,14 +1047,13 @@ function syncButtonUI() {
   setOn(cellToggle, isOn(cellToggle, false));
   setOn(colorToggle, isOn(colorToggle, false));
   setOn(fillToggle, isOn(fillToggle, false));
-
 }
 
 syncButtonUI();
 
 seedToggle?.addEventListener("click", () => {
   toggle(seedToggle, true);
-  console.log(seedToggle)
+  console.log(seedToggle);
   renderFrame();
 });
 
