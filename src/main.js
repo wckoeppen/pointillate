@@ -23,7 +23,7 @@ const uploadButton = document.getElementById("uploadButton");
 const resetButton = document.getElementById("resetButton");
 const optionsButton = document.getElementById("optionsButton");
 
-const pointToggle = document.getElementById("pointToggle");
+const seedToggle = document.getElementById("seedToggle");
 const cellToggle = document.getElementById("cellToggle");
 const colorToggle = document.getElementById("colorToggle");
 
@@ -429,7 +429,7 @@ function renderFrame() {
 
   const showColor = isOn(colorToggle, false);
   const showPolygons = isOn(cellToggle, false);
-  const showPoints = isOn(pointToggle, true);
+  const showPoints = isOn(seedToggle, true);
 
   const w = canvas.width;
   const h = canvas.height;
@@ -1032,16 +1032,16 @@ function toggle(btn, defaultValue = false) {
 }
 
 function syncButtonUI() {
-  setOn(pointToggle, isOn(pointToggle, true)); // default ON
+  setOn(seedToggle, isOn(seedToggle, true)); // default ON
   setOn(cellToggle, isOn(cellToggle, false));
   setOn(colorToggle, isOn(colorToggle, false));
 }
 
 syncButtonUI();
 
-pointToggle?.addEventListener("click", () => {
-  toggle(pointToggle, true);
-  console.log(pointToggle)
+seedToggle?.addEventListener("click", () => {
+  toggle(seedToggle, true);
+  console.log(seedToggle)
   renderFrame();
 });
 

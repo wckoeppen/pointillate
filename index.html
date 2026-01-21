@@ -71,29 +71,17 @@
                 </div>
               </div>
 
-              <!-- <div class="controlCard sliderWidth" id="cardToStart">
-                <div class="checks">
-                  <wa-switch checked id="pointToggle">Seeds</wa-switch>
-                  <wa-switch id="cellToggle">Cells</wa-switch>
-                  <wa-switch id="colorToggle">Colors</wa-switch>
-                </div>
-              </div> -->
-
               <div class="controlCard showToggles" id="cardToStart">
-                <wa-button-group class="togglesStack" orientation="vertical">
-                  <wa-button-group class="togglesRow" orientation="horizontal">
-                    <wa-button appearance="filled"
-                      id="pointToggle" aria-pressed="true">Seeds</wa-button>
-                    <wa-button appearance="filled"
-                      id="colorToggle" aria-pressed="false">Colors</wa-button>
-
-                  </wa-button-group>
-
-                  <wa-button class="togglesBottom" appearance="filled"
-                    aria-pressed="false" id="cellToggle">
-                    Cells
-                  </wa-button>
-                </wa-button-group>
+                <div class="togglesGrid">
+                  <wa-button appearance="filled" id="seedToggle" class="leftToggle"
+                    aria-pressed="true">Seeds</wa-button>
+                  <wa-button appearance="filled" id="colorToggle" class="rightToggle"
+                    aria-pressed="false">Colors</wa-button>
+                  <wa-button appearance="filled" id="cellToggle" class="leftToggle"
+                    aria-pressed="false">Cells</wa-button>
+                  <wa-button appearance="filled" id="fillToggle" class="rightToggle"
+                    aria-pressed="false">Fill</wa-button>
+                </div>
               </div>
 
               <div class="controlCard sliderWidth">

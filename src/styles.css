@@ -311,68 +311,53 @@ wa-select::part(label) {
 }
 
 /* Toggles */
-
 .showToggles {
   padding: 0;
-  width: 150px;
+  width: 180px;
   height: var(--card-height);
-  background: #fff;
+  background: none;
 
   --toggle-radius: 6px;
-  --toggle-seam: 1px;
-  --toggle-seam-color: #fff;
-  --toggle-top-row-height: 60px;
-  --toggle-bottom-row-height: calc(var(--card-height) - var(--toggle-top-row-height))
+  --toggle-seam-x: 3px;
+  --toggle-seam-y: 6px;
+  --toggle-top-row-height: 50px;
 }
 
-.showToggles :is(.togglesStack, .togglesRow),
-.showToggles :is(.togglesStack, .togglesRow)::part(base) {
+.showToggles .togglesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows:
+    var(--toggle-top-row-height)
+    calc(
+      var(--card-height) - var(--toggle-top-row-height) - var(--toggle-seam-y)
+    );
+
+  column-gap: var(--toggle-seam-x);
+  row-gap: var(--toggle-seam-y);
+
   width: 100%;
-}
-
-.showToggles .togglesStack,
-.showToggles .togglesStack::part(base) {
   height: 100%;
-}
-
-.showToggles .togglesRow,
-.showToggles .togglesRow::part(base) {
-  height: var(--toggle-top-row-height);
-}
-
-.showToggles .togglesRow wa-button {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.showToggles .togglesBottom {
-  flex: 1;
-  width: 100%;
+  box-sizing: border-box;
 }
 
 .showToggles wa-button::part(base) {
   height: 100%;
   min-height: 0;
+  width: 100%;
   justify-content: center;
   padding: 0 1em;
   border-radius: 0;
 }
 
-.showToggles #pointToggle::part(base) {
+.showToggles .leftToggle::part(base) {
   border-top-left-radius: var(--toggle-radius);
-}
-
-.showToggles #colorToggle::part(base) {
-  border-top-right-radius: var(--toggle-radius);
-  border-left: var(--toggle-seam) solid var(--toggle-seam-color);
-}
-
-.showToggles #cellToggle::part(base) {
-  border-top: var(--toggle-seam) solid var(--toggle-seam-color);
   border-bottom-left-radius: var(--toggle-radius);
+}
+
+.showToggles .rightToggle::part(base) {
+  border-top-right-radius: var(--toggle-radius);
   border-bottom-right-radius: var(--toggle-radius);
 }
-
 
 /* Color Pickers */
 
