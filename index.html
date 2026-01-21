@@ -34,7 +34,6 @@
             <wa-icon id="optionsIcon" name="sliders"></wa-icon>
           </wa-button>
 
-          <!-- <wa-tooltip for="uploadButton">Upload Your Own</wa-tooltip> -->
           <wa-button id="uploadButton" size="small" appearance="filled"
             aria-label="Choose file">
             <wa-icon name="camera"></wa-icon>
@@ -73,13 +72,17 @@
 
               <div class="controlCard showToggles" id="cardToStart">
                 <div class="togglesGrid">
-                  <wa-button appearance="filled" id="seedToggle" class="leftToggle"
+                  <wa-button appearance="filled" id="seedToggle"
+                    class="leftToggle"
                     aria-pressed="true">Seeds</wa-button>
-                  <wa-button appearance="filled" id="colorToggle" class="rightToggle"
+                  <wa-button appearance="filled" id="colorToggle"
+                    class="rightToggle"
                     aria-pressed="false">Color</wa-button>
-                  <wa-button appearance="filled" id="cellToggle" class="leftToggle"
+                  <wa-button appearance="filled" id="cellToggle"
+                    class="leftToggle"
                     aria-pressed="false">Cells</wa-button>
-                  <wa-button appearance="filled" id="fillToggle" class="rightToggle"
+                  <wa-button appearance="filled" id="fillToggle"
+                    class="rightToggle"
                     aria-pressed="false">Fill</wa-button>
                 </div>
               </div>
@@ -132,9 +135,9 @@
                   label="Seed Size"
                   min="0"
                   max="20"
-                  value="1"
+                  value="4"
                   min-value="1"
-                  max-value="4"
+                  max-value="10"
                   step="1"></wa-slider>
                 <wa-slider with-tooltip
                   id="radiusSlider"
@@ -209,14 +212,15 @@
             people recognize what it is? I'm also interested in movement in
             general and the emotions it can evoke, and this is a way to add
             movement to static image.</p>
-          <h3>Seeding the canvas</h3>
-          <p>First, we add seeds to a canvas.</p>
-          <p>The analog version of exclusion sampling would be to use a glue
-            stick on the canvas only in areas where we want seeds to stick. Then
-            we count out 10,000 seeds and throw them at the canvas. Some will
-            stick to the gluey areas. We'll pick up the seeds that didn't stick
-            and throw them again and again until they're all hanging on.</p>
-          <h3>Relaxation</h3>
+          <h3>Start with Seeds</h3>
+          <p>You may already have experience creating a seed mosaic in an art
+            class. First, apply glue to a canvas only in areas where you want
+            seeds to stick. Then you'd start placing seeds one by one.</p>
+          <p>In this version, we're less careful. We count out
+            10,000 seeds and throw them at the canvas en masse. Some will stick
+            to the gluey areas. We'll pick up the seeds that didn't and throw
+            them again and again until they're all hanging on.</p>
+          <h3>Learn to Relax</h3>
           <p>Since we didn't carefully place the seeds, some will be stuck to
             the canvas close together, and some areas that had glue will still
             have gaps. We need them to spread out a little.</p>
@@ -226,9 +230,11 @@
               href="https://en.wikipedia.org/wiki/Lloyd%27s_algorithm">Lloyd's
               Algorithm</a>. There's a collective sigh of relief from the
             remaining riders, and we all take a few steps away from the squished
-            person next to us until we reach a new equilibrium.</p>
-          <h3>Weighting</h3>
-          <p>Following the vanilla Lloyd's Algorithm to its mathematical
+            person next to us until we reach a new, more comfortable
+            equilibrium.</p>
+          <h3>Gravitate</h3>
+          <p>Following the vanilla version of Lloyd's Algorithm to its
+            mathematical
             conclusion would lead all of our seeds to be exactly equidistant
             from each other. Well ordered, but not very interesting if they
             should be representing an image. Instead, we want seeds to be
@@ -236,35 +242,39 @@
             canvas.</p>
           <p>What has weight? For humans, we might gravitate towards the
             fireplace in a cold room, the kitchen at a party, or around a piano
-            player in Grand Central Station. For this project we use a reference
+            player in Grand Central Station. For this project we re-use our
+            reference
             image, and we can choose if the dark or the light pixels should have
             gravity to attract our seeds.</p>
           <h3>Play</h3>
           <p>The goal of the “Weighted Voronoi Stippling” of Secord (2002) was
-            to quickly render an image with dots. To do that, use
-            uniformly-sized seeds on a white canvas, start in dark areas, and
-            let the seeds relax over them.</p>
-          <p>But maybe our goal is the journey rather than the destination. We
-            can seed the canvas in light areas, but gravitate towards dark areas
-            of the image. Or vice versa. We can change the size of the seeds to
-            reflect the weight. Instead of the seeds we can show the boundaries
-            between the seeds (cells). We can swap the colors of the seeds and
-            the canvas, or color the seeds based on the reference image.</p>
-          <p>The seeding and relaxation are non-deterministic, so your animation
-            will be different every single time.</p>
+            to quickly render an image with dots. To replicate their work on
+            your image, use uniformly-sized seeds on a white canvas, start from
+            dark areas, and let the seeds relax over them.</p>
+          <p>Or, "<a
+              href="https://archive.nytimes.com/tmagazine.blogs.nytimes.com/2013/05/09/yes-please-party-of-one/">swim
+              far out if you want to.</a>"
+            We can seed the canvas in light areas, but gravitate towards dark
+            areas
+            of the image, or vice versa. We can set the size of the seeds to
+            reflect the gravity. Instead of the seeds, we can show the
+            boundaries between the seeds (cells). We can swap the colors of the
+            seeds and the canvas, or color the seeds based on the underlying
+            reference image.</p>
+          <p>This process is non-deterministic, so your animation will be
+            different every time.</p>
           <h3>Tips</h3>
           <ul>
-            <li>Edit your photo before adding it as a reference (e.g.,
-              background removal)</li>
-            <li>Images with a high-contrast subject work best</li>
-            <li>Most settings can be applied mid-stream</li>
-            <li>Try slowing the speed down a lot (e.g., 0.05)</li>
+            <li>Edit your photo and/or video before adding it as a
+              reference</li>
+            <li>Images with a high-contrast subject work well</li>
+            <li>After things look settled, try changing things up</li>
+            <li>For images, try slowing the relaxation speed down a lot</li>
           </ul>
           <h3>Acknowledgements</h3>
           <p>Daniel Shiffman's <a
               href="https://thecodingtrain.com/challenges/181-image-stippling">Coding
-              Train Challenge #181</a> was an excellent resource and well worth
-            watching. <a
+              Train Challenge #181</a> was an excellent resource. <a
               href="https://github.com/smallwhale1/voronoi-stippling/tree/main">Sophie
               Zhang</a>'s response to the challenge was an inspiring seed for my
             own iteration.</p>
