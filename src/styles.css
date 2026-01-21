@@ -314,12 +314,40 @@ wa-select::part(label) {
 
 .showToggles {
   padding: 0;
-  width: 151px;
+  width: 153px;
+  background-color: #fff;
+}
+
+.showToggles wa-button {
+  height: 100%;
+}
+
+.showToggles > wa-button-group {
+  height: var(--card-height);
+}
+
+.showToggles > wa-button-group::part(base) {
+  height: 100%;
 }
 
 .showToggles wa-button::part(base) {
+  height: 100%;
+  min-height: 0;
   justify-content: center;
   padding: 0 1em;
+}
+
+.showToggles wa-button-group[orientation="horizontal"] {
+  height: 50px;
+}
+
+.showToggles wa-button-group[orientation="horizontal"]::part(base) {
+  height: 100%;
+}
+
+/* Bottom button fills the rest */
+.showToggles .bottomGroup {
+  flex: 1;
 }
 
 wa-button#pointToggle::part(base) {
@@ -327,6 +355,8 @@ wa-button#pointToggle::part(base) {
   border-bottom-left-radius: 0;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  border-right: 1px solid white;
+  border-bottom: 1px solid white;
 }
 
 wa-button#cellToggle::part(base) {
@@ -334,6 +364,8 @@ wa-button#cellToggle::part(base) {
   border-bottom-left-radius: 0;
   border-top-right-radius: 6px;
   border-bottom-right-radius: 0;
+    border-left: 1px solid white;
+  border-bottom: 1px solid white;
 }
 
 wa-button#colorToggle::part(base) {
@@ -341,6 +373,7 @@ wa-button#colorToggle::part(base) {
   border-bottom-left-radius: 6px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 6px;
+  border-top: 1px solid white;
 }
 
 /* .topToggles::part(base) {
