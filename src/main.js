@@ -428,15 +428,40 @@ function renderFrame() {
   canvasContext.fillStyle = backgroundColor;
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
-  const showColor = isOn(colorToggle, false);
-  const showPolygons = isOn(cellToggle, false);
-  const showPoints = isOn(seedToggle, true);
+  const seedsOn = isOn(seedToggle, true);
+  const colorsOn = isOn(colorToggle, false);
+  const cellsOn = isOn(cellToggle, false);
+  const fillsOn = isOn(fillToggle, false);
 
   const w = canvas.width;
   const h = canvas.height;
   const data = referenceData;
 
-  if (showPoints) {
+  if (cellsOn && voronoi) {
+    const cells = Array.from(voronoi.cellPolygons());
+    for (let i = 0; i < cells.length; i++) {
+      const poly = cells[i];
+      canvasContext.beginPath();
+      canvasContext.moveTo(poly[0][0], poly[0][1]);
+      for (let k = 1; k < poly.length; k++)
+        canvasContext.lineTo(poly[k][0], poly[k][1]);
+      canvasContext.closePath();
+
+      if (fillsOn) {
+        const [x, y] = currentPoints[i];
+        const { r, g, b } = getColor(data, w, h, x, y);
+        canvasContext.strokeStyle = lineColor;
+        canvasContext.stroke();
+        canvasContext.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        canvasContext.fill();
+      } else {
+        canvasContext.strokeStyle = lineColor;
+        canvasContext.stroke();
+      }
+    }
+  }
+
+  if (seedsOn) {
     const useUniform = sizePreference === "none";
     const sizeFn = toneResponse[sizePreference];
     let radiusSpan = maxRadius - minRadius;
@@ -455,34 +480,12 @@ function renderFrame() {
       }
 
       let color = pointColor;
-      if (showColor) {
+      if (colorsOn) {
         const { r, g, b } = getColor(data, w, h, x, y);
         color = `rgb(${r}, ${g}, ${b})`;
       }
 
       drawPoint(canvasContext, x, y, color, radius);
-    }
-  }
-
-  if (showPolygons && voronoi) {
-    const cells = Array.from(voronoi.cellPolygons());
-    for (let i = 0; i < cells.length; i++) {
-      const poly = cells[i];
-      canvasContext.beginPath();
-      canvasContext.moveTo(poly[0][0], poly[0][1]);
-      for (let k = 1; k < poly.length; k++)
-        canvasContext.lineTo(poly[k][0], poly[k][1]);
-      canvasContext.closePath();
-
-      if (showColor) {
-        const [x, y] = currentPoints[i];
-        const { r, g, b } = getColor(data, w, h, x, y);
-        canvasContext.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        canvasContext.fill();
-      } else {
-        canvasContext.strokeStyle = lineColor;
-        canvasContext.stroke();
-      }
     }
   }
 }
