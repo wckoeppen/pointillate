@@ -250,10 +250,6 @@ body {
   display: block;
 }
 
-#app.ready #loader {
-  display: none;
-}
-
 #app.loading #canvasStage,
 #app.loading #controlPane {
   display: none;
