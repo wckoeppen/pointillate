@@ -54,38 +54,59 @@ h6 {
 
 /* .info-overlay Headline */
 h1 {
-  font: normal normal 600 28px Georgia, TimesNewRoman, serif;
+  font:
+    normal normal 600 28px Georgia,
+    TimesNewRoman,
+    serif;
   margin-bottom: 8px;
   letter-spacing: -0.5px;
 }
 
 /* Kicker */
 .kicker {
-  font: normal normal 400 20px/1.25em Georgia, TimesNewRoman, serif;
+  font:
+    normal normal 400 20px/1.25em Georgia,
+    TimesNewRoman,
+    serif;
   margin: 0 auto 0.7em auto;
   color: #666;
 }
 
 /* Byline */
 .byline {
-  font: italic normal 200 15px Helvetica, Verdana, Arial, sans-serif;
+  font:
+    italic normal 200 15px Helvetica,
+    Verdana,
+    Arial,
+    sans-serif;
   margin: 0 auto 1.5em auto;
 }
 
 /* Internal Story Headers */
 h2 {
-  font: normal normal 600 24px Georgia, TimesNewRoman, serif;
+  font:
+    normal normal 600 24px Georgia,
+    TimesNewRoman,
+    serif;
   margin-bottom: 8px;
   letter-spacing: -0.5px;
 }
 
 h3 {
   margin-top: 1.6em;
-  font: normal normal 200 24px Helvetica, Verdana, Arial, sans-serif;
+  font:
+    normal normal 200 24px Helvetica,
+    Verdana,
+    Arial,
+    sans-serif;
 }
 
 .byline {
-  font: italic normal 200 15px Helvetica, Verdana, Arial, sans-serif;
+  font:
+    italic normal 200 15px Helvetica,
+    Verdana,
+    Arial,
+    sans-serif;
   margin: 0 auto 1.5em auto;
 }
 
@@ -197,7 +218,9 @@ body {
   padding: 12px;
   border-radius: 6px;
   background: var(--control-background);
-  transition: opacity 160ms ease, transform 500ms ease-in-out;
+  transition:
+    opacity 160ms ease,
+    transform 500ms ease-in-out;
   opacity: 1;
   transform: translateX(0);
 }
@@ -421,6 +444,7 @@ wa-details::part(header) {
   position: absolute;
   top: 8px;
   right: 24px;
+  z-index: 10;
 }
 
 .info-overlay:not([hidden]) {
@@ -428,7 +452,10 @@ wa-details::part(header) {
 }
 
 p {
-  font: normal normal 100 19px/1.6em Georgia, TimesNewRoman, serif;
+  font:
+    normal normal 100 19px/1.6em Georgia,
+    TimesNewRoman,
+    serif;
   color: #333;
   max-width: 900px;
   margin: 1em auto;
@@ -437,7 +464,10 @@ p {
 
 .info-overlay ul,
 .info-overlay ol {
-  font: normal normal 100 19px/1.6em Georgia, TimesNewRoman, serif;
+  font:
+    normal normal 100 19px/1.6em Georgia,
+    TimesNewRoman,
+    serif;
   color: #333;
   max-width: 844px;
   margin: 1em auto;
@@ -495,35 +525,55 @@ p {
 
   /*  Headline */
   .info-overlay h1 {
-    font: normal normal 600 24px Georgia, TimesNewRoman, serif;
+    font:
+      normal normal 600 24px Georgia,
+      TimesNewRoman,
+      serif;
     margin-bottom: 6px;
   }
 
   /* Kicker */
   .kicker {
-    font: normal normal 400 18px/1.25em Georgia, TimesNewRoman, serif;
+    font:
+      normal normal 400 18px/1.25em Georgia,
+      TimesNewRoman,
+      serif;
   }
 
   /* Byline */
   .byline {
-    font: italic normal 200 14px Helvetica, Verdana, Arial, sans-serif;
+    font:
+      italic normal 200 14px Helvetica,
+      Verdana,
+      Arial,
+      sans-serif;
   }
 
   /* Internal Story Headers */
   h2 {
-    font: normal normal 600 20px Georgia, TimesNewRoman, serif;
+    font:
+      normal normal 600 20px Georgia,
+      TimesNewRoman,
+      serif;
     margin-bottom: 8px;
     letter-spacing: -0.5px;
   }
 
   h3 {
-    font: normal normal 200 20px Helvetica, Verdana, Arial, sans-serif;
+    font:
+      normal normal 200 20px Helvetica,
+      Verdana,
+      Arial,
+      sans-serif;
   }
 
   .info-overlay p,
   .info-overlay ol,
   .info-overlay ul {
-    font: normal normal 100 16px/1.6em Georgia, TimesNewRoman, serif;
+    font:
+      normal normal 100 16px/1.6em Georgia,
+      TimesNewRoman,
+      serif;
   }
 
   .info-overlay ol:not(.thumbnails),
