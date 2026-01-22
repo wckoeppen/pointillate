@@ -1037,7 +1037,6 @@ function setOn(btn, on) {
 }
 
 function setDisabled(btn, disabled) {
-  console.log("disabling")
   if (!btn) return;
   if (disabled) {
     btn.setAttribute("disabled", "");
