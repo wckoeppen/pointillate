@@ -1,12 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="favicon.ico" />
+    <title>Pointillate: An Art and Animation Sandbox</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Will Koeppen">
+    <meta name="description"
+      content="An interactive sandbox that transforms your reference image or video into mathematical art.">
+    <meta name="keywords"
+      content="data visualization, art, animation">
+    <meta name="viewport" id="viewport"
+      content="width=device-width, initial-scale=1">
+    <meta property="og:site_name" content="Will Koeppen">
+    <meta property="og:title"
+      content="Pointillate: An Art and Animation Sandbox">
+    <meta property="og:description"
+      content="An interactive sandbox that transforms your reference image or video into mathematical art.">
+    <meta property="og:url" content="https://pointillate.com">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="cover.jpg">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="400">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
     <script type="module" src="/src/bootstrap.js"></script>
     <link rel="stylesheet" href="/src/styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pointillate</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async
+      src="https://www.googletagmanager.com/gtag/js?id=G-K13BB3ZP6K"></script>
+    <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-K13BB3ZP6K');
+</script>
   </head>
   <body>
     <div id="app" class="loading">
