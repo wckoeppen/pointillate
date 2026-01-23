@@ -437,13 +437,13 @@ wa-details::part(header) {
 
 .info-panel-inner {
   overflow: auto;
-  padding: 16px 40px 16px 20px;
+  padding: 16px 32px 16px 10px;
 }
 
 #closeInfo {
   position: absolute;
   top: 8px;
-  right: 24px;
+  right: 8px;
   z-index: 10;
 }
 

@@ -185,100 +185,35 @@
             aria-label="Close">
             <wa-icon name="close"></wa-icon>
           </wa-button>
-          <h1>Pointillate</h1>
-          <p class="byline">By <a href="http://www.willkoeppen.com/datavis">Will
+          <h1 id="pointillate">Pointillate</h1>
+          <p>By <a href="http://www.willkoeppen.com/datavis">Will
               Koeppen</a></p>
           <p>This app uses a reference image to seed a canvas using randomized
-            exclusion sampling. Seeds are iteratively moved to new positions by
-            using Lloyd's algorithm with a density function based on the
-            reference.</p>
-          <h3>Background</h3>
-          <p>Artists have used distributed dots (stippling) for shading since at
-            least <a href="https://en.wikipedia.org/wiki/Stipple_engraving">1510
-              AD</a>. In the late 1800s, the <a
-              href="https://en.wikipedia.org/wiki/Pointillism">Pointillism</a>
-            movement shed lines altogether and used only dots to create
-            forms.</p>
-          <p>Computer scientists like <a
+            exclusion sampling. Seeds are iteratively moved to new positions
+            using Lloyd&#39;s algorithm modified by a density function based on
+            the reference. For more information, see <a
+              href="https://www.willkoeppen.com/datavis/pointillate/">Pointillate:
+              An Art and Animation Sandbox</a>.</p>
+          <h3 id="tips">Tips</h3>
+          <ul>
+            <li>Edit your photo and/or video before adding it as a reference
+            </li>
+            <li>Images with a high-contrast subject work well </li>
+            <li>The process is non-deterministic, so your animation will be
+              different every time </li>
+            <li>Go your own way</li>
+          </ul>
+          <h3 id="acknowledgements">Acknowledgements</h3>
+          <p>This app uses methods described in <a
               href="https://kops.uni-konstanz.de/server/api/core/bitstreams/357c2128-47cb-44bf-ac9d-734cdf9012a6/content">Deussen
               et al. (2000)</a> and <a
               href="https://www.cs.ubc.ca/labs/imager/tr/2002/secord2002b/secord.2002b.pdf">Secord
-              (2002)</a> explored algorithms to apply stippling to digital
-            images. Their goal was to use math and CPU power to represent
-            objects with far fewer well-placed dots than you would need for a
-            full resolution image. </p>
-          <p>As a lover of art and animation, I'm very interested in the idea of
-            visual sufficiency. How little of something can you show and have
-            people recognize what it is? I'm also interested in movement in
-            general and the emotions it can evoke, and this is a way to add
-            movement to static image.</p>
-          <h3>Start with Seeds</h3>
-          <p>You may already have experience creating a seed mosaic in an art
-            class. First, apply glue to a canvas only in areas where you want
-            seeds to stick. Then you'd start placing seeds one by one.</p>
-          <p>In this version, we're less careful. We count out
-            10,000 seeds and throw them at the canvas en masse. Some will stick
-            to the gluey areas. We'll pick up the seeds that didn't and throw
-            them again and again until they're all hanging on.</p>
-          <h3>Learn to Relax</h3>
-          <p>Since we didn't carefully place the seeds, some will be stuck to
-            the canvas close together, and some areas that had glue will still
-            have gaps. We need them to spread out a little.</p>
-          <p>If you've ever been in a packed subway car when suddenly half of
-            the people get off at a popular stop, you've approximated the
-            movement described by <a
-              href="https://en.wikipedia.org/wiki/Lloyd%27s_algorithm">Lloyd's
-              Algorithm</a>. There's a collective sigh of relief from the
-            remaining riders, and we all take a few steps away from the squished
-            person next to us until we reach a new, more comfortable
-            equilibrium.</p>
-          <h3>Gravitate</h3>
-          <p>Following the vanilla version of Lloyd's Algorithm to its
-            mathematical
-            conclusion would lead all of our seeds to be exactly equidistant
-            from each other. Well ordered, but not very interesting if they
-            should be representing an image. Instead, we want seeds to be
-            relaxed, but still grouped (weighted) towards certain areas of the
-            canvas.</p>
-          <p>What has weight? For humans, we might gravitate towards the
-            fireplace in a cold room, the kitchen at a party, or around a piano
-            player in Grand Central Station. For this project we re-use our
-            reference
-            image, and we can choose if the dark or the light pixels should have
-            gravity to attract our seeds.</p>
-          <h3>Play</h3>
-          <p>The goal of the “Weighted Voronoi Stippling” of Secord (2002) was
-            to quickly render an image with dots. To replicate their work on
-            your image, use uniformly-sized seeds on a white canvas, start from
-            dark areas, and let the seeds relax over them.</p>
-          <p>Or, "<a
-              href="https://archive.nytimes.com/tmagazine.blogs.nytimes.com/2013/05/09/yes-please-party-of-one/">swim
-              far out if you want to.</a>"
-            We can seed the canvas in light areas, but gravitate towards dark
-            areas
-            of the image, or vice versa. We can set the size of the seeds to
-            reflect the gravity. Instead of the seeds, we can show the
-            boundaries between the seeds (cells). We can swap the colors of the
-            seeds and the canvas, or color the seeds based on the underlying
-            reference image.</p>
-          <p>This process is non-deterministic, so your animation will be
-            different every time.</p>
-          <h3>Tips</h3>
-          <ul>
-            <li>Edit your photo and/or video before adding it as a
-              reference</li>
-            <li>Images with a high-contrast subject work well</li>
-            <li>After things look settled, try changing things up</li>
-            <li>For images, try slowing the relaxation speed down a lot</li>
-          </ul>
-          <h3>Acknowledgements</h3>
-          <p>Daniel Shiffman's <a
+              (2002)</a>. Daniel Shiffman&#39;s <a
               href="https://thecodingtrain.com/challenges/181-image-stippling">Coding
-              Train Challenge #181</a> was an excellent resource. <a
+              Train Challenge #181</a> was an excellent resource, and <a
               href="https://github.com/smallwhale1/voronoi-stippling/tree/main">Sophie
-              Zhang</a>'s response to the challenge was an inspiring seed for my
-            own iteration.</p>
-
+              Zhang</a>&#39;s response to the challenge was an inspiring seed
+            for this iteration.</p>
         </div>
       </div>
     </div>
