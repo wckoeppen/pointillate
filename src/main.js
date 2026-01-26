@@ -1177,6 +1177,7 @@ function setup() {
       speedSlider?.updateComplete,
     ]);
     loadImage(img);
+    setRelaxEnabled(true)
 
     app.classList.remove("loading");
     app.classList.add("ready");
@@ -1188,6 +1189,7 @@ function setup() {
       });
     });
   };
+
 }
 
 setup();
