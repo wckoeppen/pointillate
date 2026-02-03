@@ -404,33 +404,38 @@ async function loadVideo(video) {
 // Seeding / relaxation / voronoi
 
 function seedPoints() {
+  const start = performance.now();
   if (!referenceData || canvas.width <= 0 || canvas.height <= 0) return;
 
   const acceptanceFn = toneResponse[seedPreference];
   currentPoints = [];
 
-  const maxAttempts = Math.max(1000, numPoints * 20);
   let attempts = 0;
-
-  while (currentPoints.length < numPoints && attempts < maxAttempts) {
+  while (currentPoints.length < numPoints) {
     attempts++;
     const x = Math.random() * canvas.width;
     const y = Math.random() * canvas.height;
 
     if (seedPreference === "none") {
       currentPoints.push([x, y]);
-      continue;
+    } else {
+      const b = getBrightnessAtPoint(
+        referenceData,
+        canvas.width,
+        canvas.height,
+        x,
+        y,
+      );
+      const p = acceptanceFn(b);
+      if (p > 0 && Math.random() < p) currentPoints.push([x, y]);
     }
 
-    const brightness = getBrightnessAtPoint(
-      referenceData,
-      canvas.width,
-      canvas.height,
-      x,
-      y,
-    );
-    const p = acceptanceFn(brightness);
-    if (Math.random() < p) currentPoints.push([x, y]);
+    if (performance.now() - start > 2000) {
+      console.warn(
+        `Could only place ${currentPoints.length} points after ${attempts} attempts in ${(performance.now() - start) / 1000} seconds.`,
+      );
+      break;
+    }
   }
 
   // If we ran out of attempts, fill the remaining points randomly.
@@ -513,7 +518,7 @@ function renderFrame() {
 
   if (voronoi && (cellsOn || fillsOn)) {
     const cells = Array.from(voronoi.cellPolygons());
-    
+
     if (cellsOn) {
       canvasContext.strokeStyle = lineColor;
     }
