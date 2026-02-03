@@ -6,8 +6,6 @@ import "@awesome.me/webawesome/dist/components/option/option.js";
 import "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 import "@awesome.me/webawesome/dist/components/slider/slider.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
-import "@awesome.me/webawesome/dist/components/button-group/button-group.js";
-import "@awesome.me/webawesome/dist/components/switch/switch.js";
 import "@awesome.me/webawesome/dist/components/dropdown/dropdown.js";
 
 // DOM refs
@@ -98,7 +96,56 @@ let lastVideoSample = 0;
 const videoSampleHz = 24;
 const videoSampleInterval = 1000 / videoSampleHz;
 
+const presets = [
+  {
+    name: "Suit up",
+    src: "examples/suitup.jpg",
+    settings: {
+      numPoints: 100,
+      seedPreference: "none",
+      sizePreference: "dark",
+      relaxPreference: "dark",
+      minRadius: 1,
+      maxRadius: 10,
+      uniformRadius: 2,
+      backgroundColor: "#ffffff",
+      pointColor: "#000000",
+      relaxEnabled: true,
+      relaxSpeed: 0.1,
+      seedsOn: true,
+      colorsOn: false,
+      cellsOn: false,
+      fillsOn: false,
+    },
+  },
+  {
+    name: "AR-15",
+    src: "examples/ar15.jpg",
+    settings: {
+      numPoints: 20,
+      seedPreference: "dark",
+      relaxPreference: "dark",
+      sizePreference: "none",
+      minRadius: 1,
+      maxRadius: 10,
+      uniformRadius: 2,
+      backgroundColor: "#aa0000",
+      pointColor: "#000000",
+      relaxEnabled: true,
+      relaxSpeed: 0.1,
+      seedsOn: true,
+      colorsOn: false,
+      cellsOn: false,
+      fillsOn: false,
+    },
+  },
+];
+
 // Utility / helpers
+function chooseRandomPreset(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
 function computeWorkingSize(mediaW, mediaH, maxW = 960) {
   if (mediaW <= maxW) return { w: mediaW, h: mediaH };
   const scale = maxW / mediaW;
@@ -1254,35 +1301,132 @@ function handleVideoUpload(file) {
   videoEl.load();
 }
 
-// ========================================
-// Toggles
+function clampInt(v, min, max, fallback) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, Math.floor(n)));
+}
 
-// ========================================
+function clampNum(v, min, max, fallback) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+
+function loadPresetImage(src) {
+  return new Promise((resolve, reject) => {
+    enterImageMode();
+
+    const img = new Image();
+    img.onload = () => {
+      selectedFile = src;
+      loadImage(img);
+      resolve();
+    };
+    img.onerror = reject;
+
+    img.src = `${import.meta.env.BASE_URL}${src}`;
+  });
+}
+
+async function applyPreset(preset) {
+  await Promise.all([
+    customElements.whenDefined("wa-select"),
+    customElements.whenDefined("wa-slider"),
+    customElements.whenDefined("wa-color-picker"),
+    customElements.whenDefined("wa-button"),
+  ]);
+
+  const s = preset?.settings ?? {};
+
+  if (numPointsSlider && s.numPoints != null)
+    numPointsSlider.value = String(s.numPoints);
+
+  if (seedSelect && s.seedPreference) seedSelect.value = s.seedPreference;
+  if (relaxSelect && s.relaxPreference) relaxSelect.value = s.relaxPreference;
+  if (sizeSelect && s.sizePreference) sizeSelect.value = s.sizePreference;
+
+  if (radiusRange) {
+    if (s.minRadius != null) radiusRange.minValue = String(s.minRadius);
+    if (s.maxRadius != null) radiusRange.maxValue = String(s.maxRadius);
+  }
+  if (radiusSlider && s.uniformRadius != null)
+    radiusSlider.value = String(s.uniformRadius);
+
+  if (speedSlider && s.relaxSpeed != null)
+    speedSlider.value = String(s.relaxSpeed);
+
+  if (backgroundColorBtn && s.backgroundColor)
+    backgroundColorBtn.value = s.backgroundColor;
+  if (pointColorBtn && s.pointColor) pointColorBtn.value = s.pointColor;
+  if (lineColorBtn && s.lineColor) lineColorBtn.value = s.lineColor;
+
+  if (s.seedsOn != null) setOn(seedToggle, !!s.seedsOn);
+  if (s.colorsOn != null) setOn(colorToggle, !!s.colorsOn);
+  if (s.cellsOn != null) setOn(cellToggle, !!s.cellsOn);
+  if (s.fillsOn != null) setOn(fillToggle, !!s.fillsOn);
+
+  syncButtonUI();
+
+  await Promise.allSettled([
+    numPointsSlider?.updateComplete,
+    seedSelect?.updateComplete,
+    sizeSelect?.updateComplete,
+    relaxSelect?.updateComplete,
+    radiusRange?.updateComplete,
+    radiusSlider?.updateComplete,
+    speedSlider?.updateComplete,
+    backgroundColorBtn?.updateComplete,
+    pointColorBtn?.updateComplete,
+    lineColorBtn?.updateComplete,
+  ]);
+
+  numPoints = clampInt(numPointsSlider?.value, 1, 30000, 5000);
+
+  seedPreference = seedSelect?.value ?? "none";
+  relaxPreference = relaxSelect?.value ?? "dark";
+  sizePreference = sizeSelect?.value ?? "dark";
+
+  syncRadiusUI();
+
+  minRadius = clampNum(radiusRange?.minValue, 0, 20, 1);
+  maxRadius = clampNum(radiusRange?.maxValue, 0, 20, 10);
+  uniformRadius = clampNum(radiusSlider?.value, 0, 20, 2);
+
+  relaxSpeed = clampNum(speedSlider?.value, 0, 1, 0.1);
+  speedStore = relaxSpeed;
+
+  backgroundColor = backgroundColorBtn?.value ?? "#ffffff";
+  pointColor = pointColorBtn?.value ?? "#000000";
+  lineColor = lineColorBtn?.value ?? "#000000";
+
+  document.documentElement.style.setProperty(
+    "--stage-background",
+    backgroundColor,
+  );
+
+  rebuildBrightnessMapIfNeeded();
+
+  await loadPresetImage(preset.src);
+
+  setRelaxEnabled(!!s.relaxEnabled);
+}
 
 // Initialization
-function setup() {
-  const img = new Image();
-  img.src = selectedFile;
+async function setup() {
+  const preset = chooseRandomPreset(presets);
+  await applyPreset(preset);
 
-  img.onload = async () => {
-    await Promise.all([
-      radiusRange?.updateComplete,
-      numPointsSlider?.updateComplete,
-      speedSlider?.updateComplete,
-    ]);
-    loadImage(img);
-    setRelaxEnabled(true);
+  setRelaxEnabled(true);
 
-    app.classList.remove("loading");
-    app.classList.add("ready");
+  app.classList.remove("loading");
+  app.classList.add("ready");
 
-    // Wait two paints
+  requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        scrollToCardInCarousel(cardToStart);
-      });
+      scrollToCardInCarousel(cardToStart);
     });
-  };
+  });
 }
 
 setup();
