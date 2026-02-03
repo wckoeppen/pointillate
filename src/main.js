@@ -44,7 +44,6 @@ const lineColorBtn = document.getElementById("lineColorBtn");
 const runButton = document.getElementById("runButton");
 const runIcon = document.getElementById("runIcon");
 
-const videoButton = document.getElementById("videoButton");
 const videoEl = document.getElementById("video");
 
 const saveDropdown = document.getElementById("saveDropdown");
@@ -63,8 +62,10 @@ const referenceContext = referenceCanvas.getContext("2d", {
 });
 
 let referenceData;
+let brightnessMap = null;
 const canvasContext = canvas.getContext("2d", { willReadFrequently: true }); // visible interface
 let sourceMode = "image"; // "image" | "video"
+let imageHasAlpha = false;
 let mediaWidth = 0;
 let mediaHeight = 0;
 let selectedFile = "example.jpg";
@@ -104,11 +105,81 @@ function computeWorkingSize(mediaW, mediaH, maxW = 960) {
   return { w: Math.round(mediaW * scale), h: Math.round(mediaH * scale) };
 }
 
-function getBrightness(data, width, height, x, y) {
-  const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
-  const iy = Math.max(0, Math.min(height - 1, Math.floor(y)));
-  const idx = (iy * width + ix) * 4;
+function hexToRgb(hex) {
+  const h = hex.replace("#", "").trim();
+  const v =
+    h.length === 3
+      ? parseInt(
+          h
+            .split("")
+            .map((c) => c + c)
+            .join(""),
+          16,
+        )
+      : parseInt(h, 16);
+  return { r: (v >> 16) & 255, g: (v >> 8) & 255, b: v & 255 };
+}
 
+function getRelaxCompositeBgHex() {
+  // light => composite onto black, dark => composite onto white
+  return relaxPreference === "light" ? "#000000" : "#ffffff";
+}
+
+function detectAnyAlpha(data) {
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] !== 255) return true;
+  }
+  return false;
+}
+
+function buildBrightnessMapComposited(data, w, h, bgHex) {
+  const { r: bgR, g: bgG, b: bgB } = hexToRgb(bgHex);
+  const out = new Float32Array(w * h);
+
+  let di = 0;
+  for (let i = 0; i < out.length; i++, di += 4) {
+    const r = data[di];
+    const g = data[di + 1];
+    const b = data[di + 2];
+    const a = data[di + 3] / 255;
+
+    const cr = r * a + bgR * (1 - a);
+    const cg = g * a + bgG * (1 - a);
+    const cb = b * a + bgB * (1 - a);
+
+    out[i] = 0.2126 * cr + 0.7152 * cg + 0.0722 * cb;
+  }
+  return out;
+}
+
+function rebuildBrightnessMapIfNeeded() {
+  // only for images, only if the image actually has alpha
+  if (sourceMode !== "image") return;
+  if (!referenceData || canvas.width <= 0 || canvas.height <= 0) return;
+
+  if (!imageHasAlpha) {
+    brightnessMap = null;
+    return;
+  }
+
+  const bgHex = getRelaxCompositeBgHex();
+  brightnessMap = buildBrightnessMapComposited(
+    referenceData,
+    canvas.width,
+    canvas.height,
+    bgHex,
+  );
+}
+
+function getBrightnessAtPoint(data, w, h, x, y) {
+  const ix = Math.max(0, Math.min(w - 1, Math.floor(x)));
+  const iy = Math.max(0, Math.min(h - 1, Math.floor(y)));
+
+  if (sourceMode === "image" && brightnessMap) {
+    return brightnessMap[iy * w + ix];
+  }
+  // video OR non-alpha image: original behavior
+  const idx = (iy * w + ix) * 4;
   return 0.2126 * data[idx] + 0.7152 * data[idx + 1] + 0.0722 * data[idx + 2];
 }
 
@@ -125,7 +196,7 @@ function getColor(data, width, height, x, y) {
 }
 
 function getWeightAtPoint(data, w, h, x, y) {
-  const brightness = getBrightness(data, w, h, x, y); // 0..255
+  const brightness = getBrightnessAtPoint(data, w, h, x, y); // 0..255
   return 1 - brightness / 255; // 0..1 darkness
 }
 
@@ -187,7 +258,7 @@ function refreshSourcePixels(now, force = false) {
     0,
     0,
     canvas.width,
-    canvas.height
+    canvas.height,
   ).data;
 
   lastVideoSample = now != null ? now : performance.now();
@@ -237,8 +308,11 @@ function loadImage(img) {
     0,
     0,
     canvas.width,
-    canvas.height
+    canvas.height,
   ).data;
+  imageHasAlpha = detectAnyAlpha(referenceData);
+  rebuildBrightnessMapIfNeeded();
+
   seedPoints();
   getVoronoi();
   renderFrame();
@@ -257,19 +331,19 @@ function looksBlankRGBA(data, stride = 2000) {
 // waits for a DOM event
 function waitOnce(target, type) {
   return new Promise((res) =>
-    target.addEventListener(type, res, { once: true })
+    target.addEventListener(type, res, { once: true }),
   );
 }
 
 // Attempts to wait for a decoded frame
 function waitDecodedFrame(video, timeoutMs = 250) {
   const tickFallback = new Promise((res) =>
-    requestAnimationFrame(() => requestAnimationFrame(res))
+    requestAnimationFrame(() => requestAnimationFrame(res)),
   );
 
   if (video.requestVideoFrameCallback) {
     const rvfc = new Promise((res) =>
-      video.requestVideoFrameCallback(() => res())
+      video.requestVideoFrameCallback(() => res()),
     );
     const timeout = new Promise((res) => setTimeout(res, timeoutMs));
 
@@ -282,13 +356,15 @@ function waitDecodedFrame(video, timeoutMs = 250) {
 async function loadVideo(video) {
   stopLoop();
 
+  brightnessMap = null;
+  imageHasAlpha = false;
   enterVideoMode(video);
   setMediaSize(video.videoWidth, video.videoHeight);
 
   const { w, h } = computeWorkingSize(
     video.videoWidth,
     video.videoHeight,
-    maxWidth
+    maxWidth,
   );
   referenceCanvas.width = w;
   referenceCanvas.height = h;
@@ -346,12 +422,12 @@ function seedPoints() {
       continue;
     }
 
-    const brightness = getBrightness(
+    const brightness = getBrightnessAtPoint(
       referenceData,
       canvas.width,
       canvas.height,
       x,
-      y
+      y,
     );
     const p = acceptanceFn(brightness);
     if (Math.random() < p) currentPoints.push([x, y]);
@@ -373,6 +449,8 @@ function getVoronoi() {
 
 function relaxPoints() {
   const weightFunction = toneResponse[relaxPreference];
+  const floorWeight = 1e-16;
+
   const n = currentPoints.length;
   const targetPoints = new Array(n);
   for (let i = 0; i < n; i++) targetPoints[i] = [0, 0];
@@ -383,18 +461,14 @@ function relaxPoints() {
   const hCanvas = canvas.height;
 
   let delaunayIndex = 0;
+
   for (let y = 0; y < hCanvas; y++) {
-    const rowBase = y * wCanvas * 4;
     for (let x = 0; x < wCanvas; x++) {
-      const idx = rowBase + x * 4;
-      const r = data[idx];
-      const g = data[idx + 1];
-      const b = data[idx + 2];
+      const brightness = getBrightnessAtPoint(data, wCanvas, hCanvas, x, y);
 
-      const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      const w = weightFunction(brightness);
+      let w = weightFunction(brightness);
+      if (w < floorWeight) w = floorWeight;
 
-      // nearest site index in currentPoints (use previous index as hint)
       delaunayIndex = delaunay.find(x, y, delaunayIndex);
 
       targetPoints[delaunayIndex][0] += x * w;
@@ -439,7 +513,7 @@ function renderFrame() {
 
   if (voronoi && (cellsOn || fillsOn)) {
     const cells = Array.from(voronoi.cellPolygons());
-
+    
     if (cellsOn) {
       canvasContext.strokeStyle = lineColor;
     }
@@ -480,7 +554,7 @@ function renderFrame() {
       if (useUniform) {
         radius = uniformRadius;
       } else {
-        const brightness = getBrightness(data, w, h, x, y);
+        const brightness = getBrightnessAtPoint(data, w, h, x, y);
         const brightnessFraction = sizeFn(brightness);
         radius =
           minRadius + brightnessFraction * brightnessFraction * radiusSpan;
@@ -584,8 +658,8 @@ function syncPlayButtonUI() {
         ? "Pause video"
         : "Play video"
       : on
-      ? "Pause relaxation"
-      : "Start relaxation"
+        ? "Pause relaxation"
+        : "Start relaxation",
   );
 }
 
@@ -595,7 +669,7 @@ function syncControlsButton() {
   optionsButton.appearance = open ? "accent" : "filled";
   optionsButton.setAttribute(
     "aria-label",
-    open ? "Collapse options" : "Open options"
+    open ? "Collapse options" : "Open options",
   );
 }
 
@@ -612,15 +686,12 @@ function setSizePreference(next) {
   sizePreference = next;
 
   syncRadiusUI();
-  getVoronoi();
   renderFrame();
 }
 
 function setRelaxPreference(next) {
   if (next === relaxPreference) return;
   relaxPreference = next;
-
-  getVoronoi();
   renderFrame();
 }
 
@@ -725,6 +796,10 @@ function saveJSON() {
   const h = canvas.height;
   const data = referenceContext.getImageData(0, 0, w, h).data;
 
+  const useUniform = sizePreference === "none";
+  const sizeFn = toneResponse[sizePreference];
+  const radiusSpan = maxRadius - minRadius;
+
   const exported = currentPoints.map((p, i) => {
     const x = p[0];
     const y = p[1];
@@ -732,8 +807,31 @@ function saveJSON() {
     const weight = getWeightAtPoint(data, w, h, x, y);
     const color = getColorStringAtPoint(data, w, h, x, y);
 
-    return { i, x, y, weight, color };
+    let radius;
+    if (useUniform) {
+      radius = uniformRadius;
+    } else {
+      const brightness = getBrightnessAtPoint(data, w, h, x, y);
+      const brightnessFraction = sizeFn(brightness);
+      radius = minRadius + brightnessFraction * brightnessFraction * radiusSpan;
+    }
+
+    return { i, x, y, weight, radius, color };
   });
+
+  const settings = {
+    startFrom: seedSelect?.value ?? seedPreference,
+    gravitateTo: relaxSelect?.value ?? relaxPreference,
+    sizeBy: sizeSelect?.value ?? sizePreference,
+  };
+  if (useUniform) {
+    settings.radiusMode = "uniform";
+    settings.uniformRadius = Number(radiusSlider?.value ?? uniformRadius);
+  } else {
+    settings.radiusMode = "range";
+    settings.minRadius = Number(radiusRange?.minValue ?? minRadius);
+    settings.maxRadius = Number(radiusRange?.maxValue ?? maxRadius);
+  }
 
   const metadata = {
     created: new Date().toISOString(),
@@ -741,8 +839,10 @@ function saveJSON() {
     width: w,
     height: h,
     seedCount: exported.length,
+    settings,
     seeds: exported,
   };
+
   downloadJson(filename, metadata);
 }
 
@@ -915,46 +1015,35 @@ radiusSlider?.addEventListener("input", () => {
   renderFrame();
 });
 
-relaxSelect.addEventListener("change", () => {
+relaxSelect?.addEventListener("change", () => {
   setRelaxPreference(relaxSelect.value);
+  rebuildBrightnessMapIfNeeded();
 });
 
-sizeSelect.addEventListener("change", () => {
+sizeSelect?.addEventListener("change", () => {
   setSizePreference(sizeSelect.value);
 });
 
-backgroundColorBtn.addEventListener("input", () => {
+backgroundColorBtn?.addEventListener("input", () => {
   backgroundColor = backgroundColorBtn.value;
 
   document.documentElement.style.setProperty(
     "--stage-background",
-    backgroundColor
+    backgroundColor,
   );
-
   renderFrame();
 });
-pointColorBtn.addEventListener("input", () => {
+pointColorBtn?.addEventListener("input", () => {
   pointColor = pointColorBtn.value;
   renderFrame();
 });
-lineColorBtn.addEventListener("input", () => {
+lineColorBtn?.addEventListener("input", () => {
   lineColor = lineColorBtn.value;
   renderFrame();
 });
 
-seedSelect.addEventListener("change", () => {
+seedSelect?.addEventListener("change", () => {
   setSeedPreference(seedSelect.value);
-});
-
-videoButton?.addEventListener("click", async () => {
-  try {
-    await videoEl.play();
-  } catch (err) {
-    // Autoplay policy or decode error
-    console.warn("Video play failed:", err);
-  }
-  startLoop();
-  syncVideoUI();
 });
 
 // The dreaded controlPane (scroll/swipe to open/close)
@@ -971,41 +1060,41 @@ function closeControls() {
 }
 
 // Dock buttons
-uploadButton.addEventListener("click", () => {
+uploadButton?.addEventListener("click", () => {
   mediaUploadDialog.click();
 });
 
-optionsButton.addEventListener("click", () => {
+optionsButton?.addEventListener("click", () => {
   if (app.classList.contains("controls-open")) closeControls();
   else openControls();
 });
 
 resetButton?.addEventListener("click", resetScene);
 
-canvasStage.addEventListener(
+canvasStage?.addEventListener(
   "wheel",
   (e) => {
     if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
     if (e.deltaY > 15) openControls();
     if (e.deltaY < -15) closeControls();
   },
-  { passive: true }
+  { passive: true },
 );
 
 let touchStartY = null;
 let touchStartX = null;
 
-canvasStage.addEventListener(
+canvasStage?.addEventListener(
   "touchstart",
   (e) => {
     if (e.touches.length !== 1) return;
     touchStartY = e.touches[0].clientY;
     touchStartX = e.touches[0].clientX;
   },
-  { passive: true }
+  { passive: true },
 );
 
-canvasStage.addEventListener(
+canvasStage?.addEventListener(
   "touchend",
   (e) => {
     if (touchStartY == null || touchStartX == null) return;
@@ -1022,7 +1111,7 @@ canvasStage.addEventListener(
     touchStartY = null;
     touchStartX = null;
   },
-  { passive: true }
+  { passive: true },
 );
 
 function isOn(btn, defaultValue = false) {
@@ -1069,7 +1158,7 @@ syncButtonUI();
 
 seedToggle?.addEventListener("click", () => {
   toggle(seedToggle, true);
-  syncButtonUI(); 
+  syncButtonUI();
   renderFrame();
 });
 
@@ -1140,7 +1229,7 @@ function handleVideoUpload(file) {
 
     if (videoEl.readyState < 2) {
       await new Promise((res) =>
-        videoEl.addEventListener("loadeddata", res, { once: true })
+        videoEl.addEventListener("loadeddata", res, { once: true }),
       );
       if (videoEl.src !== thisUrl) return;
     }
@@ -1177,7 +1266,7 @@ function setup() {
       speedSlider?.updateComplete,
     ]);
     loadImage(img);
-    setRelaxEnabled(true)
+    setRelaxEnabled(true);
 
     app.classList.remove("loading");
     app.classList.add("ready");
@@ -1189,7 +1278,6 @@ function setup() {
       });
     });
   };
-
 }
 
 setup();
