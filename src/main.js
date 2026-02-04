@@ -8,6 +8,99 @@ import "@awesome.me/webawesome/dist/components/slider/slider.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/dropdown/dropdown.js";
 
+// Defaults and overrides
+const defaults = {
+  selectedFile: "example.jpg",
+  type: "image",
+
+  backgroundColor: "#fff",
+  pointColor: "#000",
+  cellColor: "#000",
+
+  numPoints: 1000,
+  seedPreference: "dark", // "dark" | "light" | "none"
+  relaxPreference: "dark", // "dark" | "light"
+  sizePreference: "dark", // "dark" | "light" | "none"
+
+  minRadius: 1,
+  maxRadius: 4,
+  uniformRadius: 4,
+  relaxEnabled: true,
+  relaxSpeed: 0.1,
+
+  seedsOn: true,
+  colorsOn: false,
+  cellsOn: false,
+  fillsOn: false,
+};
+
+const presetOverrides = [
+  {
+    name: "Suit up",
+    src: "examples/suitup.jpg",
+    type: "image",
+    settings: {
+      numPoints: 2000,
+      seedPreference: "none",
+      maxRadius: 10,
+    },
+  },
+  {
+    name: "AR-15",
+    src: "examples/ar15.jpg",
+    type: "image",
+    settings: {
+      numPoints: 1000,
+      sizePreference: "none",
+      uniformRadius: 3,
+      backgroundColor: "#aa0000",
+      pointColor: "#ffffff",
+      cellColor: "#bb3333",
+      seedsOn: true,
+      cellsOn: true,
+    },
+  },
+  {
+    name: "Gulf Coast",
+    src: "examples/skimboard.mov",
+    type: "video",
+    settings: {
+      numPoints: 5000,
+      seedPreference: "none",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 2,
+      maxRadius: 8,
+      uniformRadius: 8,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      cellColor: "#000000",
+      relaxSpeed: 1,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+    {
+    name: "Burlesque",
+    src: "examples/burlesque.mov",
+    type: "video",
+    settings: {
+      numPoints: 1000,
+      seedPreference: "light",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 2,
+      maxRadius: 20,
+      uniformRadius: 20,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      relaxSpeed: 1,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  }
+];
+
 // DOM refs
 const app = document.getElementById("app");
 const controlPane = document.getElementById("controlPane");
@@ -37,7 +130,7 @@ const speedSlider = document.getElementById("speedSlider");
 
 const backgroundColorBtn = document.getElementById("backgroundColorBtn");
 const pointColorBtn = document.getElementById("pointColorBtn");
-const lineColorBtn = document.getElementById("lineColorBtn");
+const cellColorBtn = document.getElementById("cellColorBtn");
 
 const runButton = document.getElementById("runButton");
 const runIcon = document.getElementById("runIcon");
@@ -49,125 +142,58 @@ const infoButton = document.getElementById("infoButton");
 const infoOverlay = document.getElementById("infoOverlay");
 const closeInfo = document.getElementById("closeInfo");
 
-// State
+// State Variables
 let currentPoints = [];
-let delaunay;
-let voronoi;
+let delaunay, voronoi;
 let animationFrameId = null;
-let referenceCanvas = document.createElement("canvas"); // hidden, sample from here
+let isRunning = false;
+
+let referenceCanvas = document.createElement("canvas");
 const referenceContext = referenceCanvas.getContext("2d", {
   willReadFrequently: true,
 });
 
 let referenceData;
 let brightnessMap = null;
-const canvasContext = canvas.getContext("2d", { willReadFrequently: true }); // visible interface
-let sourceMode = "image"; // "image" | "video"
+const canvasContext = canvas.getContext("2d", { willReadFrequently: true });
 let imageHasAlpha = false;
+
+let sourceMode = "image"; // "image" | "video"
 let mediaWidth = 0;
 let mediaHeight = 0;
-let selectedFile = "example.jpg";
+let selectedFile = defaults.selectedFile;
+
 const blurPixels = 1;
 const maxWidth = 1280;
 
-let numPoints = numPointsSlider?.value || 1000;
-let minRadius = radiusRange?.minValue || 1;
-let maxRadius = radiusRange?.maxValue || 4;
-let uniformRadius = radiusSlider?.value || 1;
-
-let relaxSpeed = speedSlider?.value || 0.5;
+// Reads
+let numPoints = defaults.numPoints;
+let minRadius = defaults.minRadius;
+let maxRadius = defaults.maxRadius;
+let uniformRadius = defaults.uniformRadius;
+let relaxSpeed = defaults.relaxSpeed;
 let cacheSpeed = relaxSpeed;
-let cacheMinRadius;
+let cacheMinRadius = minRadius;
+let seedPreference = defaults.seedPreference;
+let sizePreference = defaults.sizePreference;
+let relaxPreference = defaults.relaxPreference;
+let relaxEnabled = defaults.relaxEnabled;
+let backgroundColor = defaults.backgroundColor;
+let pointColor = defaults.pointColor;
+let cellColor = defaults.cellColor;
+let seedsOn = defaults.seedsOn;
+let colorsOn = defaults.colorsOn;
+let cellsOn = defaults.cellsOn;
+let fillsOn = defaults.fillsOn;
 
-let seedPreference = seedSelect?.value || "none"; // "dark" | "light" | "none"
-let sizePreference = sizeSelect?.value || "dark"; // "dark" | "light" | "none"
-let relaxPreference = relaxSelect?.value || "dark"; // "dark" | "light"
-
-let relaxEnabled = false;
-let isRunning = false;
-let videoPlaying = false;
-let backgroundColor = backgroundColorBtn?.value || "#fff";
-let pointColor = pointColorBtn?.value || "#000";
-let lineColor = lineColorBtn?.value || "#000";
-
-// Media source (image/video) state
+// --- Video state ---
 let activeVideo = null;
+let videoPlaying = false;
 let currentMediaUrl = null;
 let lastVideoSample = 0;
 const videoSampleHz = 24;
 const videoSampleInterval = 1000 / videoSampleHz;
 
-const presets = [
-  {
-    name: "Suit up",
-    src: "examples/suitup.jpg",
-    type: "image",
-    settings: {
-      numPoints: 2000,
-      seedPreference: "none",
-      sizePreference: "dark",
-      relaxPreference: "dark",
-      minRadius: 1,
-      maxRadius: 10,
-      uniformRadius: 2,
-      backgroundColor: "#ffffff",
-      pointColor: "#000000",
-      relaxEnabled: true,
-      relaxSpeed: 0.1,
-      seedsOn: true,
-      colorsOn: false,
-      cellsOn: false,
-      fillsOn: false,
-    },
-  },
-  {
-    name: "AR-15",
-    src: "examples/ar15.jpg",
-    type: "image",
-    settings: {
-      numPoints: 1000,
-      seedPreference: "dark",
-      relaxPreference: "dark",
-      sizePreference: "none",
-      minRadius: 1,
-      maxRadius: 3,
-      uniformRadius: 3,
-      backgroundColor: "#aa0000",
-      pointColor: "#ffffff",
-      lineColor: "#ffaaaa22",
-      relaxEnabled: true,
-      relaxSpeed: 0.1,
-      seedsOn: true,
-      colorsOn: false,
-      cellsOn: true,
-      fillsOn: false,
-    },
-  },
-  {
-    name: "Gulf Coast",
-    src: "examples/skimboard.mov",
-    type: "video",
-    settings: {
-      numPoints: 5000,
-      seedPreference: "none",
-      relaxPreference: "light",
-      sizePreference: "light",
-      minRadius: 2,
-      maxRadius: 8,
-      uniformRadius: 8,
-      backgroundColor: "#000000",
-      pointColor: "#ffffff",
-      relaxEnabled: true,
-      relaxSpeed: 1,
-      seedsOn: true,
-      colorsOn: true,
-      cellsOn: false,
-      fillsOn: false,
-    },
-  },
-];
-
-// Utility / helpers
 function chooseRandomPreset(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
@@ -226,7 +252,6 @@ function buildBrightnessMapComposited(data, w, h, bgHex) {
 }
 
 function rebuildBrightnessMapIfNeeded() {
-  // only for images, only if the image actually has alpha
   if (sourceMode !== "image") return;
   if (!referenceData || canvas.width <= 0 || canvas.height <= 0) return;
 
@@ -251,7 +276,6 @@ function getBrightnessAtPoint(data, w, h, x, y) {
   if (sourceMode === "image" && brightnessMap) {
     return brightnessMap[iy * w + ix];
   }
-  // video OR non-alpha image: original behavior
   const idx = (iy * w + ix) * 4;
   return 0.2126 * data[idx] + 0.7152 * data[idx + 1] + 0.0722 * data[idx + 2];
 }
@@ -391,7 +415,7 @@ function loadImage(img) {
   renderFrame();
 }
 
-// Quickly sample to see if frame is all zeros.
+// Sample to see if frame is all zeros.
 function looksBlankRGBA(data, stride = 2000) {
   if (!data || data.length < 4) return true;
 
@@ -401,14 +425,14 @@ function looksBlankRGBA(data, stride = 2000) {
   return true;
 }
 
-// waits for a DOM event
+// Waits for a DOM event
 function waitOnce(target, type) {
   return new Promise((res) =>
     target.addEventListener(type, res, { once: true }),
   );
 }
 
-// Attempts to wait for a decoded frame
+// Wait for a decoded frame
 function waitDecodedFrame(video, timeoutMs = 250) {
   const tickFallback = new Promise((res) =>
     requestAnimationFrame(() => requestAnimationFrame(res)),
@@ -474,8 +498,7 @@ async function loadVideo(video) {
   renderFrame();
 }
 
-// Seeding / relaxation / voronoi
-
+// Engine
 function seedPoints() {
   const start = performance.now();
   if (!referenceData || canvas.width <= 0 || canvas.height <= 0) return;
@@ -580,11 +603,6 @@ function renderFrame() {
   canvasContext.fillStyle = backgroundColor;
   canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
-  const seedsOn = isOn(seedToggle, true);
-  const colorsOn = isOn(colorToggle, false);
-  const cellsOn = isOn(cellToggle, false);
-  const fillsOn = isOn(fillToggle, false);
-
   const w = canvas.width;
   const h = canvas.height;
   const data = referenceData;
@@ -593,7 +611,7 @@ function renderFrame() {
     const cells = Array.from(voronoi.cellPolygons());
 
     if (cellsOn) {
-      canvasContext.strokeStyle = lineColor;
+      canvasContext.strokeStyle = cellColor;
     }
 
     for (let i = 0; i < cells.length; i++) {
@@ -1120,8 +1138,8 @@ pointColorBtn?.addEventListener("input", () => {
   pointColor = pointColorBtn.value;
   renderFrame();
 });
-lineColorBtn?.addEventListener("input", () => {
-  lineColor = lineColorBtn.value;
+cellColorBtn?.addEventListener("input", () => {
+  cellColor = cellColorBtn.value;
   renderFrame();
 });
 
@@ -1218,45 +1236,41 @@ function setDisabled(btn, disabled) {
   }
 }
 
-function toggle(btn, defaultValue = false) {
-  const next = !isOn(btn, defaultValue);
-  setOn(btn, next);
-  return next;
-}
-
+// Keep those toggles in sync
 function syncButtonUI() {
-  const seedsOn = isOn(seedToggle, true);
-
   setOn(seedToggle, seedsOn);
-  setOn(cellToggle, isOn(cellToggle, false));
-  setOn(fillToggle, isOn(fillToggle, false));
-
+  setOn(cellToggle, cellsOn);
+  setOn(fillToggle, fillsOn);
   setDisabled(colorToggle, !seedsOn);
-  if (seedsOn) {
-    setOn(colorToggle, isOn(colorToggle, false));
+  if (!seedsOn) {
+    colorsOn = false;
   }
+  setOn(colorToggle, colorsOn);
 }
 
 syncButtonUI();
 
 seedToggle?.addEventListener("click", () => {
-  toggle(seedToggle, true);
-  syncButtonUI();
+  seedsOn = !seedsOn;
+  syncButtonUI(); // sync seed color button too
   renderFrame();
 });
 
 cellToggle?.addEventListener("click", () => {
-  toggle(cellToggle, false);
+  cellsOn = !cellsOn;
+  setOn(cellToggle, cellsOn);
   renderFrame();
 });
 
 colorToggle?.addEventListener("click", () => {
-  toggle(colorToggle, false);
+  colorsOn = !colorsOn;
+  setOn(colorToggle, colorsOn);
   renderFrame();
 });
 
 fillToggle?.addEventListener("click", () => {
-  toggle(fillToggle, false);
+  fillsOn = !fillsOn;
+  setOn(fillToggle, fillsOn);
   renderFrame();
 });
 
@@ -1369,10 +1383,10 @@ async function loadPresetMedia(preset) {
   loadImage(img);
 }
 
-async function applyPreset(preset) {
+// Set all the values and update the UI to match
+async function applyPresetOverride(preset) {
   const s = preset.settings ?? {};
 
-  // Make sure web components are upgraded before setting .value/.minValue/.maxValue
   await Promise.all([
     customElements.whenDefined("wa-input"),
     customElements.whenDefined("wa-select"),
@@ -1381,7 +1395,6 @@ async function applyPreset(preset) {
     customElements.whenDefined("wa-button"),
   ]);
 
-  // ---------- 1) Apply STATE from preset (authoritative) ----------
   if (s.numPoints != null) numPoints = s.numPoints;
 
   if (s.seedPreference) seedPreference = s.seedPreference;
@@ -1395,7 +1408,7 @@ async function applyPreset(preset) {
 
   if (s.backgroundColor) backgroundColor = s.backgroundColor;
   if (s.pointColor) pointColor = s.pointColor;
-  if (s.lineColor) lineColor = s.lineColor;
+  if (s.cellColor) cellColor = s.cellColor;
 
   if (sizePreference === "none") {
     if (s.uniformRadius != null) {
@@ -1409,20 +1422,14 @@ async function applyPreset(preset) {
     uniformRadius = maxRadius;
   }
 
-  // ---------- 2) Push STATE into UI ----------
   if (numPointsSlider) numPointsSlider.value = String(numPoints);
-
   if (seedSelect) seedSelect.value = seedPreference;
   if (sizeSelect) sizeSelect.value = sizePreference;
   if (relaxSelect) relaxSelect.value = relaxPreference;
-
   if (speedSlider) speedSlider.value = String(relaxSpeed);
-
   if (backgroundColorBtn) backgroundColorBtn.value = backgroundColor;
   if (pointColorBtn) pointColorBtn.value = pointColor;
-  if (lineColorBtn) lineColorBtn.value = lineColor;
-
-  // Radius UI values (set both, regardless of which is visible)
+  if (cellColorBtn) cellColorBtn.value = cellColor;
   if (radiusRange) {
     radiusRange.minValue = String(minRadius);
     radiusRange.maxValue = String(maxRadius);
@@ -1431,32 +1438,35 @@ async function applyPreset(preset) {
     radiusSlider.value = String(uniformRadius);
   }
 
-  if (s.seedsOn != null) setOn(seedToggle, !!s.seedsOn);
-  if (s.colorsOn != null) setOn(colorToggle, !!s.colorsOn);
-  if (s.cellsOn != null) setOn(cellToggle, !!s.cellsOn);
-  if (s.fillsOn != null) setOn(fillToggle, !!s.fillsOn);
+  if ("seedsOn" in s) seedsOn = !!s.seedsOn;
+  setOn(seedToggle, seedsOn);
+
+  if ("colorsOn" in s) colorsOn = !!s.colorsOn;
+  setOn(colorToggle, colorsOn);
+
+  if ("cellsOn" in s) cellsOn = !!s.cellsOn;
+  setOn(cellToggle, cellsOn);
+
+  if ("fillsOn" in s) fillsOn = !!s.fillsOn;
+  setOn(fillToggle, fillsOn);
 
   syncButtonUI();
   syncRadiusUI();
-
   document.documentElement.style.setProperty(
     "--stage-background",
     backgroundColor,
   );
-
   rebuildBrightnessMapIfNeeded();
-
   await loadPresetMedia(preset);
-
   if (s.relaxEnabled != null) setRelaxEnabled(!!s.relaxEnabled);
 }
 
-// Initialization
+// Initialize
 async function setup() {
-  const preset = chooseRandomPreset(presets);
-  await applyPreset(preset);
+  const presetOverride = chooseRandomPreset(presetOverrides);
+  await applyPresetOverride(presetOverride);
 
-  if (preset?.settings?.relaxEnabled == null) setRelaxEnabled(true);
+  if (presetOverride?.settings?.relaxEnabled == null) setRelaxEnabled(true);
 
   app.classList.remove("loading");
   app.classList.add("ready");

@@ -84,62 +84,48 @@
               <div class="controlCard pickerWidth">
                 <div class="colorPickers">
                   <wa-color-picker id="backgroundColorBtn" label="Canvas"
-                    placement="left" hoist
-                    value="#FFFFFF" size="small"
+                    placement="left" hoist size="small"
                     swatches="#000; #fff"></wa-color-picker>
                   <wa-color-picker id="pointColorBtn" label="Seeds"
-                    value="#000000" size="small"
-                    swatches="#000; #fff"></wa-color-picker>
-                  <wa-color-picker id="lineColorBtn" label="Cells"
-                    value="#000000" size="small"
-                    swatches="#000; #fff"></wa-color-picker>
+                    size="small" swatches="#000; #fff"></wa-color-picker>
+                  <wa-color-picker id="cellColorBtn" label="Cells"
+                    size="small" swatches="#000; #fff"></wa-color-picker>
                 </div>
               </div>
 
               <div class="controlCard showToggles" id="cardToStart">
                 <div class="togglesGrid">
                   <wa-button appearance="filled" id="seedToggle"
-                    class="leftToggle"
-                    aria-pressed="true">Seeds</wa-button>
+                    class="leftToggle">Seeds</wa-button>
                   <wa-button appearance="filled" id="colorToggle"
-                    class="rightToggle"
-                    aria-pressed="false">Color</wa-button>
+                    class="rightToggle">Color</wa-button>
                   <wa-button appearance="filled" id="cellToggle"
-                    class="leftToggle"
-                    aria-pressed="false">Cells</wa-button>
+                    class="leftToggle">Cells</wa-button>
                   <wa-button appearance="filled" id="fillToggle"
-                    class="rightToggle"
-                    aria-pressed="false">Fill</wa-button>
+                    class="rightToggle">Fill</wa-button>
                 </div>
               </div>
 
               <div class="controlCard sliderWidth">
-                <wa-slider with-tooltip
-                  id="numPointsSlider"
-                  label="Seed Count"
-                  min="1000"
-                  max="30000"
-                  value="5000"
-                  step="1000">
-                </wa-slider>
+                <wa-slider with-tooltip id="numPointsSlider" label="Seed Count"
+                  min="1000" max="30000" step="1000"></wa-slider>
               </div>
 
               <div class="controlCard">
                 <wa-select id="seedSelect" size="medium" label="Start from">
                   <wa-option value="dark" icon-placement="start"
-                    label="Dark Areas">Dark
-                    Areas</wa-option>
+                    label="Dark Areas">Dark Areas</wa-option>
                   <wa-option value="light" icon-placement="start"
                     label="Light Areas">Light Areas</wa-option>
                   <wa-option value="none" icon-placement="start"
-                    label="All Over" selected>All Over</wa-option>
+                    label="All Over">All Over</wa-option>
                 </wa-select>
               </div>
 
               <div class="controlCard">
                 <wa-select id="relaxSelect" size="medium" label="Gravitate to">
-                  <wa-option value="dark" label="Dark Areas"
-                    selected>Dark Areas</wa-option>
+                  <wa-option value="dark" label="Dark Areas">Dark
+                    Areas</wa-option>
                   <wa-option value="light" label="Light Areas">Light
                     Areas</wa-option>
                 </wa-select>
@@ -147,43 +133,21 @@
 
               <div class="controlCard">
                 <wa-select id="sizeSelect" size="medium" label="Size by">
-                  <wa-option value="dark" label="Darkness"
-                    selected>Darkness</wa-option>
-                  <wa-option value="light"
-                    label="Lightness">Lightness</wa-option>
-                  <wa-option value="none"
-                    label="Nothing">Nothing</wa-option>
+                  <wa-option value="dark" label="Darkness">Darkness</wa-option>
+                  <wa-option value="light" label="Lightness">Lightness</wa-option>
+                  <wa-option value="none" label="Nothing">Nothing</wa-option>
                 </wa-select>
               </div>
               <div class="controlCard sliderWidth">
-                <wa-slider range with-tooltip
-                  id="radiusRange"
-                  label="Seed Size"
-                  min="0"
-                  max="20"
-                  value="4"
-                  min-value="1"
-                  max-value="10"
-                  step="1"></wa-slider>
-                <wa-slider with-tooltip
-                  id="radiusSlider"
-                  label="Seed Size"
-                  min="0"
-                  max="20"
-                  value="2"
-                  step="1"
-                  style="display:none;">
-                </wa-slider>
+                <wa-slider range with-tooltip id="radiusRange" label="Seed Size"
+                  min="0" max="20" step="1"></wa-slider>
+                <wa-slider with-tooltip id="radiusSlider" label="Seed Size"
+                  min="0" max="20" step="1" style="display:none;"></wa-slider>
               </div>
 
               <div class="controlCard sliderWidth">
-                <wa-slider with-tooltip
-                  id="speedSlider"
-                  label="Speed"
-                  min="0"
-                  max="1"
-                  value="0.1"
-                  step="0.01"></wa-slider>
+                <wa-slider with-tooltip id="speedSlider" label="Speed" min="0"
+                  max="1" step="0.01"></wa-slider>
               </div>
 
               <div class="controlCard saveButtonCard"
