@@ -101,6 +101,7 @@ const presets = [
   {
     name: "Suit up",
     src: "examples/suitup.jpg",
+    type: "image",
     settings: {
       numPoints: 2000,
       seedPreference: "none",
@@ -122,6 +123,7 @@ const presets = [
   {
     name: "AR-15",
     src: "examples/ar15.jpg",
+    type: "image",
     settings: {
       numPoints: 1000,
       seedPreference: "dark",
@@ -132,10 +134,33 @@ const presets = [
       uniformRadius: 3,
       backgroundColor: "#aa0000",
       pointColor: "#ffffff",
+      lineColor: "#ffaaaa22",
       relaxEnabled: true,
       relaxSpeed: 0.1,
       seedsOn: true,
       colorsOn: false,
+      cellsOn: true,
+      fillsOn: false,
+    },
+  },
+  {
+    name: "Gulf Coast",
+    src: "examples/skimboard.mov",
+    type: "video",
+    settings: {
+      numPoints: 5000,
+      seedPreference: "none",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 2,
+      maxRadius: 8,
+      uniformRadius: 8,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      relaxEnabled: true,
+      relaxSpeed: 1,
+      seedsOn: true,
+      colorsOn: true,
       cellsOn: false,
       fillsOn: false,
     },
@@ -1269,42 +1294,79 @@ function handleImageUpload(file) {
   img.src = url;
 }
 
-function handleVideoUpload(file) {
+async function loadVideoFromUrl(
+  url,
+  { revokeOnDone = false, autoPlay = false } = {},
+) {
   stopLoop();
   cleanupActiveMedia();
 
-  const url = URL.createObjectURL(file);
-  currentMediaUrl = url;
-  const thisUrl = url;
+  const thisUrl = new URL(url, window.location.href).href;
+  currentMediaUrl = thisUrl;
 
   videoEl.preload = "metadata";
   videoEl.muted = true;
   videoEl.playsInline = true;
   videoEl.loop = true;
 
-  const onMeta = async () => {
-    if (videoEl.src !== thisUrl) return;
+  const done = new Promise((resolve, reject) => {
+    const onMeta = async () => {
+      if (videoEl.currentSrc !== thisUrl && videoEl.src !== thisUrl) return;
 
-    if (videoEl.readyState < 2) {
-      await new Promise((res) =>
-        videoEl.addEventListener("loadeddata", res, { once: true }),
-      );
-      if (videoEl.src !== thisUrl) return;
-    }
-    await loadVideo(videoEl);
-  };
+      try {
+        await loadVideo(videoEl);
 
-  const onErr = () => {
-    if (videoEl.src !== thisUrl) return;
-    cleanupActiveMedia();
-    alert("Failed to load video.");
-  };
+        if (autoPlay) {
+          setVideoPlaying(true);
+        }
 
-  videoEl.addEventListener("loadedmetadata", onMeta, { once: true });
-  videoEl.addEventListener("error", onErr, { once: true });
+        resolve();
+      } catch (e) {
+        reject(e);
+      }
+    };
 
-  videoEl.src = url;
+    const onErr = () => {
+      if (videoEl.currentSrc !== thisUrl && videoEl.src !== thisUrl) return;
+      cleanupActiveMedia();
+      reject(new Error("Failed to load video."));
+    };
+
+    videoEl.addEventListener("loadedmetadata", onMeta, { once: true });
+    videoEl.addEventListener("error", onErr, { once: true });
+  });
+
+  videoEl.src = thisUrl;
   videoEl.load();
+
+  try {
+    await done;
+  } finally {
+    if (revokeOnDone) URL.revokeObjectURL(url);
+  }
+}
+
+function handleVideoUpload(file) {
+  const url = URL.createObjectURL(file);
+  loadVideoFromUrl(url, { revokeOnDone: true, autoPlay: false }).catch(() => {
+    alert("Failed to load video.");
+  });
+}
+
+async function loadPresetMedia(preset) {
+  selectedFile = preset.src;
+  const url = `${import.meta.env.BASE_URL}${preset.src}`;
+
+  if (preset.type === "video") {
+    await loadVideoFromUrl(url, { autoPlay: true });
+    return;
+  }
+
+  enterImageMode();
+  const img = new Image();
+  img.src = url;
+  await waitOnce(img, "load");
+  loadImage(img);
 }
 
 async function applyPreset(preset) {
@@ -1384,19 +1446,7 @@ async function applyPreset(preset) {
 
   rebuildBrightnessMapIfNeeded();
 
-  await new Promise((resolve, reject) => {
-    enterImageMode();
-
-    const img = new Image();
-    img.onload = () => {
-      selectedFile = preset.src;
-      loadImage(img);
-      resolve();
-    };
-    img.onerror = reject;
-
-    img.src = `${import.meta.env.BASE_URL}${preset.src}`;
-  });
+  await loadPresetMedia(preset);
 
   if (s.relaxEnabled != null) setRelaxEnabled(!!s.relaxEnabled);
 }
