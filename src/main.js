@@ -80,7 +80,7 @@ const presetOverrides = [
       colorsOn: true,
     },
   },
-    {
+  {
     name: "Burlesque",
     src: "examples/burlesque.mov",
     type: "video",
@@ -98,7 +98,26 @@ const presetOverrides = [
       seedsOn: true,
       colorsOn: true,
     },
-  }
+  },
+  {
+    name: "Folklorica",
+    src: "examples/folklorica.jpg",
+    type: "image",
+    settings: {
+      numPoints: 15000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 7,
+      uniformRadius: 7,
+      backgroundColor: "#ffffff",
+      pointColor: "#000000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
 ];
 
 // DOM refs
