@@ -76,7 +76,8 @@ let maxRadius = radiusRange?.maxValue || 4;
 let uniformRadius = radiusSlider?.value || 1;
 
 let relaxSpeed = speedSlider?.value || 0.5;
-let speedStore = relaxSpeed;
+let cacheSpeed = relaxSpeed;
+let cacheMinRadius;
 
 let seedPreference = seedSelect?.value || "none"; // "dark" | "light" | "none"
 let sizePreference = sizeSelect?.value || "dark"; // "dark" | "light" | "none"
@@ -101,7 +102,7 @@ const presets = [
     name: "Suit up",
     src: "examples/suitup.jpg",
     settings: {
-      numPoints: 100,
+      numPoints: 2000,
       seedPreference: "none",
       sizePreference: "dark",
       relaxPreference: "dark",
@@ -122,15 +123,15 @@ const presets = [
     name: "AR-15",
     src: "examples/ar15.jpg",
     settings: {
-      numPoints: 20,
+      numPoints: 1000,
       seedPreference: "dark",
       relaxPreference: "dark",
       sizePreference: "none",
       minRadius: 1,
-      maxRadius: 10,
-      uniformRadius: 2,
+      maxRadius: 3,
+      uniformRadius: 3,
       backgroundColor: "#aa0000",
-      pointColor: "#000000",
+      pointColor: "#ffffff",
       relaxEnabled: true,
       relaxSpeed: 0.1,
       seedsOn: true,
@@ -662,7 +663,6 @@ window.addEventListener("resize", scheduleFitCanvas);
 function syncRadiusValuesUI() {
   if (sizePreference === "none") {
     uniformRadius = radiusSlider.value;
-
     maxRadius = uniformRadius;
     radiusRange.maxValue = maxRadius;
     return;
@@ -670,7 +670,7 @@ function syncRadiusValuesUI() {
 
   minRadius = radiusRange.minValue;
   maxRadius = radiusRange.maxValue;
-
+  cacheMinRadius = minRadius;
   uniformRadius = maxRadius;
   radiusSlider.value = uniformRadius;
 }
@@ -735,7 +735,13 @@ function setSeedPreference(next) {
 
 function setSizePreference(next) {
   if (next === sizePreference) return;
+  const prev = sizePreference;
   sizePreference = next;
+
+  if (prev === "none" && next !== "none") {
+    minRadius = cacheMinRadius;
+    radiusRange.minValue = String(minRadius);
+  }
 
   syncRadiusUI();
   renderFrame();
@@ -923,7 +929,7 @@ function enterVideoMode(video) {
   lastVideoSample = 0;
   relaxEnabled = true;
 
-  if (prevMode !== "video") speedStore = relaxSpeed;
+  if (prevMode !== "video") cacheSpeed = relaxSpeed;
   relaxSpeed = 1;
 
   if (speedSlider) {
@@ -944,7 +950,7 @@ function enterImageMode() {
   activeVideo = null;
   relaxEnabled = false;
 
-  relaxSpeed = speedStore;
+  relaxSpeed = cacheSpeed;
   if (speedSlider) {
     speedSlider.value = relaxSpeed;
     speedSlider.disabled = false;
@@ -1052,7 +1058,7 @@ speedSlider?.addEventListener("input", () => {
   if (sourceMode === "video") return;
 
   relaxSpeed = speedSlider.value;
-  speedStore = relaxSpeed;
+  cacheSpeed = relaxSpeed;
   getVoronoi();
   renderFrame();
 });
@@ -1301,65 +1307,67 @@ function handleVideoUpload(file) {
   videoEl.load();
 }
 
-function clampInt(v, min, max, fallback) {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.max(min, Math.min(max, Math.floor(n)));
-}
-
-function clampNum(v, min, max, fallback) {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.max(min, Math.min(max, n));
-}
-
-function loadPresetImage(src) {
-  return new Promise((resolve, reject) => {
-    enterImageMode();
-
-    const img = new Image();
-    img.onload = () => {
-      selectedFile = src;
-      loadImage(img);
-      resolve();
-    };
-    img.onerror = reject;
-
-    img.src = `${import.meta.env.BASE_URL}${src}`;
-  });
-}
-
 async function applyPreset(preset) {
+  const s = preset.settings ?? {};
+
+  // Make sure web components are upgraded before setting .value/.minValue/.maxValue
   await Promise.all([
+    customElements.whenDefined("wa-input"),
     customElements.whenDefined("wa-select"),
     customElements.whenDefined("wa-slider"),
     customElements.whenDefined("wa-color-picker"),
     customElements.whenDefined("wa-button"),
   ]);
 
-  const s = preset?.settings ?? {};
+  // ---------- 1) Apply STATE from preset (authoritative) ----------
+  if (s.numPoints != null) numPoints = s.numPoints;
 
-  if (numPointsSlider && s.numPoints != null)
-    numPointsSlider.value = String(s.numPoints);
+  if (s.seedPreference) seedPreference = s.seedPreference;
+  if (s.sizePreference) sizePreference = s.sizePreference;
+  if (s.relaxPreference) relaxPreference = s.relaxPreference;
 
-  if (seedSelect && s.seedPreference) seedSelect.value = s.seedPreference;
-  if (relaxSelect && s.relaxPreference) relaxSelect.value = s.relaxPreference;
-  if (sizeSelect && s.sizePreference) sizeSelect.value = s.sizePreference;
-
-  if (radiusRange) {
-    if (s.minRadius != null) radiusRange.minValue = String(s.minRadius);
-    if (s.maxRadius != null) radiusRange.maxValue = String(s.maxRadius);
+  if (s.relaxSpeed != null) {
+    relaxSpeed = s.relaxSpeed;
+    cacheSpeed = relaxSpeed;
   }
-  if (radiusSlider && s.uniformRadius != null)
-    radiusSlider.value = String(s.uniformRadius);
 
-  if (speedSlider && s.relaxSpeed != null)
-    speedSlider.value = String(s.relaxSpeed);
+  if (s.backgroundColor) backgroundColor = s.backgroundColor;
+  if (s.pointColor) pointColor = s.pointColor;
+  if (s.lineColor) lineColor = s.lineColor;
 
-  if (backgroundColorBtn && s.backgroundColor)
-    backgroundColorBtn.value = s.backgroundColor;
-  if (pointColorBtn && s.pointColor) pointColorBtn.value = s.pointColor;
-  if (lineColorBtn && s.lineColor) lineColorBtn.value = s.lineColor;
+  if (sizePreference === "none") {
+    if (s.uniformRadius != null) {
+      uniformRadius = s.uniformRadius;
+      cacheMinRadius = s.minRadius;
+      maxRadius = uniformRadius;
+    }
+  } else {
+    if (s.minRadius != null) minRadius = s.minRadius;
+    if (s.maxRadius != null) maxRadius = s.maxRadius;
+    uniformRadius = maxRadius;
+  }
+
+  // ---------- 2) Push STATE into UI ----------
+  if (numPointsSlider) numPointsSlider.value = String(numPoints);
+
+  if (seedSelect) seedSelect.value = seedPreference;
+  if (sizeSelect) sizeSelect.value = sizePreference;
+  if (relaxSelect) relaxSelect.value = relaxPreference;
+
+  if (speedSlider) speedSlider.value = String(relaxSpeed);
+
+  if (backgroundColorBtn) backgroundColorBtn.value = backgroundColor;
+  if (pointColorBtn) pointColorBtn.value = pointColor;
+  if (lineColorBtn) lineColorBtn.value = lineColor;
+
+  // Radius UI values (set both, regardless of which is visible)
+  if (radiusRange) {
+    radiusRange.minValue = String(minRadius);
+    radiusRange.maxValue = String(maxRadius);
+  }
+  if (radiusSlider) {
+    radiusSlider.value = String(uniformRadius);
+  }
 
   if (s.seedsOn != null) setOn(seedToggle, !!s.seedsOn);
   if (s.colorsOn != null) setOn(colorToggle, !!s.colorsOn);
@@ -1367,38 +1375,7 @@ async function applyPreset(preset) {
   if (s.fillsOn != null) setOn(fillToggle, !!s.fillsOn);
 
   syncButtonUI();
-
-  await Promise.allSettled([
-    numPointsSlider?.updateComplete,
-    seedSelect?.updateComplete,
-    sizeSelect?.updateComplete,
-    relaxSelect?.updateComplete,
-    radiusRange?.updateComplete,
-    radiusSlider?.updateComplete,
-    speedSlider?.updateComplete,
-    backgroundColorBtn?.updateComplete,
-    pointColorBtn?.updateComplete,
-    lineColorBtn?.updateComplete,
-  ]);
-
-  numPoints = clampInt(numPointsSlider?.value, 1, 30000, 5000);
-
-  seedPreference = seedSelect?.value ?? "none";
-  relaxPreference = relaxSelect?.value ?? "dark";
-  sizePreference = sizeSelect?.value ?? "dark";
-
   syncRadiusUI();
-
-  minRadius = clampNum(radiusRange?.minValue, 0, 20, 1);
-  maxRadius = clampNum(radiusRange?.maxValue, 0, 20, 10);
-  uniformRadius = clampNum(radiusSlider?.value, 0, 20, 2);
-
-  relaxSpeed = clampNum(speedSlider?.value, 0, 1, 0.1);
-  speedStore = relaxSpeed;
-
-  backgroundColor = backgroundColorBtn?.value ?? "#ffffff";
-  pointColor = pointColorBtn?.value ?? "#000000";
-  lineColor = lineColorBtn?.value ?? "#000000";
 
   document.documentElement.style.setProperty(
     "--stage-background",
@@ -1407,9 +1384,21 @@ async function applyPreset(preset) {
 
   rebuildBrightnessMapIfNeeded();
 
-  await loadPresetImage(preset.src);
+  await new Promise((resolve, reject) => {
+    enterImageMode();
 
-  setRelaxEnabled(!!s.relaxEnabled);
+    const img = new Image();
+    img.onload = () => {
+      selectedFile = preset.src;
+      loadImage(img);
+      resolve();
+    };
+    img.onerror = reject;
+
+    img.src = `${import.meta.env.BASE_URL}${preset.src}`;
+  });
+
+  if (s.relaxEnabled != null) setRelaxEnabled(!!s.relaxEnabled);
 }
 
 // Initialization
@@ -1417,7 +1406,7 @@ async function setup() {
   const preset = chooseRandomPreset(presets);
   await applyPreset(preset);
 
-  setRelaxEnabled(true);
+  if (preset?.settings?.relaxEnabled == null) setRelaxEnabled(true);
 
   app.classList.remove("loading");
   app.classList.add("ready");
