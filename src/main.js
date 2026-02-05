@@ -252,7 +252,7 @@ const presetOverrides = [
       cellColor: "#ffffff",
       relaxSpeed: 0.3,
       seedsOn: true,
-      colorsOn: true
+      colorsOn: true,
     },
   },
 ];
@@ -639,13 +639,10 @@ async function loadVideo(video) {
   );
   referenceCanvas.width = w;
   referenceCanvas.height = h;
-
-  if (blurPixels > 0) {
-    referenceContext.filter = `blur(${blurPixels}px)`;
-  }
-
   canvas.width = w;
   canvas.height = h;
+
+  referenceContext.filter = blurPixels > 0 ? `blur(${blurPixels}px)` : "none";
 
   sampleCurrentVideoFrame();
 
@@ -1631,8 +1628,8 @@ async function applyPresetOverride(preset) {
     backgroundColor,
   );
   rebuildBrightnessMapIfNeeded();
-  await loadPresetMedia(preset);
   if (s.relaxEnabled != null) setRelaxEnabled(!!s.relaxEnabled);
+  await loadPresetMedia(preset);
 }
 
 // Initialize
