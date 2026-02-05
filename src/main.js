@@ -320,7 +320,7 @@ const maxWidth = 1280;
 
 let activeVideo = null;
 let videoPlaying = false;
-let currentMediaUrl = null;
+let currentBlobUrl = null;
 let lastVideoSample = 0;
 const videoSampleHz = 24;
 const videoSampleInterval = 1000 / videoSampleHz;
@@ -482,8 +482,6 @@ function cleanupActiveMedia() {
     videoEl.pause();
     videoEl.removeAttribute("src");
     videoEl.load();
-
-    // these lines don't affect addEventListener listeners, only property handlers
     videoEl.onloadedmetadata = null;
     videoEl.onerror = null;
   }
@@ -492,10 +490,8 @@ function cleanupActiveMedia() {
   videoPlaying = false;
   lastVideoSample = 0;
 
-  if (currentMediaUrl && currentMediaUrl.startsWith("blob:")) {
-    URL.revokeObjectURL(currentMediaUrl);
-  }
-  currentMediaUrl = null;
+  if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+  currentBlobUrl = null;
 }
 
 function refreshSourcePixels(now, force = false) {
@@ -524,6 +520,12 @@ function sampleCurrentVideoFrame() {
 
   referenceContext.drawImage(activeVideo, 0, 0, w, h);
   referenceData = referenceContext.getImageData(0, 0, w, h).data;
+}
+
+function seedAndDraw() {
+  seedPoints();
+  getVoronoi();
+  renderFrame();
 }
 
 function loadImage(img) {
@@ -582,9 +584,7 @@ function loadImage(img) {
   imageHasAlpha = detectAnyAlpha(referenceData);
   rebuildBrightnessMapIfNeeded();
 
-  seedPoints();
-  getVoronoi();
-  renderFrame();
+  seedAndDraw();
 }
 
 // Sample to see if frame is all zeros.
@@ -662,9 +662,7 @@ async function loadVideo(video) {
     }
   }
 
-  seedPoints();
-  getVoronoi();
-  renderFrame();
+  seedAndDraw();
 }
 
 // Engine
@@ -901,10 +899,7 @@ function syncControlsButton() {
 
 function setSeedPreference(next) {
   seedPreference = next;
-
-  seedPoints();
-  getVoronoi();
-  renderFrame();
+  seedAndDraw();
 }
 
 function setSizePreference(next) {
@@ -1160,9 +1155,7 @@ function resetScene() {
 
     sampleCurrentVideoFrame();
 
-    seedPoints();
-    getVoronoi();
-    renderFrame();
+    seedAndDraw();
 
     syncPlayButtonUI();
     updateLoopRunning();
@@ -1171,9 +1164,7 @@ function resetScene() {
 
   // Image mode behavior
   setRelaxEnabled(false);
-  seedPoints();
-  getVoronoi();
-  renderFrame();
+  seedAndDraw();
 }
 
 function scrollToCardInCarousel(card) {
@@ -1221,7 +1212,7 @@ document.addEventListener("keydown", (e) => {
 
 // If focus goes into the carousel
 controlCarousel?.addEventListener("focusin", (e) => {
-  openControls();
+  setControlsOpen(true);
 });
 
 mediaUploadDialog?.addEventListener("change", (e) => {
@@ -1241,9 +1232,7 @@ mediaUploadDialog?.addEventListener("change", (e) => {
 
 numPointsSlider?.addEventListener("input", () => {
   numPoints = numPointsSlider.value;
-  seedPoints();
-  getVoronoi();
-  renderFrame();
+  seedAndDraw();
 });
 
 speedSlider?.addEventListener("input", () => {
@@ -1299,14 +1288,8 @@ seedSelect?.addEventListener("change", () => {
 });
 
 // The dreaded controlPane (scroll/swipe to open/close)
-function openControls() {
-  app.classList.add("controls-open");
-  syncControlsButton();
-  requestAnimationFrame(fitCanvas);
-}
-
-function closeControls() {
-  app.classList.remove("controls-open");
+function setControlsOpen(open) {
+  app.classList.toggle("controls-open", open);
   syncControlsButton();
   requestAnimationFrame(fitCanvas);
 }
@@ -1317,8 +1300,8 @@ uploadButton?.addEventListener("click", () => {
 });
 
 optionsButton?.addEventListener("click", () => {
-  if (app.classList.contains("controls-open")) closeControls();
-  else openControls();
+  if (app.classList.contains("controls-open")) setControlsOpen(false)();
+  else setControlsOpen(true);
 });
 
 resetButton?.addEventListener("click", resetScene);
@@ -1327,8 +1310,8 @@ canvasStage?.addEventListener(
   "wheel",
   (e) => {
     if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
-    if (e.deltaY > 15) openControls();
-    if (e.deltaY < -15) closeControls();
+    if (e.deltaY > 15) setControlsOpen(true);
+    if (e.deltaY < -15) setControlsOpen(false)();
   },
   { passive: true },
 );
@@ -1356,8 +1339,8 @@ canvasStage?.addEventListener(
     const dx = t.clientX - touchStartX;
 
     if (Math.abs(dy) > Math.abs(dx) * 1.5) {
-      if (dy < -50) openControls();
-      if (dy > 50) closeControls();
+      if (dy < -50) setControlsOpen(true);
+      if (dy > 50) setControlsOpen(false)();
     }
 
     touchStartY = null;
@@ -1365,11 +1348,6 @@ canvasStage?.addEventListener(
   },
   { passive: true },
 );
-
-function isOn(btn, defaultValue = false) {
-  if (!btn) return defaultValue;
-  return btn.getAttribute("aria-pressed") === "true";
-}
 
 function setOn(btn, on) {
   if (!btn) return;
@@ -1447,12 +1425,12 @@ function handleImageUpload(file) {
     enterImageMode();
     loadImage(img);
     URL.revokeObjectURL(url);
-    if (currentMediaUrl === url) currentMediaUrl = null;
+    if (currentBlobUrl === url) currentBlobUrl = null;
   };
 
   img.onerror = () => {
     URL.revokeObjectURL(url);
-    if (currentMediaUrl === url) currentMediaUrl = null;
+    if (currentBlobUrl === url) currentBlobUrl = null;
     alert("Failed to load image.");
   };
 
@@ -1464,10 +1442,7 @@ async function loadVideoFromUrl(url, { autoPlay = false } = {}) {
   cleanupActiveMedia();
 
   const thisUrl = new URL(url, window.location.href).href;
-  currentMediaUrl = thisUrl;
-
-  // remember if this is a blob URL so cleanup can revoke it later
-  currentMediaUrl = thisUrl.startsWith("blob:") ? thisUrl : null;
+  currentBlobUrl = thisUrl.startsWith("blob:") ? thisUrl : null;
 
   videoEl.preload = "metadata";
   videoEl.muted = true;
