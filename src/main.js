@@ -350,10 +350,16 @@ function chooseRandomPreset(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-function computeWorkingSize(mediaW, mediaH, maxW = 960) {
-  if (mediaW <= maxW) return { w: mediaW, h: mediaH };
-  const scale = maxW / mediaW;
-  return { w: Math.round(mediaW * scale), h: Math.round(mediaH * scale) };
+function computeWorkingSize(sourceW, sourceH, maxSize) {
+  const scale = maxSize / Math.max(sourceW, sourceH);
+
+  const w = Math.round(sourceW * scale);
+  const h = Math.round(sourceH * scale);
+
+  return {
+    w: Math.max(1, w),
+    h: Math.max(1, h),
+  };
 }
 
 function hexToRgb(hex) {
@@ -538,32 +544,25 @@ function loadImage(img) {
     animationFrameId = null;
   }
 
-  setMediaSize(img.naturalWidth, img.naturalHeight);
-  const scale = maxWidth / img.naturalWidth;
-  const drawWidth = maxWidth;
-  const drawHeight = Math.round(img.naturalHeight * scale);
+  const { w, h } = computeWorkingSize(img.naturalWidth, img.naturalHeight, maxWidth);
+  setMediaSize(w, h);
 
-  referenceCanvas.width = drawWidth;
-  referenceCanvas.height = drawHeight;
-  canvas.width = drawWidth;
-  canvas.height = drawHeight;
+  referenceCanvas.width = w;
+  referenceCanvas.height = h;
+  canvas.width = w;
+  canvas.height = h;
 
   // Blurring seemed so easy, but it ruins edge opacity
   if (blurPixels > 0) {
     referenceContext.filter = "none";
-    referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
-    const clearData = referenceContext.getImageData(
-      0,
-      0,
-      drawWidth,
-      drawHeight,
-    ).data;
+    referenceContext.drawImage(img, 0, 0, w, h);
+    const clearData = referenceContext.getImageData(0, 0, w, h).data;
 
     referenceContext.filter = `blur(${blurPixels}px)`;
-    referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
+    referenceContext.drawImage(img, 0, 0, w, h);
     referenceContext.filter = "none";
 
-    const blur = referenceContext.getImageData(0, 0, drawWidth, drawHeight);
+    const blur = referenceContext.getImageData(0, 0, w, h);
     const blurData = blur.data;
 
     for (let i = 3; i < blurData.length; i += 4) blurData[i] = clearData[i];
@@ -572,13 +571,8 @@ function loadImage(img) {
     referenceData = blurData;
   } else {
     referenceContext.filter = "none";
-    referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
-    referenceData = referenceContext.getImageData(
-      0,
-      0,
-      canvas.width,
-      canvas.height,
-    ).data;
+    referenceContext.drawImage(img, 0, 0, w, h);
+    referenceData = referenceContext.getImageData(0, 0, w, h).data;
   }
 
   imageHasAlpha = detectAnyAlpha(referenceData);
@@ -628,13 +622,15 @@ async function loadVideo(video) {
   brightnessMap = null;
   imageHasAlpha = false;
   enterVideoMode(video);
-  setMediaSize(video.videoWidth, video.videoHeight);
 
   const { w, h } = computeWorkingSize(
     video.videoWidth,
     video.videoHeight,
     maxWidth,
   );
+
+  setMediaSize(w, h);
+
   referenceCanvas.width = w;
   referenceCanvas.height = h;
   canvas.width = w;
@@ -1300,7 +1296,7 @@ uploadButton?.addEventListener("click", () => {
 });
 
 optionsButton?.addEventListener("click", () => {
-  if (app.classList.contains("controls-open")) setControlsOpen(false)();
+  if (app.classList.contains("controls-open")) setControlsOpen(false);
   else setControlsOpen(true);
 });
 
@@ -1311,7 +1307,7 @@ canvasStage?.addEventListener(
   (e) => {
     if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
     if (e.deltaY > 15) setControlsOpen(true);
-    if (e.deltaY < -15) setControlsOpen(false)();
+    if (e.deltaY < -15) setControlsOpen(false);
   },
   { passive: true },
 );
@@ -1340,7 +1336,7 @@ canvasStage?.addEventListener(
 
     if (Math.abs(dy) > Math.abs(dx) * 1.5) {
       if (dy < -50) setControlsOpen(true);
-      if (dy > 50) setControlsOpen(false)();
+      if (dy > 50) setControlsOpen(false);
     }
 
     touchStartY = null;
