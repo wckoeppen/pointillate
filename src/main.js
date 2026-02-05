@@ -1464,15 +1464,15 @@ function handleImageUpload(file) {
   img.src = url;
 }
 
-async function loadVideoFromUrl(
-  url,
-  { revokeOnDone = false, autoPlay = false } = {},
-) {
+async function loadVideoFromUrl(url, { autoPlay = false } = {}) {
   stopLoop();
   cleanupActiveMedia();
 
   const thisUrl = new URL(url, window.location.href).href;
   currentMediaUrl = thisUrl;
+
+  // remember if this is a blob URL so cleanup can revoke it later
+  currentMediaUrl = thisUrl.startsWith("blob:") ? thisUrl : null;
 
   videoEl.preload = "metadata";
   videoEl.muted = true;
@@ -1485,11 +1485,7 @@ async function loadVideoFromUrl(
 
       try {
         await loadVideo(videoEl);
-
-        if (autoPlay) {
-          setVideoPlaying(true);
-        }
-
+        if (autoPlay) setVideoPlaying(true);
         resolve();
       } catch (e) {
         reject(e);
@@ -1509,16 +1505,12 @@ async function loadVideoFromUrl(
   videoEl.src = thisUrl;
   videoEl.load();
 
-  try {
-    await done;
-  } finally {
-    if (revokeOnDone) URL.revokeObjectURL(url);
-  }
+  await done;
 }
 
 function handleVideoUpload(file) {
   const url = URL.createObjectURL(file);
-  loadVideoFromUrl(url, { revokeOnDone: true, autoPlay: false }).catch(() => {
+  loadVideoFromUrl(url, { autoPlay: false }).catch(() => {
     alert("Failed to load video.");
   });
 }
