@@ -35,16 +35,16 @@ const defaults = {
 };
 
 const presetOverrides = [
-  // {
-  //   name: "Suit up",
-  //   src: "examples/example-suitup.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 2000,
-  //     seedPreference: "none",
-  //     maxRadius: 10,
-  //   },
-  // },
+  {
+    name: "Suit up",
+    src: "examples/example-suitup.jpg",
+    type: "image",
+    settings: {
+      numPoints: 2000,
+      seedPreference: "none",
+      maxRadius: 10,
+    },
+  },
   {
     name: "Suit up and explode",
     src: "examples/example-suitup.jpg",
@@ -63,198 +63,198 @@ const presetOverrides = [
       relaxSpeed: 0.1,
     },
   },
-  // {
-  //   name: "Gulf Coast",
-  //   src: "examples/example-skimboard.mp4",
-  //   type: "video",
-  //   settings: {
-  //     numPoints: 5000,
-  //     seedPreference: "none",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 2,
-  //     maxRadius: 8,
-  //     uniformRadius: 8,
-  //     backgroundColor: "#000000",
-  //     pointColor: "#ffffff",
-  //     cellColor: "#000000",
-  //     relaxSpeed: 1,
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Burlesque",
-  //   src: "examples/example-burlesque.mp4",
-  //   type: "video",
-  //   settings: {
-  //     numPoints: 1000,
-  //     seedPreference: "light",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 2,
-  //     maxRadius: 20,
-  //     uniformRadius: 20,
-  //     backgroundColor: "#000000",
-  //     pointColor: "#ffffff",
-  //     relaxSpeed: 1,
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Folklorica",
-  //   src: "examples/example-folklorica.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 15000,
-  //     seedPreference: "none",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 1,
-  //     maxRadius: 7,
-  //     uniformRadius: 7,
-  //     backgroundColor: "#ffffff",
-  //     pointColor: "#000000",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Becky and Ashley",
-  //   src: "examples/example-dance.mp4",
-  //   type: "video",
-  //   settings: {
-  //     numPoints: 1000,
-  //     seedPreference: "none",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 0,
-  //     maxRadius: 12,
-  //     uniformRadius: 12,
-  //     backgroundColor: "#9ae398",
-  //     pointColor: "#000000",
-  //     cellColor: "#66df77",
-  //     relaxSpeed: 1,
-  //     seedsOn: true,
-  //     cellsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Mudcracks",
-  //   src: "examples/example-mudcracks.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 7000,
-  //     seedPreference: "none",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 1,
-  //     maxRadius: 5,
-  //     uniformRadius: 5,
-  //     backgroundColor: "#ffb978",
-  //     pointColor: "#000000",
-  //     relaxSpeed: 0.1,
-  //     seedsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Taylor",
-  //   src: "examples/example-taylor.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 12000,
-  //     seedPreference: "none",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 1,
-  //     maxRadius: 4,
-  //     uniformRadius: 4,
-  //     backgroundColor: "#00123c",
-  //     pointColor: "#ffffff",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Moon",
-  //   src: "examples/example-moon.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 8000,
-  //     seedPreference: "light",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 1,
-  //     maxRadius: 5,
-  //     uniformRadius: 5,
-  //     backgroundColor: "#000000",
-  //     pointColor: "#ffffff",
-  //     cellColor: "#aa0000",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Center Ridge",
-  //   src: "examples/example-centerridge.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 8000,
-  //     seedPreference: "none",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 1,
-  //     maxRadius: 11,
-  //     uniformRadius: 11,
-  //     backgroundColor: "#e5eaef",
-  //     pointColor: "#000000",
-  //     cellColor: "#000000",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Center Ridge 2",
-  //   src: "examples/example-centerridge-2.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 8000,
-  //     seedPreference: "none",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 1,
-  //     maxRadius: 11,
-  //     uniformRadius: 11,
-  //     backgroundColor: "#e5eaef",
-  //     pointColor: "#000000",
-  //     cellColor: "#000000",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Liberty",
-  //   src: "examples/example-liberty.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 12000,
-  //     seedPreference: "dark",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 2,
-  //     maxRadius: 6,
-  //     uniformRadius: 6,
-  //     backgroundColor: "#f6f7ff",
-  //     pointColor: "#000000",
-  //     cellColor: "#ffffff",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //     colorsOn: true
-  //   },
-  // },
+  {
+    name: "Gulf Coast",
+    src: "examples/example-skimboard.mp4",
+    type: "video",
+    settings: {
+      numPoints: 5000,
+      seedPreference: "none",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 2,
+      maxRadius: 8,
+      uniformRadius: 8,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      cellColor: "#000000",
+      relaxSpeed: 1,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+  {
+    name: "Burlesque",
+    src: "examples/example-burlesque.mp4",
+    type: "video",
+    settings: {
+      numPoints: 1000,
+      seedPreference: "light",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 2,
+      maxRadius: 20,
+      uniformRadius: 20,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      relaxSpeed: 1,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+  {
+    name: "Folklorica",
+    src: "examples/example-folklorica.jpg",
+    type: "image",
+    settings: {
+      numPoints: 15000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 7,
+      uniformRadius: 7,
+      backgroundColor: "#ffffff",
+      pointColor: "#000000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+  {
+    name: "Becky and Ashley",
+    src: "examples/example-dance.mp4",
+    type: "video",
+    settings: {
+      numPoints: 1000,
+      seedPreference: "none",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 0,
+      maxRadius: 12,
+      uniformRadius: 12,
+      backgroundColor: "#9ae398",
+      pointColor: "#000000",
+      cellColor: "#66df77",
+      relaxSpeed: 1,
+      seedsOn: true,
+      cellsOn: true,
+    },
+  },
+  {
+    name: "Mudcracks",
+    src: "examples/example-mudcracks.jpg",
+    type: "image",
+    settings: {
+      numPoints: 7000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 5,
+      uniformRadius: 5,
+      backgroundColor: "#ffb978",
+      pointColor: "#000000",
+      relaxSpeed: 0.1,
+      seedsOn: true,
+    },
+  },
+  {
+    name: "Taylor",
+    src: "examples/example-taylor.jpg",
+    type: "image",
+    settings: {
+      numPoints: 12000,
+      seedPreference: "none",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 1,
+      maxRadius: 4,
+      uniformRadius: 4,
+      backgroundColor: "#00123c",
+      pointColor: "#ffffff",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+    },
+  },
+  {
+    name: "Moon",
+    src: "examples/example-moon.jpg",
+    type: "image",
+    settings: {
+      numPoints: 8000,
+      seedPreference: "light",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 1,
+      maxRadius: 5,
+      uniformRadius: 5,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      cellColor: "#aa0000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+    },
+  },
+  {
+    name: "Center Ridge",
+    src: "examples/example-centerridge.jpg",
+    type: "image",
+    settings: {
+      numPoints: 8000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 11,
+      uniformRadius: 11,
+      backgroundColor: "#e5eaef",
+      pointColor: "#000000",
+      cellColor: "#000000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+    },
+  },
+  {
+    name: "Center Ridge 2",
+    src: "examples/example-centerridge-2.jpg",
+    type: "image",
+    settings: {
+      numPoints: 8000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 11,
+      uniformRadius: 11,
+      backgroundColor: "#e5eaef",
+      pointColor: "#000000",
+      cellColor: "#000000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+  {
+    name: "Liberty",
+    src: "examples/example-liberty.jpg",
+    type: "image",
+    settings: {
+      numPoints: 12000,
+      seedPreference: "dark",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 2,
+      maxRadius: 6,
+      uniformRadius: 6,
+      backgroundColor: "#f6f7ff",
+      pointColor: "#000000",
+      cellColor: "#ffffff",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+      colorsOn: true
+    },
+  },
 ];
 
 // DOM refs
@@ -539,52 +539,49 @@ function loadImage(img) {
   }
 
   setMediaSize(img.naturalWidth, img.naturalHeight);
-  let drawWidth = img.naturalWidth;
-  let drawHeight = img.naturalHeight;
-
-  const scale = maxWidth / img.width;
-  drawWidth = maxWidth;
-  drawHeight = img.height * scale;
+  const scale = maxWidth / img.naturalWidth;
+  const drawWidth = maxWidth;
+  const drawHeight = Math.round(img.naturalHeight * scale);
 
   referenceCanvas.width = drawWidth;
   referenceCanvas.height = drawHeight;
+  canvas.width = drawWidth;
+  canvas.height = drawHeight;
 
   // Blurring seemed so easy, but it ruins edge opacity
   if (blurPixels > 0) {
     referenceContext.filter = "none";
     referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
-    const unblurredData = referenceContext.getImageData(0, 0, drawWidth, drawHeight).data;
+    const clearData = referenceContext.getImageData(
+      0,
+      0,
+      drawWidth,
+      drawHeight,
+    ).data;
 
-    referenceContext.clearRect(0, 0, drawWidth, drawHeight);
     referenceContext.filter = `blur(${blurPixels}px)`;
     referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
-    const blurred = referenceContext.getImageData(0, 0, drawWidth, drawHeight);
+    referenceContext.filter = "none";
 
-    const d = blurred.data;
-    for (let i = 3; i < d.length; i += 4) {
-      d[i] = unblurredData[i];
-    }
+    const blur = referenceContext.getImageData(0, 0, drawWidth, drawHeight);
+    const blurData = blur.data;
 
-    referenceContext.putImageData(blurred, 0, 0);
-    referenceData = d;
+    for (let i = 3; i < blurData.length; i += 4) blurData[i] = clearData[i];
+
+    referenceContext.putImageData(blur, 0, 0);
+    referenceData = blurData;
+  } else {
+    referenceContext.filter = "none";
+    referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
+    referenceData = referenceContext.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    ).data;
   }
 
-  canvas.width = drawWidth;
-  canvas.height = drawHeight;
-
-  referenceContext.drawImage(img, 0, 0, drawWidth, drawHeight);
-
-  referenceData = referenceContext.getImageData(
-    0,
-    0,
-    canvas.width,
-    canvas.height,
-  ).data;
-
-  console.log(referenceData);
-
   imageHasAlpha = detectAnyAlpha(referenceData);
-  if (imageHasAlpha) console.log("sub-255 alpha values detected");
   rebuildBrightnessMapIfNeeded();
 
   seedPoints();
