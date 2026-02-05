@@ -35,164 +35,164 @@ const defaults = {
 };
 
 const presetOverrides = [
-  // {
-  //   name: "Suit up",
-  //   src: "examples/example-suitup.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 2000,
-  //     seedPreference: "none",
-  //     maxRadius: 10,
-  //   },
-  // },
-  // {
-  //   name: "Suit up and explode",
-  //   src: "examples/example-suitup.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 10000,
-  //     seedPreference: "dark",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 1,
-  //     maxRadius: 10,
-  //     uniformRadius: 10,
-  //     backgroundColor: "#330033",
-  //     pointColor: "#ffffff",
-  //     seedsOn: true,
-  //     relaxSpeed: 0.1,
-  //   },
-  // },
-  // {
-  //   name: "Gulf Coast",
-  //   src: "examples/example-skimboard.mp4",
-  //   type: "video",
-  //   settings: {
-  //     numPoints: 5000,
-  //     seedPreference: "none",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 2,
-  //     maxRadius: 8,
-  //     uniformRadius: 8,
-  //     backgroundColor: "#000000",
-  //     pointColor: "#ffffff",
-  //     cellColor: "#000000",
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Burlesque",
-  //   src: "examples/example-burlesque.mp4",
-  //   type: "video",
-  //   settings: {
-  //     numPoints: 1000,
-  //     seedPreference: "light",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 2,
-  //     maxRadius: 20,
-  //     backgroundColor: "#000000",
-  //     pointColor: "#ffffff",
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Folklorica",
-  //   src: "examples/example-folklorica.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 15000,
-  //     seedPreference: "none",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 1,
-  //     maxRadius: 7,
-  //     uniformRadius: 7,
-  //     backgroundColor: "#ffffff",
-  //     pointColor: "#000000",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Becky and Ashley",
-  //   src: "examples/example-dance.mp4",
-  //   type: "video",
-  //   settings: {
-  //     numPoints: 1000,
-  //     seedPreference: "none",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 0,
-  //     maxRadius: 12,
-  //     uniformRadius: 12,
-  //     backgroundColor: "#9ae398",
-  //     pointColor: "#000000",
-  //     cellColor: "#66df77",
-  //     relaxSpeed: 1,
-  //     seedsOn: true,
-  //     cellsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Mudcracks",
-  //   src: "examples/example-mudcracks.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 7000,
-  //     seedPreference: "none",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 1,
-  //     maxRadius: 5,
-  //     uniformRadius: 5,
-  //     backgroundColor: "#ffb978",
-  //     pointColor: "#000000",
-  //     relaxSpeed: 0.1,
-  //     seedsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Taylor",
-  //   src: "examples/example-taylor.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 12000,
-  //     seedPreference: "none",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 1,
-  //     maxRadius: 4,
-  //     uniformRadius: 4,
-  //     backgroundColor: "#00123c",
-  //     pointColor: "#ffffff",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Moon",
-  //   src: "examples/example-moon.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 8000,
-  //     seedPreference: "light",
-  //     relaxPreference: "light",
-  //     sizePreference: "light",
-  //     minRadius: 1,
-  //     maxRadius: 5,
-  //     uniformRadius: 5,
-  //     backgroundColor: "#000000",
-  //     pointColor: "#ffffff",
-  //     cellColor: "#aa0000",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //   },
-  // },
+  {
+    name: "Suit up",
+    src: "examples/example-suitup.jpg",
+    type: "image",
+    settings: {
+      numPoints: 2000,
+      seedPreference: "none",
+      maxRadius: 10,
+    },
+  },
+  {
+    name: "Suit up and explode",
+    src: "examples/example-suitup.jpg",
+    type: "image",
+    settings: {
+      numPoints: 10000,
+      seedPreference: "dark",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 1,
+      maxRadius: 10,
+      uniformRadius: 10,
+      backgroundColor: "#330033",
+      pointColor: "#ffffff",
+      seedsOn: true,
+      relaxSpeed: 0.1,
+    },
+  },
+  {
+    name: "Gulf Coast",
+    src: "examples/example-skimboard.mp4",
+    type: "video",
+    settings: {
+      numPoints: 5000,
+      seedPreference: "none",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 2,
+      maxRadius: 8,
+      uniformRadius: 8,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      cellColor: "#000000",
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+  {
+    name: "Burlesque",
+    src: "examples/example-burlesque.mp4",
+    type: "video",
+    settings: {
+      numPoints: 1000,
+      seedPreference: "light",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 2,
+      maxRadius: 20,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+  {
+    name: "Folklorica",
+    src: "examples/example-folklorica.jpg",
+    type: "image",
+    settings: {
+      numPoints: 15000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 7,
+      uniformRadius: 7,
+      backgroundColor: "#ffffff",
+      pointColor: "#000000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+  {
+    name: "Becky and Ashley",
+    src: "examples/example-dance.mp4",
+    type: "video",
+    settings: {
+      numPoints: 1000,
+      seedPreference: "none",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 0,
+      maxRadius: 12,
+      uniformRadius: 12,
+      backgroundColor: "#9ae398",
+      pointColor: "#000000",
+      cellColor: "#66df77",
+      relaxSpeed: 1,
+      seedsOn: true,
+      cellsOn: true,
+    },
+  },
+  {
+    name: "Mudcracks",
+    src: "examples/example-mudcracks.jpg",
+    type: "image",
+    settings: {
+      numPoints: 7000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 5,
+      uniformRadius: 5,
+      backgroundColor: "#ffb978",
+      pointColor: "#000000",
+      relaxSpeed: 0.1,
+      seedsOn: true,
+    },
+  },
+  {
+    name: "Taylor",
+    src: "examples/example-taylor.jpg",
+    type: "image",
+    settings: {
+      numPoints: 12000,
+      seedPreference: "none",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 1,
+      maxRadius: 4,
+      uniformRadius: 4,
+      backgroundColor: "#00123c",
+      pointColor: "#ffffff",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+    },
+  },
+  {
+    name: "Moon",
+    src: "examples/example-moon.jpg",
+    type: "image",
+    settings: {
+      numPoints: 8000,
+      seedPreference: "light",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 1,
+      maxRadius: 5,
+      uniformRadius: 5,
+      backgroundColor: "#000000",
+      pointColor: "#ffffff",
+      cellColor: "#aa0000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+    },
+  },
   {
     name: "Center Ridge",
     src: "examples/example-centerridge.jpg",
@@ -211,46 +211,46 @@ const presetOverrides = [
       seedsOn: true,
     },
   },
-  // {
-  //   name: "Center Ridge 2",
-  //   src: "examples/example-centerridge-2.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 8000,
-  //     seedPreference: "none",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 1,
-  //     maxRadius: 11,
-  //     uniformRadius: 11,
-  //     backgroundColor: "#e5eaef",
-  //     pointColor: "#000000",
-  //     cellColor: "#000000",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
-  // {
-  //   name: "Liberty",
-  //   src: "examples/example-liberty.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 12000,
-  //     seedPreference: "dark",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 2,
-  //     maxRadius: 6,
-  //     uniformRadius: 6,
-  //     backgroundColor: "#f6f7ff",
-  //     pointColor: "#000000",
-  //     cellColor: "#ffffff",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //     colorsOn: true,
-  //   },
-  // },
+  {
+    name: "Center Ridge 2",
+    src: "examples/example-centerridge-2.jpg",
+    type: "image",
+    settings: {
+      numPoints: 8000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 11,
+      uniformRadius: 11,
+      backgroundColor: "#e5eaef",
+      pointColor: "#000000",
+      cellColor: "#000000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
+  {
+    name: "Liberty",
+    src: "examples/example-liberty.jpg",
+    type: "image",
+    settings: {
+      numPoints: 12000,
+      seedPreference: "dark",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 2,
+      maxRadius: 6,
+      uniformRadius: 6,
+      backgroundColor: "#f6f7ff",
+      pointColor: "#000000",
+      cellColor: "#ffffff",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+      colorsOn: true,
+    },
+  },
 ];
 
 // DOM refs
@@ -444,9 +444,10 @@ function getColor(data, width, height, x, y) {
   return { r, g, b };
 }
 
-function getWeightAtPoint(data, w, h, x, y) {
+function getWeightAtPoint(data, w, h, x, y, sizePreference) {
   const brightness = getBrightnessAtPoint(data, w, h, x, y); // 0..255
-  return 1 - brightness / 255; // 0..1 darkness
+  const weightFn = toneResponse[sizePreference];
+  return Math.max(0, Math.min(1, weightFn(brightness)));
 }
 
 function getColorStringAtPoint(data, w, h, x, y) {
@@ -1023,9 +1024,9 @@ function updateLoopRunning() {
 // Save / export
 
 function getBasename(filename) {
-  return filename.lastIndexOf(".") !== -1
-    ? selectedFile.slice(0, selectedFile.lastIndexOf("."))
-    : selectedFile;
+  const name = filename.split("/").pop();
+  const dot = name.lastIndexOf(".");
+  return dot !== -1 ? name.slice(0, dot) : name;
 }
 
 function downloadJson(filename, metadata) {
@@ -1052,26 +1053,20 @@ function saveJSON() {
   const data = referenceContext.getImageData(0, 0, w, h).data;
 
   const useUniform = sizePreference === "none";
-  const sizeFn = toneResponse[sizePreference];
   const radiusSpan = maxRadius - minRadius;
 
   const exported = currentPoints.map((p, i) => {
-    const x = p[0];
-    const y = p[1];
+    const [x, y] = p;
 
-    const weight = getWeightAtPoint(data, w, h, x, y);
+    const weight = getWeightAtPoint(data, w, h, x, y, sizePreference);
+
+    const radius = useUniform
+      ? uniformRadius
+      : minRadius + weight * weight * radiusSpan;
+
     const color = getColorStringAtPoint(data, w, h, x, y);
 
-    let radius;
-    if (useUniform) {
-      radius = uniformRadius;
-    } else {
-      const brightness = getBrightnessAtPoint(data, w, h, x, y);
-      const brightnessFraction = sizeFn(brightness);
-      radius = minRadius + brightnessFraction * brightnessFraction * radiusSpan;
-    }
-
-    return { i, x, y, weight, radius, color };
+    return { x, y, weight, radius, color };
   });
 
   const settings = {
