@@ -82,24 +82,23 @@ const presetOverrides = [
   //     colorsOn: true,
   //   },
   // },
-  {
-    name: "Burlesque",
-    src: "examples/example-burlesque.mp4",
-    type: "video",
-    settings: {
-      numPoints: 1000,
-      seedPreference: "light",
-      relaxPreference: "light",
-      sizePreference: "light",
-      minRadius: 2,
-      maxRadius: 20,
-      uniformRadius: 20,
-      backgroundColor: "#000000",
-      pointColor: "#ffffff",
-      seedsOn: true,
-      colorsOn: true,
-    },
-  },
+  // {
+  //   name: "Burlesque",
+  //   src: "examples/example-burlesque.mp4",
+  //   type: "video",
+  //   settings: {
+  //     numPoints: 1000,
+  //     seedPreference: "light",
+  //     relaxPreference: "light",
+  //     sizePreference: "light",
+  //     minRadius: 2,
+  //     maxRadius: 20,
+  //     backgroundColor: "#000000",
+  //     pointColor: "#ffffff",
+  //     seedsOn: true,
+  //     colorsOn: true,
+  //   },
+  // },
   // {
   //   name: "Folklorica",
   //   src: "examples/example-folklorica.jpg",
@@ -194,25 +193,24 @@ const presetOverrides = [
   //     seedsOn: true,
   //   },
   // },
-  // {
-  //   name: "Center Ridge",
-  //   src: "examples/example-centerridge.jpg",
-  //   type: "image",
-  //   settings: {
-  //     numPoints: 8000,
-  //     seedPreference: "none",
-  //     relaxPreference: "dark",
-  //     sizePreference: "dark",
-  //     minRadius: 1,
-  //     maxRadius: 11,
-  //     uniformRadius: 11,
-  //     backgroundColor: "#e5eaef",
-  //     pointColor: "#000000",
-  //     cellColor: "#000000",
-  //     relaxSpeed: 0.3,
-  //     seedsOn: true,
-  //   },
-  // },
+  {
+    name: "Center Ridge",
+    src: "examples/example-centerridge.jpg",
+    type: "image",
+    settings: {
+      numPoints: 8000,
+      seedPreference: "none",
+      relaxPreference: "dark",
+      sizePreference: "dark",
+      minRadius: 1,
+      maxRadius: 11,
+      backgroundColor: "#e5eaef",
+      pointColor: "#000000",
+      cellColor: "#000000",
+      relaxSpeed: 0.3,
+      seedsOn: true,
+    },
+  },
   // {
   //   name: "Center Ridge 2",
   //   src: "examples/example-centerridge-2.jpg",
@@ -320,14 +318,19 @@ let selectedFile = defaults.selectedFile;
 const blurPixels = 1;
 const maxWidth = 1280;
 
+let activeVideo = null;
+let videoPlaying = false;
+let currentMediaUrl = null;
+let lastVideoSample = 0;
+const videoSampleHz = 24;
+const videoSampleInterval = 1000 / videoSampleHz;
+
 // Reads
 let numPoints = defaults.numPoints;
 let minRadius = defaults.minRadius;
 let maxRadius = defaults.maxRadius;
 let uniformRadius = defaults.uniformRadius;
 let relaxSpeed = defaults.relaxSpeed;
-let cacheSpeed = relaxSpeed;
-let cacheMinRadius = minRadius;
 let seedPreference = defaults.seedPreference;
 let sizePreference = defaults.sizePreference;
 let relaxPreference = defaults.relaxPreference;
@@ -340,13 +343,8 @@ let colorsOn = defaults.colorsOn;
 let cellsOn = defaults.cellsOn;
 let fillsOn = defaults.fillsOn;
 
-// --- Video state ---
-let activeVideo = null;
-let videoPlaying = false;
-let currentMediaUrl = null;
-let lastVideoSample = 0;
-const videoSampleHz = 24;
-const videoSampleInterval = 1000 / videoSampleHz;
+// Cache variables
+let cacheSpeed = relaxSpeed;
 
 function chooseRandomPreset(list) {
   return list[Math.floor(Math.random() * list.length)];
@@ -479,11 +477,12 @@ function drawPoint(drawcanvasContext, x, y, color = "black", radius = 1) {
 // Media / image handling
 
 function cleanupActiveMedia() {
-  // Stop any video decode/network work immediately
   if (videoEl) {
     videoEl.pause();
     videoEl.removeAttribute("src");
     videoEl.load();
+
+    // these lines don't affect addEventListener listeners, only property handlers
     videoEl.onloadedmetadata = null;
     videoEl.onerror = null;
   }
@@ -492,10 +491,10 @@ function cleanupActiveMedia() {
   videoPlaying = false;
   lastVideoSample = 0;
 
-  if (currentMediaUrl) {
+  if (currentMediaUrl && currentMediaUrl.startsWith("blob:")) {
     URL.revokeObjectURL(currentMediaUrl);
-    currentMediaUrl = null;
   }
+  currentMediaUrl = null;
 }
 
 function refreshSourcePixels(now, force = false) {
@@ -870,44 +869,6 @@ function scheduleFitCanvas() {
 new ResizeObserver(scheduleFitCanvas).observe(controlPane);
 window.addEventListener("resize", scheduleFitCanvas);
 
-// UI sync / controls helpers
-
-function syncRadiusValuesUI() {
-  if (sizePreference === "none") {
-    uniformRadius = radiusSlider.value;
-    maxRadius = uniformRadius;
-    radiusRange.maxValue = maxRadius;
-    return;
-  }
-
-  minRadius = radiusRange.minValue;
-  maxRadius = radiusRange.maxValue;
-  cacheMinRadius = minRadius;
-  uniformRadius = maxRadius;
-  radiusSlider.value = uniformRadius;
-}
-
-function syncRadiusUI() {
-  if (sizePreference === "none") {
-    radiusSlider.value = maxRadius;
-    uniformRadius = maxRadius;
-
-    radiusRange.style.display = "none";
-    radiusSlider.style.display = "";
-    return;
-  }
-
-  if (minRadius > maxRadius) {
-    minRadius = maxRadius;
-  }
-
-  radiusRange.minValue = minRadius;
-  radiusRange.maxValue = maxRadius;
-
-  radiusSlider.style.display = "none";
-  radiusRange.style.display = "";
-}
-
 function syncPlayButtonUI() {
   const isVideo = sourceMode === "video";
   const on = isVideo ? videoPlaying : relaxEnabled;
@@ -947,15 +908,43 @@ function setSeedPreference(next) {
 
 function setSizePreference(next) {
   if (next === sizePreference) return;
+
   const prev = sizePreference;
   sizePreference = next;
 
-  if (prev === "none" && next !== "none") {
-    minRadius = cacheMinRadius;
-    radiusRange.minValue = String(minRadius);
+  if (prev !== "none" && next === "none") {
+    uniformRadius = Math.ceil((minRadius + maxRadius) / 2);
+    radiusSlider.value = uniformRadius;
+    radiusRange.style.display = "none";
+    radiusSlider.style.display = "";
+  } else if (prev === "none" && next !== "none") {
+    const span = 6; // make this even yo
+    const halfSpan = Math.floor(span / 2);
+
+    let lo = uniformRadius - halfSpan;
+    let hi = uniformRadius + halfSpan;
+
+    const rangeMin = Number(radiusRange.min);
+    const rangeMax = Number(radiusRange.max);
+    if (lo < rangeMin) {
+      lo = rangeMin;
+      hi = rangeMin + span;
+    }
+
+    if (hi > rangeMax) {
+      hi = rangeMax;
+      lo = rangeMax - span;
+    }
+
+    minRadius = lo;
+    radiusRange.minValue = minRadius;
+    maxRadius = hi;
+    radiusRange.maxValue = maxRadius;
+
+    radiusSlider.style.display = "none";
+    radiusRange.style.display = "";
   }
 
-  syncRadiusUI();
   renderFrame();
 }
 
@@ -989,10 +978,6 @@ function setVideoPlaying(next) {
 function togglePrimary() {
   if (sourceMode === "video") setVideoPlaying(!videoPlaying);
   else setRelaxEnabled(!relaxEnabled);
-}
-
-function syncVideoUI() {
-  // placeholder if additional video UI sync is needed
 }
 
 // Lifecycle / loop
@@ -1271,17 +1256,19 @@ speedSlider?.addEventListener("input", () => {
 
   relaxSpeed = speedSlider.value;
   cacheSpeed = relaxSpeed;
+
   getVoronoi();
   renderFrame();
 });
 
 radiusRange?.addEventListener("input", () => {
-  syncRadiusValuesUI();
+  minRadius = radiusRange.minValue;
+  maxRadius = radiusRange.maxValue;
   renderFrame();
 });
 
 radiusSlider?.addEventListener("input", () => {
-  syncRadiusValuesUI();
+  uniformRadius = radiusSlider.value;
   renderFrame();
 });
 
@@ -1582,29 +1569,26 @@ async function applyPresetOverride(preset) {
   if (sizePreference === "none") {
     if (s.uniformRadius != null) {
       uniformRadius = s.uniformRadius;
-      cacheMinRadius = s.minRadius;
-      maxRadius = uniformRadius;
     }
   } else {
     if (s.minRadius != null) minRadius = s.minRadius;
     if (s.maxRadius != null) maxRadius = s.maxRadius;
-    uniformRadius = maxRadius;
   }
 
-  if (numPointsSlider) numPointsSlider.value = String(numPoints);
+  if (numPointsSlider) numPointsSlider.value = numPoints;
   if (seedSelect) seedSelect.value = seedPreference;
   if (sizeSelect) sizeSelect.value = sizePreference;
   if (relaxSelect) relaxSelect.value = relaxPreference;
-  if (speedSlider) speedSlider.value = String(relaxSpeed);
+  if (speedSlider) speedSlider.value = relaxSpeed;
   if (backgroundColorBtn) backgroundColorBtn.value = backgroundColor;
   if (pointColorBtn) pointColorBtn.value = pointColor;
   if (cellColorBtn) cellColorBtn.value = cellColor;
   if (radiusRange) {
-    radiusRange.minValue = String(minRadius);
-    radiusRange.maxValue = String(maxRadius);
+    radiusRange.minValue = minRadius;
+    radiusRange.maxValue = maxRadius;
   }
   if (radiusSlider) {
-    radiusSlider.value = String(uniformRadius);
+    radiusSlider.value = uniformRadius;
   }
 
   if ("seedsOn" in s) seedsOn = !!s.seedsOn;
@@ -1620,18 +1604,15 @@ async function applyPresetOverride(preset) {
   setOn(fillToggle, fillsOn);
 
   syncButtonUI();
-  syncRadiusUI();
+
   document.documentElement.style.setProperty(
     "--stage-background",
     backgroundColor,
   );
   rebuildBrightnessMapIfNeeded();
   if (s.relaxEnabled != null) setRelaxEnabled(!!s.relaxEnabled);
-  console.log(cacheSpeed, relaxSpeed)
 
   await loadPresetMedia(preset);
-  console.log(cacheSpeed, relaxSpeed)
-
 }
 
 // Initialize
