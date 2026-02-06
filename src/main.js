@@ -56,7 +56,6 @@ const presetOverrides = [
       sizePreference: "light",
       minRadius: 1,
       maxRadius: 10,
-      uniformRadius: 10,
       backgroundColor: "#330033",
       pointColor: "#ffffff",
       seedsOn: true,
@@ -74,7 +73,6 @@ const presetOverrides = [
       sizePreference: "light",
       minRadius: 2,
       maxRadius: 8,
-      uniformRadius: 8,
       backgroundColor: "#000000",
       pointColor: "#ffffff",
       cellColor: "#000000",
@@ -110,7 +108,6 @@ const presetOverrides = [
       sizePreference: "dark",
       minRadius: 1,
       maxRadius: 7,
-      uniformRadius: 7,
       backgroundColor: "#ffffff",
       pointColor: "#000000",
       relaxSpeed: 0.3,
@@ -129,7 +126,6 @@ const presetOverrides = [
       sizePreference: "light",
       minRadius: 0,
       maxRadius: 12,
-      uniformRadius: 12,
       backgroundColor: "#9ae398",
       pointColor: "#000000",
       cellColor: "#66df77",
@@ -149,7 +145,6 @@ const presetOverrides = [
       sizePreference: "dark",
       minRadius: 1,
       maxRadius: 5,
-      uniformRadius: 5,
       backgroundColor: "#ffb978",
       pointColor: "#000000",
       relaxSpeed: 0.1,
@@ -167,7 +162,6 @@ const presetOverrides = [
       sizePreference: "light",
       minRadius: 1,
       maxRadius: 4,
-      uniformRadius: 4,
       backgroundColor: "#00123c",
       pointColor: "#ffffff",
       relaxSpeed: 0.3,
@@ -185,7 +179,6 @@ const presetOverrides = [
       sizePreference: "light",
       minRadius: 1,
       maxRadius: 5,
-      uniformRadius: 5,
       backgroundColor: "#000000",
       pointColor: "#ffffff",
       cellColor: "#aa0000",
@@ -222,7 +215,6 @@ const presetOverrides = [
       sizePreference: "dark",
       minRadius: 1,
       maxRadius: 11,
-      uniformRadius: 11,
       backgroundColor: "#e5eaef",
       pointColor: "#000000",
       cellColor: "#000000",
@@ -242,13 +234,30 @@ const presetOverrides = [
       sizePreference: "dark",
       minRadius: 2,
       maxRadius: 6,
-      uniformRadius: 6,
       backgroundColor: "#f6f7ff",
       pointColor: "#000000",
       cellColor: "#ffffff",
       relaxSpeed: 0.3,
       seedsOn: true,
       colorsOn: true,
+    },
+  },
+  {
+    name: "Skull",
+    src: "examples/example-skull.jpg",
+    type: "image",
+    settings: {
+      numPoints: 2000,
+      seedPreference: "light",
+      relaxPreference: "light",
+      sizePreference: "light",
+      minRadius: 2,
+      maxRadius: 6,
+      backgroundColor: "#111111",
+      pointColor: "#ffffff",
+      cellColor: "#ffffff",
+      relaxSpeed: 0.3,
+      seedsOn: true,
     },
   },
 ];
@@ -544,7 +553,11 @@ function loadImage(img) {
     animationFrameId = null;
   }
 
-  const { w, h } = computeWorkingSize(img.naturalWidth, img.naturalHeight, maxWidth);
+  const { w, h } = computeWorkingSize(
+    img.naturalWidth,
+    img.naturalHeight,
+    maxWidth,
+  );
   setMediaSize(w, h);
 
   referenceCanvas.width = w;
